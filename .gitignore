@@ -3,3 +3,5 @@ target/
 .bloop/
 project/target/
 
+.bsp/sbt.json
+project/project/project/metals.sbt

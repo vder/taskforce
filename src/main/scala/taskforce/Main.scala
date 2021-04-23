@@ -8,10 +8,12 @@ import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import doobie.hikari._
 import org.http4s.implicits._
 import org.http4s.server.blaze._
-import taskforce.BasicRoutes
+import taskforce.http.BasicRoutes
 import java.util.UUID
 import doobie.util.ExecutionContexts
 import taskforce.repository.LiveUserRepository
+import org.http4s.server.AuthMiddleware
+import taskforce.http.TaskForceAuthMiddleware
 
 object Main extends IOApp {
 
@@ -43,8 +45,9 @@ object Main extends IOApp {
         for {
           db <- LiveUserRepository.make[IO](xa)
           //auth <- TestAuth.make[IO](user)
-          auth <- LiveAuth.make[IO](db)
-          routes <- BasicRoutes.make[IO](auth)
+          authRepo <- LiveAuth.make[IO](db)
+          authMiddleware = TaskForceAuthMiddleware.middleware[IO](authRepo)
+          routes <- BasicRoutes.make[IO](authMiddleware)
           httpApp = (routes.routes).orNotFound
           _ <-
             BlazeServerBuilder[IO](global)

@@ -1,7 +1,7 @@
-package taskforce
+package taskforce.http
 
 import cats.implicits._
-//import org.http4s.HttpRoutes
+
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.Router
 import cats.effect.Sync
@@ -10,12 +10,13 @@ import cats.MonadError
 import dev.profunktor.auth.JwtAuthMiddleware
 import org.http4s.AuthedRoutes
 import taskforce.model.domain._
+import cats.Applicative
+import cats.Monad
+import org.http4s.server.AuthMiddleware
 
-final class BasicRoutes[F[_]: Defer: MonadError[*[_], Throwable]](
-    auth: Auth[F]
+final class BasicRoutes[F[_]: Defer: Applicative: Monad](
+    authMiddleware: AuthMiddleware[F, UserId]
 ) {
-
-  val middleware = JwtAuthMiddleware(auth.jwtAuth, auth.authenticate)
 
   private[this] val prefixPath = "/api/v1/"
 
@@ -32,13 +33,13 @@ final class BasicRoutes[F[_]: Defer: MonadError[*[_], Throwable]](
   }
 
   val routes = Router(
-    prefixPath -> middleware(httpRoutes)
+    prefixPath -> authMiddleware(httpRoutes)
   )
 }
 
 object BasicRoutes {
   def make[F[_]: Defer: MonadError[*[_], Throwable]: Sync](
-      auth: Auth[F]
+      authMiddleware: AuthMiddleware[F, UserId]
   ) =
-    Sync[F].delay { new BasicRoutes(auth) }
+    Sync[F].delay { new BasicRoutes(authMiddleware) }
 }
