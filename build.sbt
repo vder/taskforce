@@ -14,7 +14,7 @@ lazy val root = (project in file("."))
     flywayUrl := "jdbc:postgresql://localhost:54340/exchange",
     flywayUser := "vder",
     flywayPassword := "gordon",
-    packageName in Docker := "tf-dockerized",
+    Docker / packageName := "tf-dockerized",
     dockerExposedPorts ++= Seq(9090),
     dockerBaseImage := "openjdk:8-jre-alpine",
     dockerUpdateLatest := true,
@@ -25,6 +25,7 @@ lazy val root = (project in file("."))
       circe,
       circeExtras,
       circeDerivation,
+      circeRefined,
       flyway,
       doobie,
       doobiePostgres,
@@ -32,7 +33,8 @@ lazy val root = (project in file("."))
       slf4j,
       jwtAuth,
       circeParser,
-      doobieHikari
+      doobieHikari,
+      doobieRefined
     ),
     libraryDependencies ++= http4s,
     addCompilerPlugin(
