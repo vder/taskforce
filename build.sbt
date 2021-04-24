@@ -25,6 +25,7 @@ lazy val root = (project in file("."))
       circe,
       circeExtras,
       circeDerivation,
+      circeRefined,
       flyway,
       doobie,
       doobiePostgres,
@@ -32,7 +33,8 @@ lazy val root = (project in file("."))
       slf4j,
       jwtAuth,
       circeParser,
-      doobieHikari
+      doobieHikari,
+      doobieRefined
     ),
     libraryDependencies ++= http4s,
     addCompilerPlugin(

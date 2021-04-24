@@ -20,6 +20,8 @@ object Dependencies {
   lazy val circeExtras = "io.circe" %% "circe-generic-extras" % CirceVersion
   lazy val circeParser = "io.circe" %% "circe-parser" % CirceVersion
   lazy val circeDerivation = "io.circe" %% "circe-derivation" % "0.13.0-M4"
+  // https://mvnrepository.com/artifact/io.circe/circe-refined
+  lazy val circeRefined = "io.circe" %% "circe-refined" % CirceVersion
   lazy val flyway = "org.flywaydb" % "flyway-core" % flywayVersion
   lazy val jwtAuth = "dev.profunktor" %% "http4s-jwt-auth" % jwtAuthVersion
   lazy val http4s = Seq(
@@ -32,5 +34,7 @@ object Dependencies {
   lazy val doobie = "org.tpolecat" %% "doobie-core" % doobieVersion
   lazy val doobiePostgres = "org.tpolecat" %% "doobie-postgres" % doobieVersion
   lazy val doobieHikari = "org.tpolecat" %% "doobie-hikari" % doobieVersion
+  lazy val doobieRefined = "org.tpolecat" %% "doobie-refined" % doobieVersion
+
   lazy val catsEffect = "org.typelevel" %% "cats-effect" % catsEffVersion
 }

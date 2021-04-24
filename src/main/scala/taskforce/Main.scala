@@ -14,6 +14,9 @@ import doobie.util.ExecutionContexts
 import taskforce.repository.LiveUserRepository
 import org.http4s.server.AuthMiddleware
 import taskforce.http.TaskForceAuthMiddleware
+import taskforce.http.ProjectRoutes
+import taskforce.repository.ProjectRepository
+import taskforce.repository.LiveProjectRepository
 
 object Main extends IOApp {
 
@@ -44,15 +47,18 @@ object Main extends IOApp {
       .use { xa =>
         for {
           db <- LiveUserRepository.make[IO](xa)
-          //auth <- TestAuth.make[IO](user)
+          projectDb <- LiveProjectRepository.make[IO](xa)
           authRepo <- LiveAuth.make[IO](db)
           authMiddleware = TaskForceAuthMiddleware.middleware[IO](authRepo)
-          routes <- BasicRoutes.make[IO](authMiddleware)
-          httpApp = (routes.routes).orNotFound
+          basicRoutes <- BasicRoutes.make[IO](authMiddleware)
+          projectRoutes <- ProjectRoutes.make(authMiddleware, projectDb)
+          httpApp = (basicRoutes.routes <+> projectRoutes.routes).orNotFound
           _ <-
             BlazeServerBuilder[IO](global)
               .bindHttp(
-                port.getOrElse(args.head.toInt),
+                port.getOrElse(
+                  args.headOption.flatMap(_.toIntOption).getOrElse(9090)
+                ),
                 "0.0.0.0"
               )
               .withHttpApp(httpApp)

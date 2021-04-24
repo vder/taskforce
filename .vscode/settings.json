@@ -1,0 +1,17 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 54340,
+            "driver": "PostgreSQL",
+            "name": "taskforceDB",
+            "database": "exchange",
+            "username": "vder",
+            "password": "gordon"
+        }
+    ],
+    "files.watcherExclude": {
+        "**/target": true
+    }
+}
