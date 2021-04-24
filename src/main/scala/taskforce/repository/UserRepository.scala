@@ -14,19 +14,19 @@ import doobie.postgres._
 import doobie.postgres.implicits._
 
 trait UserRepository[F[_]] {
-  def validateUser(userId: UserId): F[Option[UserId]]
+  def getUser(userId: UserId): F[Option[UserId]]
+
 }
 
 final class LiveUserRepository[F[_]: Monad: Bracket[*[_], Throwable]](
     xa: Transactor[F]
 ) extends UserRepository[F] {
 
-  override def validateUser(userId: UserId): F[Option[UserId]] =
+  override def getUser(userId: UserId): F[Option[UserId]] =
     sql"select id from users where id =${userId.id}"
-      .query[UUID]
+      .query[UserId]
       .option
       .transact(xa)
-      .map(_.map(UserId.apply))
 
 }
 

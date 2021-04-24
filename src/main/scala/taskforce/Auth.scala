@@ -38,7 +38,7 @@ case class LiveAuth[F[_]: Sync](userRepo: UserRepository[F]) extends Auth[F] {
           json <- parse(c.content).toOption
           userId <- json.as[UserId].toOption
         } yield userId) match {
-          case Some(x) => userRepo.validateUser(x)
+          case Some(x) => userRepo.getUser(x)
           case None    => none.pure[F]
         }
 
