@@ -35,6 +35,7 @@ final class ProjectRoutes[
         } yield response
       case DELETE -> Root / IntVar(projectId) as userId =>
         for {
+          project <- projectRepo.getProject(projectId)
           projectList <- projectRepo.deleteProject(projectId)
           response <- Ok()
         } yield response
@@ -57,7 +58,7 @@ final class ProjectRoutes[
                     if x.getMessage.contains(
                       "unique constraint"
                     ) =>
-                  DuplicateNameError(newProject.name)
+                  DuplicateNameError(newProject.name.value)
               }
           response <- Created(project.asJson)
         } yield response
@@ -75,7 +76,7 @@ final class ProjectRoutes[
                     if x.getMessage.contains(
                       "unique constraint"
                     ) =>
-                  DuplicateNameError(newProject.name)
+                  DuplicateNameError(newProject.name.value)
               }
           response <- Ok(project.asJson)
         } yield response

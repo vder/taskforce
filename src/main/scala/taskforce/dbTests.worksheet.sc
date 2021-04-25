@@ -1,4 +1,12 @@
-import taskforce.model.domain
+import io.circe.Json.JString
+import io.circe.JsonObject
+import io.circe.Json.JObject
+import java.time.LocalDateTime
+import com.softwaremill.id.DefaultIdGenerator
+import com.softwaremill.id.pretty.PrettyIdGenerator
+import com.softwaremill.id.pretty.StringIdGenerator
+import java.time.Duration
+import taskforce.model.domain._
 import java.util.UUID
 import doobie._
 import doobie.implicits._
@@ -10,6 +18,17 @@ import cats.implicits._
 import fs2.Stream
 import doobie.postgres._
 import doobie.postgres.implicits._
+import eu.timepit.refined.api.Refined
+import eu.timepit.refined.numeric._
+import eu.timepit.refined._
+import java.time.Duration
+import eu.timepit.refined._
+import eu.timepit.refined.api.Refined
+import eu.timepit.refined.auto._
+import eu.timepit.refined.collection._
+import io.circe.syntax._
+import io.circe.Json
+import io.circe.parser._
 
 implicit val cs = IO.contextShift(ExecutionContexts.synchronous)
 
@@ -36,10 +55,63 @@ sql"select id from users where id ='5260ca29-a70b-494e-a3d6-55374a3b0a04'"
   .unsafeRunSync()
 
 val userId =
-  domain.UserId(UUID.fromString("5260ca29-a70b-494e-a3d6-55374a3b0a04"))
+  UserId(UUID.fromString("5260ca29-a70b-494e-a3d6-55374a3b0a04"))
 
 sql"select id from users where id = ${userId.id}"
   .query[UUID]
   .option
   .quick // IO[Unit]
   .unsafeRunSync()
+
+val opt: Option[Int] = Some(1)
+
+val opt1: Option[Int] = None
+
+opt.attempt
+opt1.attempt
+
+println("Sfs")
+
+val d = LocalDateTime.now()
+
+val dur: Duration = Duration.ofSeconds(10)
+
+d.plus(dur)
+
+implicit val td = Get[Long].tmap(x => TaskDuration(Duration.ofSeconds(x)))
+
+// final case class Task(
+//     id: TaskId,
+//     projectId: ProjectId,
+//     owner: UserId,
+//     created: LocalDateTime,
+//     duration: TaskDuration,
+//     volume: Option[Int Refined Positive],
+//     deleted: Option[LocalDateTime],
+//     comment: Option[NonEmptyString]
+// )
+val gen = PrettyIdGenerator.singleNode
+
+val task = Task(
+  TaskId("ddd"),
+  ProjectId(10),
+  userId,
+  LocalDateTime.now(),
+  TaskDuration(Duration.ofHours(1L)),
+  None,
+  None,
+  Some(refineMV[NonEmpty]("comment"))
+)
+
+task.asJson.noSpaces
+
+val taskDTO = NewTaskDTO(None, 5, 10, 4.some, "test".some)
+
+taskDTO.asJson.noSpaces
+
+userId.asJson.noSpaces
+
+val z = parse("""{
+    "projectId": 5}""").toOption.get
+
+z.noSpaces

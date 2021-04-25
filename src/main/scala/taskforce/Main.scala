@@ -15,8 +15,9 @@ import taskforce.repository.LiveUserRepository
 import org.http4s.server.AuthMiddleware
 import taskforce.http.TaskForceAuthMiddleware
 import taskforce.http.ProjectRoutes
-import taskforce.repository.ProjectRepository
-import taskforce.repository.LiveProjectRepository
+//import taskforce.repository.ProjectRepository
+import taskforce.repository._
+import taskforce.http.TaskRoutes
 
 object Main extends IOApp {
 
@@ -48,11 +49,14 @@ object Main extends IOApp {
         for {
           db <- LiveUserRepository.make[IO](xa)
           projectDb <- LiveProjectRepository.make[IO](xa)
+          taskDb <- LiveTaskRepository.make[IO](xa)
           authRepo <- LiveAuth.make[IO](db)
           authMiddleware = TaskForceAuthMiddleware.middleware[IO](authRepo)
           basicRoutes <- BasicRoutes.make[IO](authMiddleware)
           projectRoutes <- ProjectRoutes.make(authMiddleware, projectDb)
-          httpApp = (basicRoutes.routes <+> projectRoutes.routes).orNotFound
+          taskRoutes <- TaskRoutes.make(authMiddleware, projectDb, taskDb)
+          httpApp =
+            (basicRoutes.routes <+> projectRoutes.routes <+> taskRoutes.routes).orNotFound
           _ <-
             BlazeServerBuilder[IO](global)
               .bindHttp(

@@ -34,7 +34,8 @@ lazy val root = (project in file("."))
       jwtAuth,
       circeParser,
       doobieHikari,
-      doobieRefined
+      doobieRefined,
+      idGen
     ),
     libraryDependencies ++= http4s,
     addCompilerPlugin(
