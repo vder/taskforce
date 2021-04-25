@@ -10,6 +10,9 @@ object errors {
 
   case class NotAuthorError(userId: UserId) extends AppError
   case object BadRequestError extends AppError
-  case class DuplicateNameError(name: string.NonEmptyString) extends AppError
+  case class DuplicateNameError(name: String) extends AppError
+  case class TaskCreationError(name: String) extends AppError
+  case object WrongPeriodError extends AppError
+  case class InvalidTask(projectId: ProjectId, taskId: TaskId) extends AppError
 
 }

@@ -24,6 +24,9 @@ object Dependencies {
   lazy val circeRefined = "io.circe" %% "circe-refined" % CirceVersion
   lazy val flyway = "org.flywaydb" % "flyway-core" % flywayVersion
   lazy val jwtAuth = "dev.profunktor" %% "http4s-jwt-auth" % jwtAuthVersion
+  // https://mvnrepository.com/artifact/com.softwaremill.common/id-generator
+  lazy val idGen = "com.softwaremill.common" %% "id-generator" % "1.3.1"
+
   lazy val http4s = Seq(
     "org.http4s" %% "http4s-blaze-client" % Http4sVersion,
     "org.http4s" %% "http4s-blaze-server" % Http4sVersion,

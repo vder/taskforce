@@ -33,14 +33,15 @@ object TestAuth {
 case class LiveAuth[F[_]: Sync](userRepo: UserRepository[F]) extends Auth[F] {
   def authenticate: JwtToken => (JwtClaim => F[Option[UserId]]) =
     _ =>
-      c =>
-        (for {
-          json <- parse(c.content).toOption
-          userId <- json.as[UserId].toOption
-        } yield userId) match {
-          case Some(x) => userRepo.getUser(x)
-          case None    => none.pure[F]
-        }
+      c => {
+        val userEither = for {
+          json <- parse(c.content)
+          user <- json.as[User]
+        } yield user
+
+        Sync[F].fromEither(userEither).flatMap(x => userRepo.getUser(x.id))
+
+      }
 
   override val jwtAuth: JwtSymmetricAuth =
     JwtAuth.hmac("53cr3t", JwtAlgorithm.HS256)
