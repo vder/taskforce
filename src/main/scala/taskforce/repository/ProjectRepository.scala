@@ -18,9 +18,13 @@ import taskforce.model.errors._
 
 trait ProjectRepository[F[_]] {
   def createProject(newProject: NewProject, userId: UserId): F[Project]
-  def deleteProject(id: Int): F[Int]
-  def renameProject(id: Int, newProject: NewProject, userId: UserId): F[Project]
-  def getProject(id: Int): F[Project]
+  def deleteProject(id: ProjectId): F[Int]
+  def renameProject(
+      id: ProjectId,
+      newProject: NewProject,
+      userId: UserId
+  ): F[Project]
+  def getProject(id: ProjectId): F[Option[Project]]
   def getAllProject: F[List[Project]]
 }
 
@@ -28,10 +32,10 @@ final class LiveProjectRepository[F[_]: Monad: Bracket[*[_], Throwable]](
     xa: Transactor[F]
 ) extends ProjectRepository[F] {
 
-  override def getProject(id: Int): F[Project] =
-    sql"""select id,name,author,created,deleted from projects where id=${id}"""
+  override def getProject(id: ProjectId): F[Option[Project]] =
+    sql"""select id,name,author,created,deleted from projects where id=${id.value}"""
       .query[Project]
-      .unique
+      .option
       .transact(xa)
 
   override def getAllProject: F[List[Project]] =
@@ -50,7 +54,7 @@ final class LiveProjectRepository[F[_]: Monad: Bracket[*[_], Throwable]](
           values(${newProject.name.value},${userId.id},CURRENT_TIMESTAMP) 
           returning id,created,name""".update
       .withUniqueGeneratedKeys[
-        (Int, LocalDateTime, NonEmptyString)
+        (Long, LocalDateTime, NonEmptyString)
       ](
         "id",
         "created",
@@ -58,27 +62,27 @@ final class LiveProjectRepository[F[_]: Monad: Bracket[*[_], Throwable]](
       )
       .map {
         case (id, created, name) =>
-          Project(id, name, userId, created, None)
+          Project(ProjectId(id), name, userId, created, None)
       }
       .transact(xa)
 
-  override def deleteProject(id: Int): F[Int] =
+  override def deleteProject(id: ProjectId): F[Int] =
     sql""" update projects set deleted = CURRENT_TIMESTAMP where id =$id""".update.run
       .transact(xa)
 
   override def renameProject(
-      id: Int,
+      id: ProjectId,
       newProject: NewProject,
       userId: UserId
   ): F[Project] = {
     val result = for {
       _ <-
-        sql"""select author from projects where id=${id}"""
+        sql"""select author from projects where id=${id.value}"""
           .query[UUID]
           .unique
           .ensure(NotAuthorError(userId))(_ == userId.id)
       dates <-
-        sql"""update projects set name= ${newProject.name} where id=${id}
+        sql"""update projects set name= ${newProject.name} where id=${id.value}
               returning created,deleted""".update
           .withUniqueGeneratedKeys[(LocalDateTime, Option[LocalDateTime])](
             "created",

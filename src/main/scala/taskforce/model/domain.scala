@@ -29,6 +29,10 @@ object domain {
 
   final case class User(id: UserId)
 
+  trait ResourceId[A] {
+    val value: A
+  }
+
   object User {
     implicit val ProjectDecoder: Decoder[User] =
       deriveDecoder[User]
@@ -39,7 +43,7 @@ object domain {
   final case class NewProject(name: NonEmptyString)
 
   final case class Project(
-      id: Long,
+      id: ProjectId,
       name: NonEmptyString,
       owner: UserId,
       created: LocalDateTime,
@@ -60,7 +64,7 @@ object domain {
       deriveEncoder[NewProject]
   }
 
-  final case class TaskId(value: String) extends AnyVal
+  final case class TaskId(value: String) extends ResourceId[String]
 
   object TaskId {
     implicit val taskIdDecoder: Decoder[TaskId] =
@@ -69,13 +73,15 @@ object domain {
       Encoder[String].contramap(_.value)
   }
 
-  final case class ProjectId(value: Long) extends AnyVal
+  final case class ProjectId(value: Long) extends ResourceId[Long]
 
   object ProjectId {
     implicit val taskIdDecoder: Decoder[ProjectId] =
       Decoder[Long].map(ProjectId.apply)
     implicit val taskIdEncoder: Encoder[ProjectId] =
       Encoder[Long].contramap(_.value)
+    implicit val taskDurationMeta: Meta[ProjectId] =
+      Meta[Long].imap(ProjectId.apply)(_.value)
   }
   final case class TaskDTO(
       id: Long,

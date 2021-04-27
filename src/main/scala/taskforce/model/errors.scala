@@ -14,5 +14,6 @@ object errors {
   case class TaskCreationError(name: String) extends AppError
   case object WrongPeriodError extends AppError
   case class InvalidTask(projectId: ProjectId, taskId: TaskId) extends AppError
+  case class NotFoundError[A](resourceId: ResourceId[A]) extends AppError
 
 }

@@ -35,13 +35,25 @@ final class ProjectRoutes[
         } yield response
       case DELETE -> Root / IntVar(projectId) as userId =>
         for {
-          project <- projectRepo.getProject(projectId)
-          projectList <- projectRepo.deleteProject(projectId)
+          project <- projectRepo.getProject(ProjectId(projectId))
+          projectList <- projectRepo.deleteProject(ProjectId(projectId))
           response <- Ok()
         } yield response
       case GET -> Root / IntVar(projectId) as userId =>
+        val id = ProjectId(projectId)
         for {
-          project <- projectRepo.getProject(projectId)
+          project <-
+            projectRepo
+              .getProject(id)
+              .ensure(NotFoundError(id)) {
+                case None => false
+                case _    => true
+              }
+              .ensure(NotAuthorError(userId)) {
+                case Some(p) if p.owner == userId => true
+                case None                         => true
+                case _                            => false
+              }
           response <- Ok(project.asJson)
         } yield response
       case authReq @ POST -> Root as userId =>
@@ -68,11 +80,13 @@ final class ProjectRoutes[
             authReq.req
               .asJsonDecode[NewProject]
               .adaptError(_ => BadRequestError)
+          previousProject <- projectRepo.getProject(ProjectId(projectId))
+
           project <-
             projectRepo
-              .renameProject(projectId, newProject, userId)
+              .renameProject(ProjectId(projectId), newProject, userId)
               .adaptError {
-                case x
+                case x: PSQLException
                     if x.getMessage.contains(
                       "unique constraint"
                     ) =>
