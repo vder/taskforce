@@ -1,23 +1,25 @@
 package taskforce
 
-import cats.effect._
 import cats._
+import cats.effect._
 import cats.implicits._
-import scala.concurrent.ExecutionContext.global
-import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import doobie.hikari._
-import org.http4s.implicits._
-import org.http4s.server.blaze._
-import taskforce.http.BasicRoutes
-import java.util.UUID
 import doobie.util.ExecutionContexts
-import taskforce.repository.LiveUserRepository
+import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
+import java.util.UUID
+import org.http4s.implicits._
 import org.http4s.server.AuthMiddleware
-import taskforce.http.TaskForceAuthMiddleware
-import taskforce.http.ProjectRoutes
-//import taskforce.repository.ProjectRepository
+import org.http4s.server.blaze._
+import scala.concurrent.ExecutionContext.global
+import taskforce.http.{
+  TaskForceAuthMiddleware,
+  ProjectRoutes,
+  TaskRoutes,
+  LiveHttpErrorHandler,
+  BasicRoutes
+}
+import taskforce.repository.LiveUserRepository
 import taskforce.repository._
-import taskforce.http.TaskRoutes
 
 object Main extends IOApp {
 
@@ -41,8 +43,6 @@ object Main extends IOApp {
 
   val port = sys.env.get("PORT").flatMap(_.toIntOption)
 
-  val user = UUID.fromString("5260ca29-a70b-494e-a3d6-55374a3b0a04")
-
   override def run(args: List[String]): IO[ExitCode] =
     transactor
       .use { xa =>
@@ -55,8 +55,10 @@ object Main extends IOApp {
           basicRoutes <- BasicRoutes.make[IO](authMiddleware)
           projectRoutes <- ProjectRoutes.make(authMiddleware, projectDb)
           taskRoutes <- TaskRoutes.make(authMiddleware, projectDb, taskDb)
-          httpApp =
-            (basicRoutes.routes <+> projectRoutes.routes <+> taskRoutes.routes).orNotFound
+          routes = LiveHttpErrorHandler[IO].handle(
+            basicRoutes.routes <+> projectRoutes.routes <+> taskRoutes.routes
+          )
+          httpApp = (routes).orNotFound
           _ <-
             BlazeServerBuilder[IO](global)
               .bindHttp(

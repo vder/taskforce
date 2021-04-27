@@ -3,6 +3,8 @@ package taskforce.model
 import scala.util.control.NoStackTrace
 import taskforce.model.domain._
 import eu.timepit.refined.types.string
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto._
 
 object errors {
 
@@ -15,4 +17,12 @@ object errors {
   case object WrongPeriodError extends AppError
   case class InvalidTask(projectId: ProjectId, taskId: TaskId) extends AppError
 
+  case class ErrorMessage(code: String, message: String)
+
+  object ErrorMessage {
+    implicit val ProjectDecoder: Decoder[ErrorMessage] =
+      deriveDecoder[ErrorMessage]
+    implicit val ProjectEncoder: Encoder[ErrorMessage] =
+      deriveEncoder[ErrorMessage]
+  }
 }
