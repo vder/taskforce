@@ -20,6 +20,11 @@ import taskforce.http.{
 }
 import taskforce.repository.LiveUserRepository
 import taskforce.repository._
+import com.typesafe.config.ConfigFactory
+import pureconfig.ConfigSource
+import taskforce.config.DatabaseConfig
+import pureconfig.module.catseffect.syntax._
+import scala.util.Try
 
 object Main extends IOApp {
 
@@ -27,13 +32,16 @@ object Main extends IOApp {
 
   val transactor: Resource[IO, HikariTransactor[IO]] =
     for {
-      ce <- ExecutionContexts.fixedThreadPool[IO](32) // our connect EC
-      be <- Blocker[IO] // our blocking EC
+      be <- Blocker[IO]
+      dbConfig <- Resource.eval(
+        ConfigSource.default.at("database").loadF[IO, DatabaseConfig](be)
+      )
+      ce <- ExecutionContexts.fixedThreadPool[IO](32)
       xa <- HikariTransactor.newHikariTransactor[IO](
-        "org.postgresql.Driver", // driver classname
-        "jdbc:postgresql://localhost:54340/exchange", // connect URL
-        "vder", // username
-        "gordon", // password
+        dbConfig.driver.value,
+        dbConfig.url.value,
+        dbConfig.user.value,
+        dbConfig.pass.value,
         ce, // await connection here
         be // execute JDBC operations here
       )
