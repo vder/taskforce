@@ -21,8 +21,7 @@ trait ProjectRepository[F[_]] {
   def deleteProject(id: ProjectId): F[Int]
   def renameProject(
       id: ProjectId,
-      newProject: NewProject,
-      userId: UserId
+      newProject: NewProject
   ): F[Project]
   def getProject(id: ProjectId): F[Option[Project]]
   def getAllProject: F[List[Project]]
@@ -72,23 +71,21 @@ final class LiveProjectRepository[F[_]: Monad: Bracket[*[_], Throwable]](
 
   override def renameProject(
       id: ProjectId,
-      newProject: NewProject,
-      userId: UserId
+      newProject: NewProject
   ): F[Project] = {
     val result = for {
-      _ <-
-        sql"""select author from projects where id=${id.value}"""
-          .query[UUID]
-          .unique
-          .ensure(NotAuthorError(userId))(_ == userId.id)
+
       dates <-
         sql"""update projects set name= ${newProject.name} where id=${id.value}
-              returning created,deleted""".update
-          .withUniqueGeneratedKeys[(LocalDateTime, Option[LocalDateTime])](
+              returning created,deleted,author""".update
+          .withUniqueGeneratedKeys[
+            (LocalDateTime, Option[LocalDateTime], UserId)
+          ](
             "created",
-            "deleted"
+            "deleted",
+            "author"
           )
-      (created, deleted) = dates
+      (created, deleted, userId) = dates
     } yield Project(id, newProject.name, userId, created, deleted)
 
     result.transact(xa)

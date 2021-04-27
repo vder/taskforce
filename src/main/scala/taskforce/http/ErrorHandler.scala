@@ -45,7 +45,14 @@ object LiveHttpErrorHandler {
           NotFound(
             ErrorMessage(
               "006",
-              s"task: ${taskId.value} doea not existsfor project:${projectId.value}"
+              s"task: ${taskId.value} does not exist for project:${projectId.value}"
+            )
+          )
+        case NotFoundError(id) =>
+          NotFound(
+            ErrorMessage(
+              "007",
+              s"resource with given id ${id.value} does not exist"
             )
           )
       }
