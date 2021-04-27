@@ -5,7 +5,7 @@ object Dependencies {
   lazy val catsVersion = "2.6.0"
   lazy val doobieVersion = "0.13.0"
   lazy val flywayVersion = "7.8.1"
-  lazy val pureConfigVersion = "0.15.0"
+  lazy val pureConfigVersion = "0.14.0"
   lazy val refinedVersion = "0.9.23"
   lazy val CirceVersion = "0.13.0"
   lazy val Http4sVersion = "0.21.22"
@@ -15,6 +15,10 @@ object Dependencies {
   lazy val slf4j = "io.chrisdavenport" %% "log4cats-slf4j" % "1.1.1"
   lazy val pureConfig =
     "com.github.pureconfig" %% "pureconfig" % pureConfigVersion
+  lazy val pureConfigCE =
+    "com.github.pureconfig" %% "pureconfig-cats-effect" % pureConfigVersion
+  lazy val pureConfigRefined =
+    "eu.timepit" %% "refined-pureconfig" % refinedVersion
   lazy val refined = "eu.timepit" %% "refined" % refinedVersion
   lazy val circe = "io.circe" %% "circe-generic" % CirceVersion
   lazy val circeExtras = "io.circe" %% "circe-generic-extras" % CirceVersion

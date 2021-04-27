@@ -22,6 +22,8 @@ lazy val root = (project in file("."))
       logback,
       pureConfig,
       refined,
+      pureConfigRefined,
+      pureConfigCE,
       circe,
       circeExtras,
       circeDerivation,
