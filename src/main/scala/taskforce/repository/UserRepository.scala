@@ -1,17 +1,12 @@
 package taskforce.repository
 
-import java.util.UUID
-import taskforce.model.domain._
-import doobie.util.transactor.Transactor
-import doobie.implicits._
 import cats.Monad
-import cats.syntax.all._
-
 import cats.effect.Bracket
-import doobie.util.meta.Meta
 import cats.effect.Sync
-import doobie.postgres._
+import doobie.implicits._
 import doobie.postgres.implicits._
+import doobie.util.transactor.Transactor
+import taskforce.model._
 
 trait UserRepository[F[_]] {
   def getUser(userId: UserId): F[Option[UserId]]

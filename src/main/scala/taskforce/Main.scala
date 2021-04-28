@@ -1,14 +1,11 @@
 package taskforce
 
-import cats._
 import cats.effect._
 import cats.implicits._
 import doobie.hikari._
 import doobie.util.ExecutionContexts
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
-import java.util.UUID
 import org.http4s.implicits._
-import org.http4s.server.AuthMiddleware
 import org.http4s.server.blaze._
 import scala.concurrent.ExecutionContext.global
 import taskforce.http.{
@@ -20,11 +17,9 @@ import taskforce.http.{
 }
 import taskforce.repository.LiveUserRepository
 import taskforce.repository._
-import com.typesafe.config.ConfigFactory
 import pureconfig.ConfigSource
 import taskforce.config.DatabaseConfig
 import pureconfig.module.catseffect.syntax._
-import scala.util.Try
 
 object Main extends IOApp {
 

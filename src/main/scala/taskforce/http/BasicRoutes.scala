@@ -1,18 +1,16 @@
 package taskforce.http
 
-import cats.implicits._
-
-import org.http4s.dsl.Http4sDsl
-import org.http4s.server.Router
-import cats.effect.Sync
-import cats.Defer
-import cats.MonadError
-import dev.profunktor.auth.JwtAuthMiddleware
-import org.http4s.AuthedRoutes
-import taskforce.model.domain._
 import cats.Applicative
+import cats.Defer
 import cats.Monad
+import cats.MonadError
+import cats.effect.Sync
+import cats.implicits._
+import org.http4s.AuthedRoutes
+import org.http4s.dsl.Http4sDsl
 import org.http4s.server.AuthMiddleware
+import org.http4s.server.Router
+import taskforce.model._
 
 final class BasicRoutes[F[_]: Defer: Applicative: Monad](
     authMiddleware: AuthMiddleware[F, UserId]

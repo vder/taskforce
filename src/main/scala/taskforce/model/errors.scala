@@ -1,10 +1,8 @@
 package taskforce.model
 
-import scala.util.control.NoStackTrace
-import taskforce.model.domain._
-import eu.timepit.refined.types.string
-import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto._
+import io.circe.{Decoder, Encoder}
+import scala.util.control.NoStackTrace
 
 object errors {
 

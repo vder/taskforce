@@ -1,13 +1,13 @@
 package taskforce
 
-import taskforce.model.domain._
-import dev.profunktor.auth.jwt._
-import pdi.jwt._
 import cats.effect.Sync
 import cats.implicits._
+import dev.profunktor.auth.jwt._
+import io.circe.parser._
 import java.util.UUID
+import pdi.jwt._
+import taskforce.model._
 import taskforce.repository.UserRepository
-import io.circe._, io.circe.parser._
 
 trait Auth[F[_]] {
   def authenticate: JwtToken => JwtClaim => F[Option[UserId]]
