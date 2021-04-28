@@ -3,18 +3,13 @@ package taskforce.repository
 import cats.Monad
 import cats.effect.Bracket
 import cats.effect.Sync
-import cats.syntax.all._
 import doobie.implicits._
-import doobie.postgres._
 import doobie.postgres.implicits._
 import doobie.refined.implicits._
-import doobie.util.meta.Meta
 import doobie.util.transactor.Transactor
 import eu.timepit.refined.types.string.NonEmptyString
 import java.time.LocalDateTime
-import java.util.UUID
-import taskforce.model.domain._
-import taskforce.model.errors._
+import taskforce.model._
 
 trait ProjectRepository[F[_]] {
   def createProject(newProject: NewProject, userId: UserId): F[Project]

@@ -2,16 +2,14 @@ package taskforce.http
 
 import cats.effect.Sync
 import cats.implicits._
-import cats.{Applicative, Defer, Monad, MonadError}
-import dev.profunktor.auth.JwtAuthMiddleware
+import cats.{Applicative, Defer, MonadError}
 import io.circe.syntax._
 import org.http4s.AuthedRoutes
-import org.http4s.circe.CirceEntityEncoder._
 import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.{AuthMiddleware, Router}
 import org.postgresql.util.PSQLException
-import taskforce.model.domain._
+import taskforce.model._
 import taskforce.model.errors._
 import taskforce.repository.ProjectRepository
 

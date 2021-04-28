@@ -5,7 +5,6 @@ import eu.timepit.refined.types.string.NonEmptyString
 import pureconfig.ConfigReader
 import eu.timepit.refined.auto._
 import eu.timepit.refined.pureconfig._
-import pureconfig._
 import pureconfig.generic.semiauto._
 import eu.timepit.refined.api.Refined
 

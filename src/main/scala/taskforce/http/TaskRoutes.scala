@@ -1,19 +1,16 @@
 package taskforce.http
 
-import cats.conversions.all
 import cats.effect.Sync
 import cats.implicits._
-import cats.{Applicative, Defer, Monad, MonadError}
-import dev.profunktor.auth.JwtAuthMiddleware
+import cats.{Applicative, Defer, MonadError}
 import io.circe.syntax._
-import org.http4s.{AuthedRequest, AuthedRoutes}
 import org.http4s.circe.CirceEntityEncoder._
 import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.{AuthMiddleware, Router}
-import org.postgresql.util.PSQLException
+import org.http4s.{AuthedRequest, AuthedRoutes}
 import taskforce.Validations
-import taskforce.model.domain._
+import taskforce.model._
 import taskforce.model.errors._
 import taskforce.repository.{ProjectRepository, TaskRepository}
 
@@ -29,7 +26,6 @@ final class TaskRoutes[
 ) {
 
   private[this] val prefixPath = "/api/v1/projects"
-  private[this] val taskPath = "tasks"
 
   implicit def decodeTask = jsonOf
   implicit def encodeTask = jsonEncoderOf
@@ -64,17 +60,18 @@ final class TaskRoutes[
   val httpRoutes: AuthedRoutes[UserId, F] = {
     val dsl = new Http4sDsl[F] {}
     import dsl._
+
     AuthedRoutes.of {
-      case GET -> Root / IntVar(projectId) / taskPath as userId =>
+      case GET -> Root / IntVar(projectId) / "tasks" as userId =>
         val taskStream = taskRepo.getAllTasks(projectId).map(x => x.asJson)
         Ok(taskStream)
-      case GET -> Root / IntVar(projectId) / taskPath / taskId
+      case GET -> Root / IntVar(projectId) / "tasks" / taskId
           as userId =>
         for {
           task <- taskRepo.getTask(ProjectId(projectId), TaskId(taskId))
           response <- Ok(task.asJson)
         } yield response
-      case authReq @ POST -> Root / IntVar(projectId) / taskPath as userId =>
+      case authReq @ POST -> Root / IntVar(projectId) / "tasks" as userId =>
         for {
           task <- getTaskFromAuthReq(authReq, userId, ProjectId(projectId))
           allUserTasks <- Sync[F].delay(taskRepo.getAllUserTasks(task.owner))
@@ -84,7 +81,7 @@ final class TaskRoutes[
         } yield response
       case authReq @ PUT -> Root / IntVar(
             projectId
-          ) / taskPath / taskId as userId =>
+          ) / "tasks" / taskId as userId =>
         for {
           task <- getTaskFromAuthReq(authReq, userId, ProjectId(projectId))
           oldTask <-
@@ -97,7 +94,7 @@ final class TaskRoutes[
         } yield response
       case authReq @ DELETE -> Root / IntVar(
             projectId
-          ) / taskPath / taskId as userId =>
+          ) / "tasks" / taskId as userId =>
         for {
           task <- getTaskIfOwner(ProjectId(projectId), TaskId(taskId), userId)
           _ <- taskRepo.deleteTask(task.id)

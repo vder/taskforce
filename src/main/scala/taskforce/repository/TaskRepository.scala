@@ -5,17 +5,11 @@ import cats.effect.Bracket
 import cats.effect.Sync
 import cats.syntax.all._
 import doobie.implicits._
-import doobie.postgres._
 import doobie.postgres.implicits._
 import doobie.refined.implicits._
-import doobie.util.meta.Meta
 import doobie.util.transactor.Transactor
-import eu.timepit.refined.types.string.NonEmptyString
-import java.time.LocalDateTime
-import java.util.UUID
-import taskforce.model.domain._
-import taskforce.model.errors._
 import fs2._
+import taskforce.model._
 
 trait TaskRepository[F[_]] {
   def createTask(task: Task): F[Task]

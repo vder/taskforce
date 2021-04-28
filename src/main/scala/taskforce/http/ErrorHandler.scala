@@ -2,11 +2,9 @@ package taskforce.http
 
 import cats.data.{Kleisli, OptionT}
 import cats.{MonadError, ApplicativeError}
-import io.circe.syntax._
 import org.http4s.HttpRoutes
 import org.http4s.Response
 import org.http4s.circe.CirceEntityEncoder._
-import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 import taskforce.model.errors._
 

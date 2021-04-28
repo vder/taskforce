@@ -1,8 +1,8 @@
 package taskforce.http
 
-import taskforce.Auth
-import dev.profunktor.auth.JwtAuthMiddleware
 import cats.MonadError
+import dev.profunktor.auth.JwtAuthMiddleware
+import taskforce.Auth
 
 object TaskForceAuthMiddleware {
 

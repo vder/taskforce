@@ -1,11 +1,10 @@
 package taskforce
 
-import taskforce.model.domain.Task
-import taskforce.model.errors.WrongPeriodError
-import fs2.Stream
-import java.time.Duration
-import cats.implicits._
 import cats.effect.Sync
+import cats.implicits._
+import fs2.Stream
+import taskforce.model.Task
+import taskforce.model.errors.WrongPeriodError
 
 object Validations {
   def taskPeriodIsValid[F[_]: Sync](
