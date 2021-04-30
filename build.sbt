@@ -50,8 +50,8 @@ lazy val root = (project in file("."))
       "UTF-8",
       "-language:higherKinds",
       "-language:postfixOps",
-      "-feature",
+      "-feature"
       //  "-Xfatal-warnings",
-      "-Xlint:unused"
+      //    "-Xlint:unused"
     )
   )

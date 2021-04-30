@@ -1,3 +1,4 @@
+import taskforce.repository.LiveFilterRepository
 import taskforce.model._
 import java.time.LocalDateTime
 import com.softwaremill.id.pretty.PrettyIdGenerator
@@ -11,11 +12,14 @@ import cats.implicits._
 import doobie.postgres.implicits._
 import java.time.Duration
 import eu.timepit.refined._
+import eu.timepit.refined.types.string.NonEmptyString
 import eu.timepit.refined.auto._
 import eu.timepit.refined.collection._
 import io.circe.syntax._
 import io.circe.Json
 import io.circe.parser._
+import doobie.postgres.implicits._
+import doobie.refined.implicits._
 
 implicit val cs = IO.contextShift(ExecutionContexts.synchronous)
 
@@ -102,3 +106,20 @@ val z = parse("""{
     "projectId": 5}""").toOption.get
 
 z.noSpaces
+
+val f = Filter(
+  FilterId(UUID.randomUUID()),
+  List(
+    In(List(refineMV[NonEmpty]("aaaa"), refineMV("bbbb"))),
+    Cond(From, Lt, LocalDateTime.now()),
+    State(Active)
+  )
+)
+
+val testRun = for {
+  db <- LiveFilterRepository.make[IO](xa)
+  _ <- db.createFilter(f)
+  filter <- db.getFilter(f.id)
+} yield filter
+
+testRun.unsafeRunSync()

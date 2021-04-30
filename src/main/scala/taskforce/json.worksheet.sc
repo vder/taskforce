@@ -1,3 +1,4 @@
+import java.util.UUID
 import io.circe.Json
 import java.time.LocalDateTime
 import taskforce.model._
@@ -9,6 +10,7 @@ import io.circe.generic.auto._
 import io.circe.refined._
 
 val f = Filter(
+  FilterId(UUID.randomUUID()),
   List(
     In(List(refineMV[NonEmpty]("aaaa"), refineMV("bbbb"))),
     Cond(From, Lt, LocalDateTime.now()),

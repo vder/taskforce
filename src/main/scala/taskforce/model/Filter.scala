@@ -4,8 +4,20 @@ import eu.timepit.refined.types.string.NonEmptyString
 import java.time.LocalDateTime
 import io.circe.refined._
 import io.circe.{Decoder, Encoder}, io.circe.generic.auto._
+import java.util.UUID
+import cats.implicits._
+import doobie.util.meta.Meta
 
-sealed trait Operator
+sealed trait Operator {
+  override def toString =
+    this match {
+      case Eq   => "eq"
+      case Gt   => "gt"
+      case Gteq => "gteq"
+      case Lt   => "lt"
+      case Lteq => "lteq"
+    }
+}
 
 case object Eq extends Operator
 case object Lt extends Operator
@@ -14,54 +26,82 @@ case object Lteq extends Operator
 case object Gteq extends Operator
 
 object Operator {
+
+  val fromString: PartialFunction[String, Operator] = {
+    case "eq"   => Eq
+    case "lt"   => Lt
+    case "gt"   => Gt
+    case "lteq" => Lteq
+    case "gteq" => Gteq
+  }
+
+  implicit val operatorMeta: Meta[Operator] =
+    Meta[String].imap(fromString)(_.toString)
+
   implicit val encodeOperator: Encoder[Operator] =
-    Encoder.encodeString.contramap {
-      case Eq   => "eq"
-      case Lt   => "lt"
-      case Gt   => "gt"
-      case Lteq => "lteq"
-      case Gteq => "gteq"
-    }
+    Encoder.encodeString.contramap(_.toString())
+
   implicit val decodeOperator: Decoder[Operator] =
-    Decoder.decodeString.emap {
-      case "eq"   => Right(Eq)
-      case "lt"   => Right(Lt)
-      case "gt"   => Right(Gt)
-      case "lteq" => Right(Lteq)
-      case "gteq" => Right(Gteq)
-      case other  => Left(s"Invalid operator:$other")
+    Decoder.decodeString.emap { x =>
+      fromString
+        .lift(x)
+        .toRight(s"invalid operator: $x")
     }
 }
-
-sealed trait Status
+sealed trait Status {
+  override def toString =
+    this match {
+      case Active   => "active"
+      case Deactive => "deactive"
+      case All      => "all"
+    }
+}
 
 final case object Active extends Status
 final case object Deactive extends Status
 final case object All extends Status
 
 object Status {
+
+  val fromString: PartialFunction[String, Status] = {
+    case "active"   => Active
+    case "deactive" => Deactive
+    case "all"      => All
+  }
+
   implicit val encodeStatus: Encoder[Status] =
-    Encoder.encodeString.contramap {
-      case Active   => "active"
-      case Deactive => "deactive"
-      case All      => "all"
-    }
+    Encoder.encodeString.contramap(_.toString())
+
   implicit val decodeStatus: Decoder[Status] =
-    Decoder.decodeString.emap {
-      case "active"   => Right(Active)
-      case "deactive" => Right(Deactive)
-      case "all"      => Right(All)
-      case other      => Left(s"Invalid status: $other")
+    Decoder.decodeString.emap { x =>
+      fromString
+        .lift(x)
+        .toRight(s"invalid status: $x")
     }
+
+  implicit val operatorMeta: Meta[Status] =
+    Meta[String].imap(fromString)(_.toString)
 
 }
 
-sealed trait Field
+sealed trait Field {
+  override def toString =
+    this match {
+      case From => "from"
+      case To   => "to"
+    }
+}
 
 case object From extends Field
 case object To extends Field
 
 object Field {
+
+  val fromString: PartialFunction[String, Field] = {
+    case "from" => From
+    case "to"   => To
+  }
+
   implicit val encodeField: Encoder[Field] =
     Encoder.encodeString.contramap {
       case From => "from"
@@ -73,16 +113,21 @@ object Field {
       case "to"   => Right(To)
       case other  => Left(s"Invalid field $other")
     }
+  implicit val operatorMeta: Meta[Field] =
+    Meta[String].imap(fromString)(_.toString)
+
 }
 
-sealed trait Condition
+sealed trait Criteria
 
-case class In(names: List[NonEmptyString]) extends Condition
+case class In(names: List[NonEmptyString]) extends Criteria
 case class Cond(field: Field, op: Operator, date: LocalDateTime)
-    extends Condition
-case class State(status: Status) extends Condition
+    extends Criteria
+case class State(status: Status) extends Criteria
 
-case class Filter(conditions: List[Condition])
+final case class FilterId(value: UUID) extends ResourceId[UUID]
+
+case class Filter(id: FilterId, conditions: List[Criteria])
 
 object In {
   implicit val decodeIn: Decoder[In] =
@@ -91,6 +136,13 @@ object In {
     Encoder.forProduct1("in")(_.names)
 }
 object Cond {
+
+  def of(field: String, op: String, date: LocalDateTime) =
+    for {
+      f <- Field.fromString.lift(field)
+      o <- Operator.fromString.lift(op)
+    } yield Cond(f, o, date)
+
   implicit val decodeCond: Decoder[Cond] =
     Decoder.forProduct3[Cond, Field, Operator, LocalDateTime](
       "field",
