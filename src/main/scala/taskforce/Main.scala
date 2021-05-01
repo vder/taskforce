@@ -13,7 +13,8 @@ import taskforce.http.{
   ProjectRoutes,
   TaskRoutes,
   LiveHttpErrorHandler,
-  BasicRoutes
+  BasicRoutes,
+  FilterRoutes
 }
 import taskforce.repository.LiveUserRepository
 import taskforce.repository._
@@ -53,13 +54,15 @@ object Main extends IOApp {
           db <- LiveUserRepository.make[IO](xa)
           projectDb <- LiveProjectRepository.make[IO](xa)
           taskDb <- LiveTaskRepository.make[IO](xa)
+          filterDb <- LiveFilterRepository.make[IO](xa)
           authRepo <- LiveAuth.make[IO](db)
           authMiddleware = TaskForceAuthMiddleware.middleware[IO](authRepo)
           basicRoutes <- BasicRoutes.make[IO](authMiddleware)
           projectRoutes <- ProjectRoutes.make(authMiddleware, projectDb)
+          filterRoutes <- FilterRoutes.make(authMiddleware, filterDb)
           taskRoutes <- TaskRoutes.make(authMiddleware, projectDb, taskDb)
           routes = LiveHttpErrorHandler[IO].handle(
-            basicRoutes.routes <+> projectRoutes.routes <+> taskRoutes.routes
+            basicRoutes.routes <+> projectRoutes.routes <+> taskRoutes.routes <+> filterRoutes.routes
           )
           httpApp = (routes).orNotFound
           _ <-

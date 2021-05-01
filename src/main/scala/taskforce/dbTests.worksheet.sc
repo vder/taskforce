@@ -20,6 +20,7 @@ import io.circe.Json
 import io.circe.parser._
 import doobie.postgres.implicits._
 import doobie.refined.implicits._
+import fs2.Stream
 
 implicit val cs = IO.contextShift(ExecutionContexts.synchronous)
 
@@ -110,11 +111,17 @@ z.noSpaces
 val f = Filter(
   FilterId(UUID.randomUUID()),
   List(
-    In(List(refineMV[NonEmpty]("aaaa"), refineMV("bbbb"))),
-    Cond(From, Lt, LocalDateTime.now()),
-    State(Active)
+    In(List(refineMV[NonEmpty]("Git project22333"), refineMV("bbbb"))),
+    State(All)
   )
 )
+
+val testRun2 = for {
+  db <- Stream.eval(LiveFilterRepository.make[IO](xa))
+  rows <- db.getRows(f)
+} yield rows
+
+testRun2.compile.toList.unsafeRunSync()
 
 val testRun = for {
   db <- LiveFilterRepository.make[IO](xa)

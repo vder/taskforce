@@ -43,3 +43,5 @@ In(List(refineMV[NonEmpty]("aaaa"), refineMV("bbbb"))).asJson.as[In]
 Cond(From, Lt, LocalDateTime.now()).asJson.as[Cond]
 
 f.asJson.as[Filter]
+
+(Map("key1" -> "value1"), Map("key2" -> "value2")).asJson.noSpaces

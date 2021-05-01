@@ -7,6 +7,8 @@ import io.circe.{Decoder, Encoder}, io.circe.generic.auto._
 import java.util.UUID
 import cats.implicits._
 import doobie.util.meta.Meta
+import cats.data.NonEmptyList
+import io.circe.generic.semiauto._
 
 sealed trait Operator {
   override def toString =
@@ -16,6 +18,14 @@ sealed trait Operator {
       case Gteq => "gteq"
       case Lt   => "lt"
       case Lteq => "lteq"
+    }
+  def toSql =
+    this match {
+      case Eq   => "="
+      case Gt   => ">"
+      case Gteq => ">="
+      case Lt   => "<"
+      case Lteq => "<="
     }
 }
 
@@ -35,8 +45,16 @@ object Operator {
     case "gteq" => Gteq
   }
 
+  val fromSql: PartialFunction[String, Operator] = {
+    case "="  => Eq
+    case "<"  => Lt
+    case ">"  => Gt
+    case "<=" => Lteq
+    case ">=" => Gteq
+  }
+
   implicit val operatorMeta: Meta[Operator] =
-    Meta[String].imap(fromString)(_.toString)
+    Meta[String].imap(fromSql)(_.toSql)
 
   implicit val encodeOperator: Encoder[Operator] =
     Encoder.encodeString.contramap(_.toString())
@@ -90,6 +108,7 @@ sealed trait Field {
       case From => "from"
       case To   => "to"
     }
+
 }
 
 case object From extends Field
@@ -162,4 +181,12 @@ object State {
     Decoder.forProduct1("state")(State.apply)
   implicit val encodeState: Encoder[State] =
     Encoder.forProduct1("state")(_.status)
+}
+
+object Filter {
+
+  implicit val filterDecoder: Decoder[Filter] =
+    deriveDecoder[Filter]
+  implicit val filterEncoder: Encoder[Filter] =
+    deriveEncoder[Filter]
 }
