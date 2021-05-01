@@ -17,32 +17,21 @@ import java.time.LocalDateTime
 import java.util.UUID
 import taskforce.model.errors.TaskCreationError
 
-final case class TaskId(value: String) extends ResourceId[String]
+final case class TaskId(value: UUID) extends ResourceId[UUID]
 
 object TaskId {
   implicit val taskIdDecoder: Decoder[TaskId] =
-    Decoder[String].map(TaskId.apply)
+    Decoder[UUID].map(TaskId.apply)
   implicit val taskIdEncoder: Encoder[TaskId] =
-    Encoder[String].contramap(_.value)
+    Encoder[UUID].contramap(_.value)
 }
 
-final case class TaskDTO(
-    id: Long,
-    projectId: Long,
-    owner: UUID,
-    created: LocalDateTime,
-    duration: String,
-    volume: Int,
-    deleted: Option[LocalDateTime],
-    comment: Option[String]
-)
-
-final case class NewTaskDTO(
+final case class NewTask(
     created: Option[LocalDateTime],
-    projectId: Long,
-    duration: Long,
-    volume: Option[Int],
-    comment: Option[String]
+    projectId: ProjectId,
+    duration: TaskDuration,
+    volume: Option[Int Refined Positive],
+    comment: Option[NonEmptyString]
 )
 
 final case class TaskDuration(value: Duration) extends AnyVal
@@ -72,33 +61,21 @@ object TaskDuration {
 
 object Task {
 
-  val gen = PrettyIdGenerator.singleNode
-
   def fromNewTask(
-      newTask: NewTaskDTO,
+      newTask: NewTask,
       userId: UserId,
       projectId: ProjectId
   ) =
-    (for {
-      volume <- newTask.volume match {
-        case None    => None.asRight[String]
-        case Some(x) => refineV[Positive](x).map(_.some)
-      }
-      comment <- newTask.comment match {
-        case None                   => None.asRight[String]
-        case Some(s) if s.isEmpty() => None.asRight[String]
-        case Some(s)                => refineV[NonEmpty](s).map(_.some)
-      }
-    } yield Task(
-      TaskId(gen.nextId()),
-      ProjectId(newTask.projectId),
+    Task(
+      TaskId(UUID.randomUUID()),
+      newTask.projectId,
       userId,
       newTask.created.getOrElse(LocalDateTime.now()),
-      TaskDuration(Duration.ofMinutes(newTask.duration)),
-      volume,
+      newTask.duration,
+      newTask.volume,
       None,
-      comment
-    )).leftMap(TaskCreationError(_))
+      newTask.comment
+    )
 
   implicit val taskDecoder: Decoder[Task] =
     deriveDecoder[Task]
@@ -106,10 +83,10 @@ object Task {
     deriveEncoder[Task]
 }
 
-object NewTaskDTO {
+object NewTask {
 
-  implicit val newTaskDtoDecoder: Decoder[NewTaskDTO] =
-    deriveDecoder[NewTaskDTO]
-  implicit val newTaskDtoEncoder: Encoder[NewTaskDTO] =
-    deriveEncoder[NewTaskDTO]
+  implicit val newTaskDtoDecoder: Decoder[NewTask] =
+    deriveDecoder[NewTask]
+  implicit val newTaskDtoEncoder: Encoder[NewTask] =
+    deriveEncoder[NewTask]
 }

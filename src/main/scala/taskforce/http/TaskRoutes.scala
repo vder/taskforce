@@ -35,15 +35,10 @@ final class TaskRoutes[
       userId: UserId,
       projectId: ProjectId
   ): F[Task] =
-    for {
-      newTask <-
-        authReq.req
-          .asJsonDecode[NewTaskDTO]
-          .adaptError(_ => BadRequestError)
-      task <- MonadError[F, Throwable].fromEither(
-        Task.fromNewTask(newTask, userId, projectId)
-      )
-    } yield task
+    authReq.req
+      .asJsonDecode[NewTask]
+      .adaptError(_ => BadRequestError)
+      .map(t => Task.fromNewTask(t, userId, projectId))
 
   def getTaskIfOwner(projectId: ProjectId, taskId: TaskId, userId: UserId) =
     for {
@@ -65,7 +60,7 @@ final class TaskRoutes[
       case GET -> Root / IntVar(projectId) / "tasks" as userId =>
         val taskStream = taskRepo.getAllTasks(projectId).map(x => x.asJson)
         Ok(taskStream)
-      case GET -> Root / IntVar(projectId) / "tasks" / taskId
+      case GET -> Root / IntVar(projectId) / "tasks" / UUIDVar(taskId)
           as userId =>
         for {
           task <- taskRepo.getTask(ProjectId(projectId), TaskId(taskId))
@@ -81,7 +76,7 @@ final class TaskRoutes[
         } yield response
       case authReq @ PUT -> Root / IntVar(
             projectId
-          ) / "tasks" / taskId as userId =>
+          ) / "tasks" / UUIDVar(taskId) as userId =>
         for {
           task <- getTaskFromAuthReq(authReq, userId, ProjectId(projectId))
           oldTask <-
@@ -94,7 +89,7 @@ final class TaskRoutes[
         } yield response
       case authReq @ DELETE -> Root / IntVar(
             projectId
-          ) / "tasks" / taskId as userId =>
+          ) / "tasks" / UUIDVar(taskId) as userId =>
         for {
           task <- getTaskIfOwner(ProjectId(projectId), TaskId(taskId), userId)
           _ <- taskRepo.deleteTask(task.id)
