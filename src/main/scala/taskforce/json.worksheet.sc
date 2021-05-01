@@ -13,7 +13,7 @@ val f = Filter(
   FilterId(UUID.randomUUID()),
   List(
     In(List(refineMV[NonEmpty]("aaaa"), refineMV("bbbb"))),
-    Cond(From, Lt, LocalDateTime.now()),
+    TaskCreatedDate(Lt, LocalDateTime.now()),
     State(Active)
   )
 )
@@ -26,21 +26,17 @@ val z = parse(s).getOrElse(Json.fromInt(1))
 
 println("ok1")
 
-val t = Cond(From, Lt, LocalDateTime.now()).asJson
+val t = TaskCreatedDate(Lt, LocalDateTime.now()).asJson
 
-val cond = t.as[Cond]
+val cond = t.as[TaskCreatedDate]
 
 println(t.noSpaces)
-
-val zz = (From: Field).asJson.as[Field]
-
-println(zz)
 
 State(Active).asJson.as[State]
 
 In(List(refineMV[NonEmpty]("aaaa"), refineMV("bbbb"))).asJson.as[In]
 
-Cond(From, Lt, LocalDateTime.now()).asJson.as[Cond]
+TaskCreatedDate(Lt, LocalDateTime.now()).asJson.as[TaskCreatedDate]
 
 f.asJson.as[Filter]
 

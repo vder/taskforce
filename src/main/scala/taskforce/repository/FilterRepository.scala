@@ -44,10 +44,10 @@ final class LiveFilterRepository[F[_]: Monad: Bracket[*[_], Throwable]](
           .fromList(list)
           .map(x => Fragments.in(fr"p.name", x))
           .getOrElse(fr"")
-      case State(All)        => fr"1=1"
-      case State(Deactive)   => fr"""t.deleted is not null"""
-      case State(Active)     => fr"""t.deleted is null"""
-      case Cond(_, op, date) => fr""" t.started ${op.toSql}  ${date}""""
+      case State(All)                => fr"1=1"
+      case State(Deactive)           => fr"""t.deleted is not null"""
+      case State(Active)             => fr"""t.deleted is null"""
+      case TaskCreatedDate(op, date) => fr""" t.started ${op.toSql}  ${date}""""
     }
 
   override def getRows(filter: Filter): Stream[F, (Project, Option[Task])] = {
@@ -70,9 +70,9 @@ final class LiveFilterRepository[F[_]: Monad: Bracket[*[_], Throwable]](
             | values (${filterId.value},'in',${names.map(
           _.value
         )})""".stripMargin.update.run
-      case Cond(field, op, value) =>
-        sql"""insert into  filters(filter_id,criteria_type,field,operator,date_value)
-            | values (${filterId.value},'cond',$field,${op},$value)""".stripMargin.update.run
+      case TaskCreatedDate(op, value) =>
+        sql"""insert into  filters(filter_id,criteria_type,operator,date_value)
+            | values (${filterId.value},'cond',${op},$value)""".stripMargin.update.run
       case State(status) =>
         sql"""insert into filters(filter_id,criteria_type,status_value)
             | values (${filterId.value},'state',${status})""".stripMargin.update.run
@@ -84,16 +84,16 @@ final class LiveFilterRepository[F[_]: Monad: Bracket[*[_], Throwable]](
       .as(filter)
   }
 
-  override def deleteFilter(id: FilterId): F[Int] = ???
+  override def deleteFilter(id: FilterId): F[Int] =
+    sql"delete from filters where filter_id = $id".update.run.transact(xa)
 
   override def getFilter(id: FilterId): F[Option[Filter]] = {
 
-    sql"""select criteria_type,field,operator,date_value,status_value,list_value 
+    sql"""select criteria_type,operator,date_value,status_value,list_value 
         | from filters where filter_id = ${id.value}""".stripMargin
       .query[
         (
             String,
-            Option[Field],
             Option[Operator],
             Option[LocalDateTime],
             Option[Status],
@@ -103,11 +103,11 @@ final class LiveFilterRepository[F[_]: Monad: Bracket[*[_], Throwable]](
       .to[List]
       .map(
         _.collect {
-          case ("in", _, _, _, _, Some(list)) =>
+          case ("in", _, _, _, Some(list)) =>
             In(list)
-          case ("cond", Some(field), Some(op), Some(date), _, _) =>
-            Cond(field, op, date)
-          case ("state", _, _, _, Some(status), _) => State(status)
+          case ("cond", Some(op), Some(date), _, _) =>
+            TaskCreatedDate(op, date)
+          case ("state", _, _, Some(status), _) => State(status)
         }
       )
       .transact(xa)

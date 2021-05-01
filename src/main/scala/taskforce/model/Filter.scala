@@ -96,57 +96,15 @@ object Status {
         .lift(x)
         .toRight(s"invalid status: $x")
     }
-
   implicit val operatorMeta: Meta[Status] =
     Meta[String].imap(fromString)(_.toString)
-
-}
-
-sealed trait Field {
-  override def toString =
-    this match {
-      case From => "from"
-      case To   => "to"
-    }
-
-}
-
-case object From extends Field
-case object To extends Field
-
-object Field {
-
-  val fromString: PartialFunction[String, Field] = {
-    case "from" => From
-    case "to"   => To
-  }
-
-  implicit val encodeField: Encoder[Field] =
-    Encoder.encodeString.contramap {
-      case From => "from"
-      case To   => "to"
-    }
-  implicit val decodeField: Decoder[Field] =
-    Decoder.decodeString.emap {
-      case "from" => Right(From)
-      case "to"   => Right(To)
-      case other  => Left(s"Invalid field $other")
-    }
-  implicit val operatorMeta: Meta[Field] =
-    Meta[String].imap(fromString)(_.toString)
-
 }
 
 sealed trait Criteria
 
 case class In(names: List[NonEmptyString]) extends Criteria
-case class Cond(field: Field, op: Operator, date: LocalDateTime)
-    extends Criteria
+case class TaskCreatedDate(op: Operator, date: LocalDateTime) extends Criteria
 case class State(status: Status) extends Criteria
-
-final case class FilterId(value: UUID) extends ResourceId[UUID]
-
-case class Filter(id: FilterId, conditions: List[Criteria])
 
 object In {
   implicit val decodeIn: Decoder[In] =
@@ -154,26 +112,21 @@ object In {
   implicit val encodeIn: Encoder[In] =
     Encoder.forProduct1("in")(_.names)
 }
-object Cond {
+object TaskCreatedDate {
 
-  def of(field: String, op: String, date: LocalDateTime) =
-    for {
-      f <- Field.fromString.lift(field)
-      o <- Operator.fromString.lift(op)
-    } yield Cond(f, o, date)
+  def of(op: String, date: LocalDateTime) =
+    Operator.fromString.lift(op).map(TaskCreatedDate(_, date))
 
-  implicit val decodeCond: Decoder[Cond] =
-    Decoder.forProduct3[Cond, Field, Operator, LocalDateTime](
-      "field",
+  implicit val decodeTaskCreatedDate: Decoder[TaskCreatedDate] =
+    Decoder.forProduct2[TaskCreatedDate, Operator, LocalDateTime](
       "op",
       "date"
-    )(Cond.apply)
-  implicit val encodeCond: Encoder[Cond] =
-    Encoder.forProduct3(
-      "field",
+    )(TaskCreatedDate.apply)
+  implicit val encodeTaskCreatedDate: Encoder[TaskCreatedDate] =
+    Encoder.forProduct2(
       "op",
       "date"
-    )(x => (x.field, x.op, x.date))
+    )(x => (x.op, x.date))
 }
 
 object State {
@@ -183,10 +136,23 @@ object State {
     Encoder.forProduct1("state")(_.status)
 }
 
+final case class FilterId(value: UUID) extends ResourceId[UUID]
+
+case class NewFilter(conditions: List[Criteria])
+case class Filter(id: FilterId, conditions: List[Criteria])
+
 object Filter {
 
   implicit val filterDecoder: Decoder[Filter] =
     deriveDecoder[Filter]
   implicit val filterEncoder: Encoder[Filter] =
     deriveEncoder[Filter]
+}
+
+object NewFilter {
+
+  implicit val filterNewDecoder: Decoder[NewFilter] =
+    deriveDecoder[NewFilter]
+  implicit val filterNewEncoder: Encoder[NewFilter] =
+    deriveEncoder[NewFilter]
 }

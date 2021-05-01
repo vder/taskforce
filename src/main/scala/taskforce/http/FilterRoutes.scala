@@ -16,6 +16,7 @@ import taskforce.model.errors._
 import taskforce.repository.{ProjectRepository, TaskRepository}
 import taskforce.repository.FilterRepository
 import fs2.Stream
+import java.util.UUID
 
 final class FilterRoutes[
     F[_]: Sync: Applicative: MonadError[
@@ -37,18 +38,35 @@ final class FilterRoutes[
     import dsl._
 
     AuthedRoutes.of {
+      case authReq @ POST -> Root as userId =>
+        for {
+          newFilter <-
+            authReq.req
+              .asJsonDecode[NewFilter]
+              .adaptError(_ => BadRequestError)
+          filter <-
+            filterRepo
+              .createFilter(
+                Filter(FilterId(UUID.randomUUID()), newFilter.conditions)
+              )
+          response <- Created(filter.asJson)
+        } yield response
       case GET -> Root / UUIDVar(
             filterId
           ) as userId =>
-        val filter = filterRepo.getFilter(FilterId(filterId)).map(x => x.asJson)
+        val id = FilterId(filterId)
+        val filter = filterRepo
+          .getFilter(id)
+          .ensure(NotFoundError(id))(!_.isEmpty)
         Ok(filter)
       case GET -> Root / UUIDVar(
             filterId
           ) / "data" as userId =>
+        val id = FilterId(filterId)
         val resultMap = for {
-          filterOption <- Stream.eval(filterRepo.getFilter(FilterId(filterId)))
+          filterOption <- Stream.eval(filterRepo.getFilter(id))
           filter <- Stream.eval(
-            Sync[F].fromOption(filterOption, NotFoundError(FilterId(filterId)))
+            Sync[F].fromOption(filterOption, NotFoundError(id))
           )
           (project, taskOpt) <- filterRepo.getRows(filter)
           projectMap = Map(

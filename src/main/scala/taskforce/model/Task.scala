@@ -28,7 +28,7 @@ object TaskId {
 
 final case class TaskDTO(
     id: Long,
-    projectId: ProjectId,
+    projectId: Long,
     owner: UUID,
     created: LocalDateTime,
     duration: String,
