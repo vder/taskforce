@@ -1,34 +1,26 @@
-import io.circe.Json.JString
-import io.circe.JsonObject
-import io.circe.Json.JObject
+import taskforce.repository.LiveFilterRepository
+import taskforce.model._
 import java.time.LocalDateTime
-import com.softwaremill.id.DefaultIdGenerator
 import com.softwaremill.id.pretty.PrettyIdGenerator
-import com.softwaremill.id.pretty.StringIdGenerator
-import java.time.Duration
-import taskforce.model.domain._
 import java.util.UUID
 import doobie._
 import doobie.implicits._
 import doobie.util.ExecutionContexts
 import cats._
-import cats.data._
 import cats.effect._
 import cats.implicits._
-import fs2.Stream
-import doobie.postgres._
 import doobie.postgres.implicits._
-import eu.timepit.refined.api.Refined
-import eu.timepit.refined.numeric._
-import eu.timepit.refined._
 import java.time.Duration
 import eu.timepit.refined._
-import eu.timepit.refined.api.Refined
+import eu.timepit.refined.types.string.NonEmptyString
 import eu.timepit.refined.auto._
 import eu.timepit.refined.collection._
 import io.circe.syntax._
 import io.circe.Json
 import io.circe.parser._
+import doobie.postgres.implicits._
+import doobie.refined.implicits._
+import fs2.Stream
 
 implicit val cs = IO.contextShift(ExecutionContexts.synchronous)
 
@@ -115,3 +107,26 @@ val z = parse("""{
     "projectId": 5}""").toOption.get
 
 z.noSpaces
+
+val f = Filter(
+  FilterId(UUID.randomUUID()),
+  List(
+    In(List(refineMV[NonEmpty]("Git project22333"), refineMV("bbbb"))),
+    State(All)
+  )
+)
+
+val testRun2 = for {
+  db <- Stream.eval(LiveFilterRepository.make[IO](xa))
+  rows <- db.getRows(f)
+} yield rows
+
+testRun2.compile.toList.unsafeRunSync()
+
+val testRun = for {
+  db <- LiveFilterRepository.make[IO](xa)
+  _ <- db.createFilter(f)
+  filter <- db.getFilter(f.id)
+} yield filter
+
+testRun.unsafeRunSync()
