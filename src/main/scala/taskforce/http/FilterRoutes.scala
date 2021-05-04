@@ -57,12 +57,11 @@ final class FilterRoutes[
         val id = FilterId(filterId)
         val filter = filterRepo
           .getFilter(id)
-          .ensure(NotFoundError(id))(_.isDefined)
+          .ensure(NotFoundError(id))(!_.isEmpty)
         Ok(filter)
       case GET -> Root / UUIDVar(
             filterId
           ) / "data" as userId =>
-        Empty
         val id = FilterId(filterId)
         val resultMap = for {
           filterOption <- Stream.eval(filterRepo.getFilter(id))
