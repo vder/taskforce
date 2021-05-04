@@ -59,13 +59,15 @@ final class FilterRoutes[
         val id = FilterId(filterId)
         val filter = filterRepo
           .getFilter(id)
-          .ensure(NotFoundError(id))(_.isDefined)
+          .ensure(NotFoundError(id))(!_.isEmpty)
         Ok(filter)
       case GET -> Root / UUIDVar(
             filterId
           ) / "data" :? SortBy.Matcher(sortBy)
           :? PageNo.Matcher(no)
           :? PageSize.Matcher(size) as userId =>
+          ) / "data" as userId =>
+
         val id = FilterId(filterId)
         val resultMap = for {
           filterOption <- Stream.eval(filterRepo.getFilter(id))
