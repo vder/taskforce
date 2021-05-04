@@ -1,7 +1,7 @@
 create table if not exists projects(
-    id Serial PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     name TEXT UNIQUE,
-    author UUID,
+    author UUID references users(id),
     created timestamp without time zone,
     deleted timestamp without time zone
 );
