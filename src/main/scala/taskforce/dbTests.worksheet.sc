@@ -1,7 +1,7 @@
 import taskforce.repository.LiveFilterRepository
 import taskforce.model._
 import java.time.LocalDateTime
-import com.softwaremill.id.pretty.PrettyIdGenerator
+import taskforce.repository.LiveProjectRepository
 import java.util.UUID
 import doobie._
 import doobie.implicits._
@@ -13,6 +13,7 @@ import doobie.postgres.implicits._
 import java.time.Duration
 import eu.timepit.refined._
 import eu.timepit.refined.types.string.NonEmptyString
+import eu.timepit.refined.numeric._
 import eu.timepit.refined.auto._
 import eu.timepit.refined.collection._
 import io.circe.syntax._
@@ -25,10 +26,10 @@ import fs2.Stream
 implicit val cs = IO.contextShift(ExecutionContexts.synchronous)
 
 val xa = Transactor.fromDriverManager[IO](
-  "org.postgresql.Driver", // driver classname
+  "org.postgresql.Driver",                      // driver classname
   "jdbc:postgresql://localhost:54340/exchange", // connect URL
-  "vder", // username
-  "gordon", // password
+  "vder",                                       // username
+  "gordon",                                     // password
   Blocker.liftExecutionContext(
     ExecutionContexts.synchronous
   ) // just for testing
@@ -42,8 +43,8 @@ import y._
 
 sql"select id from users where id ='5260ca29-a70b-494e-a3d6-55374a3b0a04'"
   .query[UUID] // Query0[String]
-  .option // Stream[ConnectionIO, String]
-  .quick // IO[Unit]
+  .option      // Stream[ConnectionIO, String]
+  .quick       // IO[Unit]
   .unsafeRunSync()
 
 val userId =
@@ -82,10 +83,9 @@ implicit val td = Get[Long].tmap(x => TaskDuration(Duration.ofSeconds(x)))
 //     deleted: Option[LocalDateTime],
 //     comment: Option[NonEmptyString]
 // )
-val gen = PrettyIdGenerator.singleNode
 
 val task = Task(
-  TaskId("ddd"),
+  TaskId(UUID.randomUUID()),
   ProjectId(10),
   userId,
   LocalDateTime.now(),
@@ -95,9 +95,19 @@ val task = Task(
   Some(refineMV[NonEmpty]("comment"))
 )
 
+val newProject = NewProject(refineMV("Project name 2"))
+
+val createProject = for {
+  db      <- LiveProjectRepository.make[IO](xa)
+  project <- db.createProject(newProject, userId)
+} yield project
+
+createProject.unsafeRunSync()
+
 task.asJson.noSpaces
 
-val taskDTO = NewTaskDTO(None, 5, 10, 4.some, "test".some)
+val taskDTO =
+  NewTask(None, ProjectId(5), TaskDuration(Duration.ofMinutes(10)), refineMV[Positive](4).some, None)
 
 taskDTO.asJson.noSpaces
 
@@ -117,15 +127,15 @@ val f = Filter(
 )
 
 val testRun2 = for {
-  db <- Stream.eval(LiveFilterRepository.make[IO](xa))
+  db   <- Stream.eval(LiveFilterRepository.make[IO](xa))
   rows <- db.getRows(f)
 } yield rows
 
 testRun2.compile.toList.unsafeRunSync()
 
 val testRun = for {
-  db <- LiveFilterRepository.make[IO](xa)
-  _ <- db.createFilter(f)
+  db     <- LiveFilterRepository.make[IO](xa)
+  _      <- db.createFilter(f)
   filter <- db.getFilter(f.id)
 } yield filter
 

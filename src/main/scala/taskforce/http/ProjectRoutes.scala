@@ -76,7 +76,7 @@ final class ProjectRoutes[
             projectRepo
               .getProject(ProjectId(projectId))
               .ensure(NotFoundError(id))(_.isDefined)
-              .ensure(NotAuthorError(userId))(_.filter(_.owner == userId).isDefined)
+              .ensure(NotAuthorError(userId))(_.filter(_.author == userId).isDefined)
 
           project <-
             projectRepo

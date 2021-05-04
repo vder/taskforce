@@ -40,7 +40,7 @@ final class TaskRoutes[
       .adaptError(_ => BadRequestError)
       .map(t => Task.fromNewTask(t, userId, projectId))
 
-  def getTaskIfOwner(projectId: ProjectId, taskId: TaskId, userId: UserId) =
+  def getTaskIfAuthor(projectId: ProjectId, taskId: TaskId, userId: UserId) =
     for {
       taskOption <- taskRepo.getTask(projectId, taskId)
       task <-
@@ -49,7 +49,7 @@ final class TaskRoutes[
             taskOption,
             InvalidTask(projectId, taskId)
           )
-          .ensure(NotAuthorError(userId))(_.owner == userId)
+          .ensure(NotAuthorError(userId))(_.author == userId)
     } yield task
 
   val httpRoutes: AuthedRoutes[UserId, F] = {
@@ -63,36 +63,35 @@ final class TaskRoutes[
       case GET -> Root / IntVar(projectId) / "tasks" / UUIDVar(taskId)
           as userId =>
         for {
-          task <- taskRepo.getTask(ProjectId(projectId), TaskId(taskId))
+          task     <- taskRepo.getTask(ProjectId(projectId), TaskId(taskId))
           response <- Ok(task.asJson)
         } yield response
       case authReq @ POST -> Root / IntVar(projectId) / "tasks" as userId =>
         for {
-          task <- getTaskFromAuthReq(authReq, userId, ProjectId(projectId))
-          allUserTasks <- Sync[F].delay(taskRepo.getAllUserTasks(task.owner))
-          _ <- Validations.taskPeriodIsValid(task, allUserTasks)
-          _ <- taskRepo.createTask(task)
-          response <- Created(task)
+          task         <- getTaskFromAuthReq(authReq, userId, ProjectId(projectId))
+          allUserTasks <- Sync[F].delay(taskRepo.getAllUserTasks(task.author))
+          _            <- Validations.taskPeriodIsValid(task, allUserTasks)
+          _            <- taskRepo.createTask(task)
+          response     <- Created(task)
         } yield response
       case authReq @ PUT -> Root / IntVar(
             projectId
           ) / "tasks" / UUIDVar(taskId) as userId =>
         for {
-          task <- getTaskFromAuthReq(authReq, userId, ProjectId(projectId))
-          oldTask <-
-            getTaskIfOwner(ProjectId(projectId), TaskId(taskId), userId)
-          allUserTasks <- Sync[F].delay(taskRepo.getAllUserTasks(task.owner))
+          task         <- getTaskFromAuthReq(authReq, userId, ProjectId(projectId))
+          oldTask      <- getTaskIfAuthor(ProjectId(projectId), TaskId(taskId), userId)
+          allUserTasks <- Sync[F].delay(taskRepo.getAllUserTasks(task.author))
           allUserTasksWithoutOld = allUserTasks.filterNot(_.id == oldTask.id)
-          _ <- Validations.taskPeriodIsValid(task, allUserTasksWithoutOld)
-          _ <- taskRepo.updateTask(oldTask.id, task)
+          _        <- Validations.taskPeriodIsValid(task, allUserTasksWithoutOld)
+          _        <- taskRepo.updateTask(oldTask.id, task)
           response <- Created(task)
         } yield response
       case authReq @ DELETE -> Root / IntVar(
             projectId
           ) / "tasks" / UUIDVar(taskId) as userId =>
         for {
-          task <- getTaskIfOwner(ProjectId(projectId), TaskId(taskId), userId)
-          _ <- taskRepo.deleteTask(task.id)
+          task     <- getTaskIfAuthor(ProjectId(projectId), TaskId(taskId), userId)
+          _        <- taskRepo.deleteTask(task.id)
           response <- Created(task)
         } yield response
     }
