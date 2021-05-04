@@ -39,8 +39,11 @@ case class LiveAuth[F[_]: Sync](userRepo: UserRepository[F]) extends Auth[F] {
           user <- json.as[User]
         } yield user
 
-        Sync[F].fromEither(userEither).flatMap(x => userRepo.getUser(x.id))
-
+        for {
+          userJwt <- Sync[F].fromEither(userEither)
+          userOpt <- userRepo.getUser(userJwt.id)
+          userIdOpt = userOpt.map(_.id)
+        } yield userIdOpt
       }
 
   override val jwtAuth: JwtSymmetricAuth =

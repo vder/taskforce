@@ -48,7 +48,7 @@ final class LiveProjectRepository[F[_]: Bracket[*[_], Throwable]: MonadError[*[_
   ): F[Project] =
     sql"""insert into projects(name,author,created) 
           |    values (${newProject.name.value},
-          |            ${author.id},
+          |            ${author.value},
           |            CURRENT_TIMESTAMP) 
           | returning id,created,name""".stripMargin.update
       .withUniqueGeneratedKeys[

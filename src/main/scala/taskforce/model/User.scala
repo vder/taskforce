@@ -5,13 +5,13 @@ import io.circe.Encoder
 import io.circe.generic.semiauto._
 import java.util.UUID
 
-final case class UserId(id: UUID) extends AnyVal
+final case class UserId(value: UUID) extends AnyVal
 
 object UserId {
   implicit val userIdDecoder: Decoder[UserId] =
     Decoder[UUID].map(UserId.apply)
   implicit val userIdEncoder: Encoder[UserId] =
-    Encoder[UUID].contramap(_.id)
+    Encoder[UUID].contramap(_.value)
 }
 
 final case class User(id: UserId)
