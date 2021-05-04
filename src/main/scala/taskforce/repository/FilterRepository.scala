@@ -40,23 +40,25 @@ final class LiveFilterRepository[F[_]: Monad: Bracket[*[_], Throwable]](
 
   override def getAllFilters: Stream[F, Filter] = ???
 
-  override def getRows(
-      filter: Filter,
-      sortByOption: Option[SortBy],
-      page: Page
-  ): Stream[F, (Project, Option[Task])] = {
-    val selectClause = fr"""select p.id,p.name,p.author,p.created,p.deleted,
-      |                      t.id,t.project_id,t.author,t.started,t.duration,t.volume, t.deleted,t.comment 
-      |                  from projects p left join tasks t on p.id = t.project_id""".stripMargin
+  override def getRows(filter: Filter): Stream[F, (Project, Option[Task])] = {
+    val select = fr"""select p.id,
+                       |     p.name,
+                       |     p.author,
+                       |     p.created,
+                       |     p.deleted,
+                       |     t.id,
+                       |     t.project_id,
+                       |     t.author,
+                       |     t.started,
+                       |     t.duration,
+                       |     t.volume,
+                       |     t.deleted,
+                       |     t.comment 
+                       |from projects p 
+                       |left join tasks t
+                       |  on p.id = t.project_id""".stripMargin
 
-    val whereClause =
-      filter.conditions.foldLeft(fr" where 1=1 ")((fr, criteria) =>
-        fr ++ fr" And " ++ criteria.toSql
-      )
-
-    val orderClause = sortByOption.fold(Fragment.empty)(_.toSql)
-
-    val limitClause = page.toSql
+    val where = filter.conditions.foldLeft(fr" where 1=1 ")((fr, criteria) => fr ++ fr" And " ++ toSql(criteria))
 
     val sql = selectClause ++ whereClause ++ orderClause ++ limitClause
     println(sql)
@@ -71,11 +73,16 @@ final class LiveFilterRepository[F[_]: Monad: Bracket[*[_], Throwable]](
           _.value
         )})""".stripMargin.update.run
       case TaskCreatedDate(op, value) =>
-        sql"""insert into  filters(filter_id,criteria_type,operator,date_value)
-            | values (${filterId.value},'cond',${op},$value)""".stripMargin.update.run
+        sql"""insert into filters(filter_id,criteria_type,operator,date_value)
+                 | values (${filterId.value},
+                 |         'cond',
+                 |         ${op},
+                 |         $value)""".stripMargin.update.run
       case State(status) =>
         sql"""insert into filters(filter_id,criteria_type,status_value)
-            | values (${filterId.value},'state',${status})""".stripMargin.update.run
+                 | values (${filterId.value},
+                 |         'state',
+                 |         ${status})""".stripMargin.update.run
     }
   override def createFilter(filter: Filter): F[Filter] = {
     filter.conditions
@@ -90,7 +97,8 @@ final class LiveFilterRepository[F[_]: Monad: Bracket[*[_], Throwable]](
   override def getFilter(id: FilterId): F[Option[Filter]] = {
 
     sql"""select criteria_type,operator,date_value,status_value,list_value 
-        | from filters where filter_id = ${id.value}""".stripMargin
+         |  from filters 
+         | where filter_id = ${id.value}""".stripMargin
       .query[
         (
             String,

@@ -42,11 +42,13 @@ final class LiveProjectRepository[F[_]: Monad: Bracket[*[_], Throwable]](
 
   override def createProject(
       newProject: NewProject,
-      userId: UserId
+      author: UserId
   ): F[Project] =
     sql"""insert into projects(name,author,created) 
-          values(${newProject.name.value},${userId.id},CURRENT_TIMESTAMP) 
-          returning id,created,name""".update
+          |    values (${newProject.name.value},
+          |            ${author.id},
+          |            CURRENT_TIMESTAMP) 
+          | returning id,created,name""".stripMargin.update
       .withUniqueGeneratedKeys[
         (Long, LocalDateTime, NonEmptyString)
       ](
@@ -56,12 +58,14 @@ final class LiveProjectRepository[F[_]: Monad: Bracket[*[_], Throwable]](
       )
       .map {
         case (id, created, name) =>
-          Project(ProjectId(id), name, userId, created, None)
+          Project(ProjectId(id), name, author, created, None)
       }
       .transact(xa)
 
   override def deleteProject(id: ProjectId): F[Int] =
-    sql""" update projects set deleted = CURRENT_TIMESTAMP where id =$id""".update.run
+    sql"""update projects 
+         |   set deleted = CURRENT_TIMESTAMP
+         | where id =$id""".stripMargin.update.run
       .transact(xa)
 
   override def renameProject(
@@ -71,8 +75,10 @@ final class LiveProjectRepository[F[_]: Monad: Bracket[*[_], Throwable]](
     val result = for {
 
       dates <-
-        sql"""update projects set name= ${newProject.name} where id=${id.value}
-              returning created,deleted,author""".update
+        sql"""update projects 
+         |       set name= ${newProject.name} 
+         |     where id=${id.value}
+         | returning created,deleted,author""".stripMargin.update
           .withUniqueGeneratedKeys[
             (LocalDateTime, Option[LocalDateTime], UserId)
           ](

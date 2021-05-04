@@ -38,7 +38,7 @@ final case class TaskDuration(value: Duration) extends AnyVal
 final case class Task(
     id: TaskId,
     projectId: ProjectId,
-    owner: UserId,
+    author: UserId,
     created: LocalDateTime,
     duration: TaskDuration,
     volume: Option[Int Refined Positive],
