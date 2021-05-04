@@ -1,10 +1,7 @@
 package taskforce.model
 
-import cats.implicits._
 import doobie.util.meta.Meta
-import eu.timepit.refined._
 import eu.timepit.refined.api.Refined
-import eu.timepit.refined.collection._
 import eu.timepit.refined.numeric._
 import eu.timepit.refined.types.string.NonEmptyString
 import io.circe.Decoder
@@ -14,7 +11,6 @@ import io.circe.refined._
 import java.time.Duration
 import java.time.LocalDateTime
 import java.util.UUID
-import taskforce.model.errors.TaskCreationError
 
 final case class TaskId(value: UUID) extends ResourceId[UUID]
 
