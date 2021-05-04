@@ -24,7 +24,7 @@ object ProjectId {
 final case class Project(
     id: ProjectId,
     name: NonEmptyString,
-    owner: UserId,
+    author: UserId,
     created: LocalDateTime,
     deleted: Option[LocalDateTime]
 )

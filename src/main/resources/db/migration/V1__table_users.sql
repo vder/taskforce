@@ -1,1 +1,1 @@
-create table if not exists users(id UUID);
+create table if not exists users(id UUID PRIMARY KEY);
