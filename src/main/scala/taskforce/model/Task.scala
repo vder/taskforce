@@ -1,7 +1,6 @@
 package taskforce.model
 
 import cats.implicits._
-import com.softwaremill.id.pretty.PrettyIdGenerator
 import doobie.util.meta.Meta
 import eu.timepit.refined._
 import eu.timepit.refined.api.Refined
@@ -54,9 +53,7 @@ object TaskDuration {
     Decoder[Long].map(x => TaskDuration(Duration.ofMinutes(x)))
 
   implicit val taskDurationMeta: Meta[TaskDuration] =
-    Meta[Long].imap(x => TaskDuration(Duration.ofMinutes(x)))(x =>
-      x.value.toMinutes()
-    )
+    Meta[Long].imap(x => TaskDuration(Duration.ofMinutes(x)))(x => x.value.toMinutes())
 }
 
 object Task {

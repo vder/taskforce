@@ -29,13 +29,13 @@ final class ProjectRoutes[
       case GET -> Root as userId =>
         for {
           projectList <- projectRepo.getAllProject
-          response <- Ok(projectList.asJson)
+          response    <- Ok(projectList.asJson)
         } yield response
       case DELETE -> Root / IntVar(projectId) as userId =>
         for {
-          project <- projectRepo.getProject(ProjectId(projectId))
+          project     <- projectRepo.getProject(ProjectId(projectId))
           projectList <- projectRepo.deleteProject(ProjectId(projectId))
-          response <- Ok()
+          response    <- Ok()
         } yield response
       case GET -> Root / IntVar(projectId) as userId =>
         val id = ProjectId(projectId)
@@ -43,10 +43,7 @@ final class ProjectRoutes[
           project <-
             projectRepo
               .getProject(id)
-              .ensure(NotFoundError(id)) {
-                case None => false
-                case _    => true
-              }
+              .ensure(NotFoundError(id))(_.isDefined)
 
           response <- Ok(project.asJson)
         } yield response
@@ -78,15 +75,8 @@ final class ProjectRoutes[
           previousProject <-
             projectRepo
               .getProject(ProjectId(projectId))
-              .ensure(NotFoundError(id)) {
-                case None => false
-                case _    => true
-              }
-              .ensure(NotAuthorError(userId)) {
-                case Some(p) if p.owner == userId => true
-                case None                         => true
-                case _                            => false
-              }
+              .ensure(NotFoundError(id))(_.isDefined)
+              .ensure(NotAuthorError(userId))(_.filter(_.owner == userId).isDefined)
 
           project <-
             projectRepo
