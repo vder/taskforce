@@ -59,10 +59,10 @@ final class LiveFilterRepository[F[_]: Monad: Bracket[*[_], Throwable]](
                        |  on p.id = t.project_id""".stripMargin
 
     val where = filter.conditions.foldLeft(fr" where 1=1 ")((fr, criteria) => fr ++ fr" And " ++ toSql(criteria))
-
-    val sql = selectClause ++ whereClause ++ orderClause ++ limitClause
+    val sql   = selectClause ++ whereClause ++ orderClause ++ limitClause
     println(sql)
     sql.query[(Project, Option[Task])].stream.transact(xa)
+
   }
 
   def createCriterias(filterId: FilterId)(criteria: Criteria) =
