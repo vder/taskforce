@@ -30,7 +30,7 @@ final class LiveTaskRepository[F[_]: Monad: Bracket[*[_], Throwable]](
       _ <- sql"""insert into tasks(id,project_id,author,started,duration,volume,comment)
               | values(${task.id.value},
               |        ${task.projectId.value},
-              |        ${task.author.id},
+              |        ${task.author.value},
               |        ${task.created},
               |        ${task.duration},
               |        ${task.volume},
@@ -50,7 +50,7 @@ final class LiveTaskRepository[F[_]: Monad: Bracket[*[_], Throwable]](
           |      volume,
           |      deleted,
           |      comment
-          | from tasks where author = ${author.id}""".stripMargin
+          | from tasks where author = ${author.value}""".stripMargin
       .query[Task]
       .stream
       .transact(xa)
@@ -73,7 +73,7 @@ final class LiveTaskRepository[F[_]: Monad: Bracket[*[_], Throwable]](
     sql"""insert into tasks(id,project_id,author,started,duration,volume,comment)
             | values(${task.id.value},
             |        ${task.projectId.value},
-            |        ${task.author.id},
+            |        ${task.author.value},
             |        ${task.created},
             |        ${task.duration},
             |        ${task.volume},
