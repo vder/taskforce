@@ -1,4 +1,4 @@
-import Dependencies._
+import Dependencies.Libraries._
 
 ThisBuild / scalaVersion := "2.13.5"
 ThisBuild / version := "0.1.0-SNAPSHOT"
@@ -19,31 +19,30 @@ lazy val root = (project in file("."))
     dockerBaseImage := "openjdk:8-jre-alpine",
     dockerUpdateLatest := true,
     libraryDependencies ++= Seq(
+      catsEffect,
+      circe,
+      circeDerivation,
+      circeExtras,
+      circeParser,
+      circeRefined,
+      doobie,
+      doobieHikari,
+      doobiePostgres,
+      doobieRefined,
+      flyway,
+      http4sCirce,
+      http4sDsl,
+      http4sServer,
+      jwtAuth,
       logback,
       pureConfig,
-      refined,
-      pureConfigRefined,
       pureConfigCE,
-      circe,
-      circeExtras,
-      circeDerivation,
-      circeRefined,
-      flyway,
-      doobie,
-      doobiePostgres,
-      catsEffect,
-      slf4j,
-      jwtAuth,
-      circeParser,
-      doobieHikari,
-      doobieRefined,
-      idGen
+      pureConfigRefined,
+      refined,
+      slf4j
     ),
-    libraryDependencies ++= http4s,
-    addCompilerPlugin(
-      "org.typelevel" %% "kind-projector" % "0.11.3" cross CrossVersion.full
-    ),
-    addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
+    addCompilerPlugin(kindProjector),
+    addCompilerPlugin(betterMonadicFor),
     scalacOptions ++= Seq(
       "-deprecation",
       "-encoding",
