@@ -1,16 +1,18 @@
 package taskforce.repository
 
-import cats.Monad
+import cats.MonadError
 import cats.effect.Bracket
 import cats.effect.Sync
+import cats.syntax.all._
 import doobie.implicits._
 import doobie.postgres.implicits._
 import doobie.refined.implicits._
 import doobie.util.transactor.Transactor
 import eu.timepit.refined.types.string.NonEmptyString
 import java.time.LocalDateTime
+import org.postgresql.util.PSQLException
 import taskforce.model._
-
+import taskforce.model.errors._
 trait ProjectRepository[F[_]] {
   def createProject(newProject: NewProject, userId: UserId): F[Project]
   def deleteProject(id: ProjectId): F[Int]
@@ -22,7 +24,7 @@ trait ProjectRepository[F[_]] {
   def getAllProject: F[List[Project]]
 }
 
-final class LiveProjectRepository[F[_]: Monad: Bracket[*[_], Throwable]](
+final class LiveProjectRepository[F[_]: Bracket[*[_], Throwable]: MonadError[*[_], Throwable]](
     xa: Transactor[F]
 ) extends ProjectRepository[F] {
 
@@ -61,6 +63,13 @@ final class LiveProjectRepository[F[_]: Monad: Bracket[*[_], Throwable]](
           Project(ProjectId(id), name, author, created, None)
       }
       .transact(xa)
+      .adaptError {
+        case x: PSQLException
+            if x.getMessage.contains(
+              "unique constraint"
+            ) =>
+          DuplicateNameError(newProject.name.value)
+      }
 
   override def deleteProject(id: ProjectId): F[Int] =
     sql"""update projects 
@@ -89,7 +98,13 @@ final class LiveProjectRepository[F[_]: Monad: Bracket[*[_], Throwable]](
       (created, deleted, userId) = dates
     } yield Project(id, newProject.name, userId, created, deleted)
 
-    result.transact(xa)
+    result.transact(xa).adaptError {
+      case x: PSQLException
+          if x.getMessage.contains(
+            "unique constraint"
+          ) =>
+        DuplicateNameError(newProject.name.value)
+    }
 
   }
 }

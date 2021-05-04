@@ -9,11 +9,9 @@ import org.http4s.circe.CirceEntityEncoder._
 import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.{AuthMiddleware, Router}
-import org.http4s.{AuthedRequest, AuthedRoutes}
-import taskforce.Validations
+import org.http4s.AuthedRoutes
 import taskforce.model._
 import taskforce.model.errors._
-import taskforce.repository.{ProjectRepository, TaskRepository}
 import taskforce.repository.FilterRepository
 import fs2.Stream
 import java.util.UUID
