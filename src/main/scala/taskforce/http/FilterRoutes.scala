@@ -57,11 +57,12 @@ final class FilterRoutes[
         val id = FilterId(filterId)
         val filter = filterRepo
           .getFilter(id)
-          .ensure(NotFoundError(id))(!_.isEmpty)
+          .ensure(NotFoundError(id))(_.isDefined)
         Ok(filter)
       case GET -> Root / UUIDVar(
             filterId
           ) / "data" as userId =>
+        Empty
         val id = FilterId(filterId)
         val resultMap = for {
           filterOption <- Stream.eval(filterRepo.getFilter(id))
@@ -70,16 +71,16 @@ final class FilterRoutes[
           )
           (project, taskOpt) <- filterRepo.getRows(filter)
           projectMap = Map(
-            "projectId" -> project.id.asJson,
-            "projectName" -> project.name.asJson,
+            "projectId"      -> project.id.asJson,
+            "projectName"    -> project.name.asJson,
             "projectCreated" -> project.created.asJson
           )
           taskMap =
             taskOpt
               .map(t =>
                 Map(
-                  "taskComment" -> t.comment.asJson,
-                  "taskCreated" -> t.created.asJson,
+                  "taskComment"  -> t.comment.asJson,
+                  "taskCreated"  -> t.created.asJson,
                   "taskDuration" -> t.duration.asJson
                 )
               )
