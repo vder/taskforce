@@ -81,13 +81,6 @@ final class ProjectRoutes[
           project <-
             projectRepo
               .renameProject(ProjectId(projectId), newProject)
-              .adaptError {
-                case x: PSQLException
-                    if x.getMessage.contains(
-                      "unique constraint"
-                    ) =>
-                  DuplicateNameError(newProject.name.value)
-              }
           response <- Ok(project.asJson)
         } yield response
     }

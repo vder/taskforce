@@ -100,7 +100,7 @@ val createProject = for {
   project <- db.createProject(newProject, userId)
 } yield project
 
-createProject.unsafeRunSync()
+createProject.attempt.unsafeRunSync()
 
 task.asJson.noSpaces
 

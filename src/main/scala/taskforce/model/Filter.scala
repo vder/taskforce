@@ -1,9 +1,11 @@
 package taskforce.model
 
+import doobie.util.meta.Meta
 import eu.timepit.refined.types.string.NonEmptyString
-import java.time.LocalDateTime
+import io.circe.generic.semiauto._
 import io.circe.refined._
 import io.circe.{Decoder, Encoder}, io.circe.generic.auto._
+import java.time.LocalDateTime
 import java.util.UUID
 import cats.implicits._
 import doobie.util.meta.Meta
@@ -34,9 +36,9 @@ sealed trait Operator {
     }
 }
 
-case object Eq extends Operator
-case object Lt extends Operator
-case object Gt extends Operator
+case object Eq   extends Operator
+case object Lt   extends Operator
+case object Gt   extends Operator
 case object Lteq extends Operator
 case object Gteq extends Operator
 
@@ -80,9 +82,9 @@ sealed trait Status {
     }
 }
 
-final case object Active extends Status
+final case object Active   extends Status
 final case object Deactive extends Status
-final case object All extends Status
+final case object All      extends Status
 
 object Status {
 
@@ -133,8 +135,11 @@ case class State(status: Status) extends Criteria {
       case Deactive => fr"""t.deleted is not null"""
       case Active   => fr"""t.deleted is null"""
     }
-
 }
+
+case class In(names: List[NonEmptyString])                    extends Criteria
+case class TaskCreatedDate(op: Operator, date: LocalDateTime) extends Criteria
+case class State(status: Status)                              extends Criteria
 
 object In {
   implicit val decodeIn: Decoder[In] =
