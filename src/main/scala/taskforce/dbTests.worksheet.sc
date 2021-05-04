@@ -1,3 +1,4 @@
+import eu.timepit.refined.api.Refined
 import taskforce.repository.LiveFilterRepository
 import taskforce.model._
 import java.time.LocalDateTime
@@ -72,34 +73,17 @@ d.plus(dur)
 
 implicit val td = Get[Long].tmap(x => TaskDuration(Duration.ofSeconds(x)))
 
-// final case class Task(
-//     id: TaskId,
-//     projectId: ProjectId,
-//     owner: UserId,
-//     created: LocalDateTime,
-//     duration: TaskDuration,
-//     volume: Option[Int Refined Positive],
-//     deleted: Option[LocalDateTime],
-//     comment: Option[NonEmptyString]
-// )
 val gen = PrettyIdGenerator.singleNode
 
-val task = Task(
-  TaskId("ddd"),
-  ProjectId(10),
-  userId,
-  LocalDateTime.now(),
-  TaskDuration(Duration.ofHours(1L)),
+val task = NewTask(
   None,
+  ProjectId(10),
+  TaskDuration(Duration.ofHours(1L)),
   None,
   Some(refineMV[NonEmpty]("comment"))
 )
 
 task.asJson.noSpaces
-
-val taskDTO = NewTaskDTO(None, 5, 10, 4.some, "test".some)
-
-taskDTO.asJson.noSpaces
 
 userId.asJson.noSpaces
 
@@ -116,12 +100,12 @@ val f = Filter(
   )
 )
 
-val testRun2 = for {
-  db <- Stream.eval(LiveFilterRepository.make[IO](xa))
-  rows <- db.getRows(f)
-} yield rows
+// val testRun2 = for {
+//   db <- Stream.eval(LiveFilterRepository.make[IO](xa))
+//   rows <- db.getRows(f)
+// } yield rows
 
-testRun2.compile.toList.unsafeRunSync()
+//testRun2.compile.toList.unsafeRunSync()
 
 val testRun = for {
   db <- LiveFilterRepository.make[IO](xa)
@@ -130,3 +114,23 @@ val testRun = for {
 } yield filter
 
 testRun.unsafeRunSync()
+
+case class Sort(s: String)
+object Sort {
+  implicit val sortPut: Put[Sort] =
+    doobie.util.Put[String].contramap(x => s" order by $x")
+}
+
+val sqlFr = fr"select 1 ${Sort("ordering")}"
+
+sealed trait Field
+final case object CreatedDate extends Field
+final case object UpdatedDate extends Field
+
+sealed trait Order
+final case object Asc extends Order
+final case object Desc extends Order
+
+final case class SortBy(field: Field, order: Order)
+
+s"${CreatedDate}"

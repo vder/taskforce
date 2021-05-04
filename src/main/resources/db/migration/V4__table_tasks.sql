@@ -1,6 +1,6 @@
 drop table tasks;
 create table if not exists tasks(
-    id TEXT PRIMARY KEY,
+    id UUID PRIMARY KEY,
     project_id int NOT NULL REFERENCES projects,
     author UUID,
     started timestamp without time zone,

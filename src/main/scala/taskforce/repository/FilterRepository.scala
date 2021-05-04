@@ -16,12 +16,18 @@ import java.time.LocalDateTime
 import eu.timepit.refined.collection._
 import eu.timepit.refined._
 import cats.data.NonEmptyList
+import cats.instances.sortedMap
+import eu.timepit.refined.numeric._
 
 trait FilterRepository[F[_]] {
   def createFilter(filter: Filter): F[Filter]
   def deleteFilter(id: FilterId): F[Int]
   def getFilter(id: FilterId): F[Option[Filter]]
-  def getRows(filter: Filter): Stream[F, (Project, Option[Task])]
+  def getRows(
+      filter: Filter,
+      sortByOption: Option[SortBy],
+      page: Page
+  ): Stream[F, (Project, Option[Task])]
   def getAllFilters: Stream[F, Filter]
 }
 
@@ -29,38 +35,32 @@ final class LiveFilterRepository[F[_]: Monad: Bracket[*[_], Throwable]](
     xa: Transactor[F]
 ) extends FilterRepository[F] {
 
-  override def getAllFilters: Stream[F, Filter] = ???
-
   implicit val getNonEmptyList: Get[List[NonEmptyString]] =
     Get[List[String]] temap (_.traverse(refineV[NonEmpty](_)))
 
-  implicit val purNonEmptyList: Put[List[NonEmptyString]] =
-    Put[List[String]].contramap(_.map(_.value))
+  override def getAllFilters: Stream[F, Filter] = ???
 
-  def toSql(c: Criteria): Fragment =
-    c match {
-      case In(list) =>
-        NonEmptyList
-          .fromList(list)
-          .map(x => Fragments.in(fr"p.name", x))
-          .getOrElse(fr"")
-      case State(All)                => fr"1=1"
-      case State(Deactive)           => fr"""t.deleted is not null"""
-      case State(Active)             => fr"""t.deleted is null"""
-      case TaskCreatedDate(op, date) => fr""" t.started ${op.toSql}  ${date}""""
-    }
-
-  override def getRows(filter: Filter): Stream[F, (Project, Option[Task])] = {
-    val select = fr"""select p.id,p.name,p.author,p.created,p.deleted,
+  override def getRows(
+      filter: Filter,
+      sortByOption: Option[SortBy],
+      page: Page
+  ): Stream[F, (Project, Option[Task])] = {
+    val selectClause = fr"""select p.id,p.name,p.author,p.created,p.deleted,
       |                      t.id,t.project_id,t.author,t.started,t.duration,t.volume, t.deleted,t.comment 
       |                  from projects p left join tasks t on p.id = t.project_id""".stripMargin
 
-    val where = filter.conditions.foldLeft(fr" where 1=1 ")((fr, criteria) =>
-      fr ++ fr" And " ++ toSql(criteria)
-    )
+    val whereClause =
+      filter.conditions.foldLeft(fr" where 1=1 ")((fr, criteria) =>
+        fr ++ fr" And " ++ criteria.toSql
+      )
 
-    println(select ++ where)
-    (select ++ where).query[(Project, Option[Task])].stream.transact(xa)
+    val orderClause = sortByOption.fold(Fragment.empty)(_.toSql)
+
+    val limitClause = page.toSql
+
+    val sql = selectClause ++ whereClause ++ orderClause ++ limitClause
+    println(sql)
+    sql.query[(Project, Option[Task])].stream.transact(xa)
   }
 
   def createCriterias(filterId: FilterId)(criteria: Criteria) =

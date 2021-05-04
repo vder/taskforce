@@ -9,6 +9,11 @@ import cats.implicits._
 import doobie.util.meta.Meta
 import cats.data.NonEmptyList
 import io.circe.generic.semiauto._
+import doobie.util.fragment.Fragment
+import doobie._
+import doobie.implicits._
+import doobie.postgres.implicits._
+import doobie.refined.implicits._
 
 sealed trait Operator {
   override def toString =
@@ -100,11 +105,36 @@ object Status {
     Meta[String].imap(fromString)(_.toString)
 }
 
-sealed trait Criteria
+sealed trait Criteria {
+  def toSql: Fragment
+}
 
-case class In(names: List[NonEmptyString]) extends Criteria
-case class TaskCreatedDate(op: Operator, date: LocalDateTime) extends Criteria
-case class State(status: Status) extends Criteria
+case class In(names: List[NonEmptyString]) extends Criteria {
+
+  implicit val purNonEmptyList: Put[List[NonEmptyString]] =
+    Put[List[String]].contramap(_.map(_.value))
+
+  override def toSql: Fragment =
+    NonEmptyList
+      .fromList(names)
+      .map(x => Fragments.in(fr"p.name", x))
+      .getOrElse(fr"")
+}
+case class TaskCreatedDate(op: Operator, date: LocalDateTime) extends Criteria {
+
+  override def toSql: Fragment = fr""" t.started ${op.toSql}  ${date}""""
+
+}
+case class State(status: Status) extends Criteria {
+
+  override def toSql: Fragment =
+    status match {
+      case All      => fr"1=1"
+      case Deactive => fr"""t.deleted is not null"""
+      case Active   => fr"""t.deleted is null"""
+    }
+
+}
 
 object In {
   implicit val decodeIn: Decoder[In] =
