@@ -37,7 +37,7 @@ object LiveHttpErrorHandler {
           )
         case WrongPeriodError =>
           Conflict(
-            ErrorMessage("005", "REporter already logged task in a given time")
+            ErrorMessage("005", "Reporter already logged task in a given time")
           )
         case InvalidTask(projectId, taskId) =>
           NotFound(
@@ -58,9 +58,7 @@ object LiveHttpErrorHandler {
       override def handle(routes: HttpRoutes[F]): HttpRoutes[F] =
         Kleisli { req =>
           OptionT {
-            A.handleErrorWith(routes.run(req).value)(e =>
-              A.map(handler(e))(Option(_))
-            )
+            A.handleErrorWith(routes.run(req).value)(e => A.map(handler(e))(Option(_)))
           }
         }
 

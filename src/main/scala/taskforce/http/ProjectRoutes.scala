@@ -31,14 +31,21 @@ final class ProjectRoutes[
           response    <- Ok(projectList.asJson)
         } yield response
 
-      case DELETE -> Root / IntVar(projectId) as userId =>
+      case DELETE -> Root / LongVar(projectId) as userId =>
         for {
-          project  <- projectRepo.getProject(ProjectId(projectId))
+          projectOption <- projectRepo.getProject(ProjectId(projectId))
+          project <-
+            MonadError[F, Throwable]
+              .fromOption(
+                projectOption,
+                NotFoundError(ProjectId(projectId))
+              )
+              .ensure(NotAuthorError(userId))(_.author == userId)
           _        <- projectRepo.deleteProject(ProjectId(projectId))
           response <- Ok()
         } yield response
 
-      case GET -> Root / IntVar(projectId) as userId =>
+      case GET -> Root / LongVar(projectId) as userId =>
         val id = ProjectId(projectId)
         for {
           project <-

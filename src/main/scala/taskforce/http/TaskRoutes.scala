@@ -12,7 +12,7 @@ import org.http4s.{AuthedRequest, AuthedRoutes}
 import taskforce.Validations
 import taskforce.model._
 import taskforce.model.errors._
-import taskforce.repository.{ProjectRepository, TaskRepository}
+import taskforce.repository.TaskRepository
 
 final class TaskRoutes[
     F[_]: Sync: Applicative: MonadError[
@@ -21,7 +21,6 @@ final class TaskRoutes[
     ]: JsonDecoder
 ](
     authMiddleware: AuthMiddleware[F, UserId],
-    projectRepo: ProjectRepository[F],
     taskRepo: TaskRepository[F]
 ) {
 
@@ -57,16 +56,16 @@ final class TaskRoutes[
     import dsl._
 
     AuthedRoutes.of {
-      case GET -> Root / IntVar(projectId) / "tasks" as userId =>
-        val taskStream = taskRepo.getAllTasks(projectId).map(x => x.asJson)
+      case GET -> Root / LongVar(projectId) / "tasks" as userId =>
+        val taskStream = taskRepo.getAllTasks(ProjectId(projectId)).map(x => x.asJson)
         Ok(taskStream)
-      case GET -> Root / IntVar(projectId) / "tasks" / UUIDVar(taskId)
+      case GET -> Root / LongVar(projectId) / "tasks" / UUIDVar(taskId)
           as userId =>
         for {
           task     <- taskRepo.getTask(ProjectId(projectId), TaskId(taskId))
           response <- Ok(task.asJson)
         } yield response
-      case authReq @ POST -> Root / IntVar(projectId) / "tasks" as userId =>
+      case authReq @ POST -> Root / LongVar(projectId) / "tasks" as userId =>
         for {
           task         <- getTaskFromAuthReq(authReq, userId, ProjectId(projectId))
           allUserTasks <- Sync[F].delay(taskRepo.getAllUserTasks(task.author))
@@ -74,7 +73,7 @@ final class TaskRoutes[
           _            <- taskRepo.createTask(task)
           response     <- Created(task)
         } yield response
-      case authReq @ PUT -> Root / IntVar(
+      case authReq @ PUT -> Root / LongVar(
             projectId
           ) / "tasks" / UUIDVar(taskId) as userId =>
         for {
@@ -86,7 +85,7 @@ final class TaskRoutes[
           _        <- taskRepo.updateTask(oldTask.id, task)
           response <- Created(task)
         } yield response
-      case authReq @ DELETE -> Root / IntVar(
+      case authReq @ DELETE -> Root / LongVar(
             projectId
           ) / "tasks" / UUIDVar(taskId) as userId =>
         for {
@@ -105,7 +104,6 @@ final class TaskRoutes[
 object TaskRoutes {
   def make[F[_]: Defer: MonadError[*[_], Throwable]: Sync](
       authMiddleware: AuthMiddleware[F, UserId],
-      projectRepo: ProjectRepository[F],
       taskRepo: TaskRepository[F]
-  ) = Sync[F].delay { new TaskRoutes(authMiddleware, projectRepo, taskRepo) }
+  ) = Sync[F].delay { new TaskRoutes(authMiddleware, taskRepo) }
 }

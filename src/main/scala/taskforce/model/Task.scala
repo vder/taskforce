@@ -22,8 +22,8 @@ object TaskId {
 }
 
 final case class NewTask(
-    created: Option[LocalDateTime],
     projectId: ProjectId,
+    created: Option[LocalDateTime],
     duration: TaskDuration,
     volume: Option[Int Refined Positive],
     comment: Option[NonEmptyString]
