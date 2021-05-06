@@ -71,11 +71,18 @@ final class LiveProjectRepository[F[_]: Bracket[*[_], Throwable]: MonadError[*[_
           DuplicateNameError(newProject.name.value)
       }
 
-  override def deleteProject(id: ProjectId): F[Int] =
-    sql"""update projects 
+  override def deleteProject(id: ProjectId): F[Int] = {
+    val result = for {
+      x <- sql"""update projects 
          |   set deleted = CURRENT_TIMESTAMP
          | where id =$id""".stripMargin.update.run
-      .transact(xa)
+      y <- sql"""update tasks 
+           |   set deleted = CURRENT_TIMESTAMP
+           | where project_id =$id""".stripMargin.update.run
+    } yield (x + y)
+
+    result.transact(xa)
+  }
 
   override def renameProject(
       id: ProjectId,

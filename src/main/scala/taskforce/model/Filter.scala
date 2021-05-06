@@ -107,7 +107,7 @@ object Status {
     Meta[String].imap(fromString)(_.toString)
 }
 
-sealed trait Criteria {
+sealed trait Criteria extends Product with Serializable {
   def toSql: Fragment
 }
 

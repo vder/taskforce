@@ -39,7 +39,7 @@ object Main extends IOApp {
         dbConfig.user.value,
         dbConfig.pass.value,
         ce, // await connection here
-        be // execute JDBC operations here
+        be  // execute JDBC operations here
       )
     } yield xa
 
@@ -51,16 +51,16 @@ object Main extends IOApp {
     transactor
       .use { xa =>
         for {
-          db <- LiveUserRepository.make[IO](xa)
+          db        <- LiveUserRepository.make[IO](xa)
           projectDb <- LiveProjectRepository.make[IO](xa)
-          taskDb <- LiveTaskRepository.make[IO](xa)
-          filterDb <- LiveFilterRepository.make[IO](xa)
-          authRepo <- LiveAuth.make[IO](db)
+          taskDb    <- LiveTaskRepository.make[IO](xa)
+          filterDb  <- LiveFilterRepository.make[IO](xa)
+          authRepo  <- LiveAuth.make[IO](db)
           authMiddleware = TaskForceAuthMiddleware.middleware[IO](authRepo)
-          basicRoutes <- BasicRoutes.make[IO](authMiddleware)
+          basicRoutes   <- BasicRoutes.make[IO](authMiddleware)
           projectRoutes <- ProjectRoutes.make(authMiddleware, projectDb)
-          filterRoutes <- FilterRoutes.make(authMiddleware, filterDb)
-          taskRoutes <- TaskRoutes.make(authMiddleware, projectDb, taskDb)
+          filterRoutes  <- FilterRoutes.make(authMiddleware, filterDb)
+          taskRoutes    <- TaskRoutes.make(authMiddleware, taskDb)
           routes = LiveHttpErrorHandler[IO].handle(
             basicRoutes.routes <+> projectRoutes.routes <+> taskRoutes.routes <+> filterRoutes.routes
           )
