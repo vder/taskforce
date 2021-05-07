@@ -15,7 +15,7 @@ trait TaskRepository[F[_]] {
   def createTask(task: Task): F[Task]
   def deleteTask(id: TaskId): F[Int]
   def getTask(projectId: ProjectId, taskId: TaskId): F[Option[Task]]
-  def getAllTasks(projectId: Int): Stream[F, Task]
+  def getAllTasks(projectId: ProjectId): Stream[F, Task]
   def getAllUserTasks(author: UserId): Stream[F, Task]
   def updateTask(id: TaskId, task: Task): F[Task]
 }
@@ -30,7 +30,7 @@ final class LiveTaskRepository[F[_]: Monad: Bracket[*[_], Throwable]](
       _ <- sql"""insert into tasks(id,project_id,author,started,duration,volume,comment)
               | values(${task.id.value},
               |        ${task.projectId.value},
-              |        ${task.author.id},
+              |        ${task.author.value},
               |        ${task.created},
               |        ${task.duration},
               |        ${task.volume},
@@ -50,7 +50,7 @@ final class LiveTaskRepository[F[_]: Monad: Bracket[*[_], Throwable]](
           |      volume,
           |      deleted,
           |      comment
-          | from tasks where author = ${author.id}""".stripMargin
+          | from tasks where author = ${author.value}""".stripMargin
       .query[Task]
       .stream
       .transact(xa)
@@ -73,7 +73,7 @@ final class LiveTaskRepository[F[_]: Monad: Bracket[*[_], Throwable]](
     sql"""insert into tasks(id,project_id,author,started,duration,volume,comment)
             | values(${task.id.value},
             |        ${task.projectId.value},
-            |        ${task.author.id},
+            |        ${task.author.value},
             |        ${task.created},
             |        ${task.duration},
             |        ${task.volume},
@@ -85,7 +85,7 @@ final class LiveTaskRepository[F[_]: Monad: Bracket[*[_], Throwable]](
     sql"""update tasks set deleted = CURRENT_TIMESTAMP where id =${id.value}""".update.run
       .transact(xa)
 
-  override def getAllTasks(projectId: Int): Stream[F, Task] =
+  override def getAllTasks(projectId: ProjectId): Stream[F, Task] =
     sql"""select id,project_id,author,started,duration,volume,deleted,comment from tasks where project_id = ${projectId}"""
       .query[Task]
       .stream

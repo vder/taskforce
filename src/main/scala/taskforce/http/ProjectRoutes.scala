@@ -8,7 +8,6 @@ import org.http4s.AuthedRoutes
 import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.{AuthMiddleware, Router}
-import org.postgresql.util.PSQLException
 import taskforce.model._
 import taskforce.model.errors._
 import taskforce.repository.ProjectRepository
@@ -31,22 +30,31 @@ final class ProjectRoutes[
           projectList <- projectRepo.getAllProject
           response    <- Ok(projectList.asJson)
         } yield response
-      case DELETE -> Root / IntVar(projectId) as userId =>
+
+      case DELETE -> Root / LongVar(projectId) as userId =>
         for {
-          project     <- projectRepo.getProject(ProjectId(projectId))
-          projectList <- projectRepo.deleteProject(ProjectId(projectId))
-          response    <- Ok()
+          projectOption <- projectRepo.getProject(ProjectId(projectId))
+          project <-
+            MonadError[F, Throwable]
+              .fromOption(
+                projectOption,
+                NotFoundError(ProjectId(projectId))
+              )
+              .ensure(NotAuthorError(userId))(_.author == userId)
+          _        <- projectRepo.deleteProject(ProjectId(projectId))
+          response <- Ok()
         } yield response
-      case GET -> Root / IntVar(projectId) as userId =>
+
+      case GET -> Root / LongVar(projectId) as userId =>
         val id = ProjectId(projectId)
         for {
           project <-
             projectRepo
               .getProject(id)
               .ensure(NotFoundError(id))(_.isDefined)
-
           response <- Ok(project.asJson)
         } yield response
+
       case authReq @ POST -> Root as userId =>
         for {
           newProject <-
@@ -56,13 +64,7 @@ final class ProjectRoutes[
           project <-
             projectRepo
               .createProject(newProject, userId)
-              .adaptError {
-                case x: PSQLException
-                    if x.getMessage.contains(
-                      "unique constraint"
-                    ) =>
-                  DuplicateNameError(newProject.name.value)
-              }
+
           response <- Created(project.asJson)
         } yield response
       case authReq @ PUT -> Root / IntVar(projectId) as userId =>
@@ -77,7 +79,6 @@ final class ProjectRoutes[
               .getProject(ProjectId(projectId))
               .ensure(NotFoundError(id))(_.isDefined)
               .ensure(NotAuthorError(userId))(_.filter(_.author == userId).isDefined)
-
           project <-
             projectRepo
               .renameProject(ProjectId(projectId), newProject)

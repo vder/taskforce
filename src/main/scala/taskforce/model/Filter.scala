@@ -98,7 +98,7 @@ object Status {
     Meta[String].imap(fromString)(_.toString)
 }
 
-sealed trait Criteria
+sealed trait Criteria extends Product with Serializable
 
 case class In(names: List[NonEmptyString])                    extends Criteria
 case class TaskCreatedDate(op: Operator, date: LocalDateTime) extends Criteria
