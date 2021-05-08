@@ -70,7 +70,6 @@ final class LiveFilterRepository[F[_]: Monad: Bracket[*[_], Throwable]](
     val sql = selectClause ++ whereClause ++ orderClause ++ limitClause
     println(sql)
     sql.query[(Project, Option[Task])].stream.transact(xa)
-
   }
 
   def createCriterias(filterId: FilterId)(criteria: Criteria) =

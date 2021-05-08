@@ -56,7 +56,7 @@ object generators {
           .map[NonEmptyString](Refined.unsafeApply)
       userId  <- userIdGen
       created <- localDateTimeGen
-    } yield Project(projectId, name, userId, created, None)
+    } yield Project(projectId, name, userId, created, None, 0)
 
   val taskGen: Gen[Task] =
     for {

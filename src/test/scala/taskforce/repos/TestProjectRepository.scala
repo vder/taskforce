@@ -17,7 +17,8 @@ case class TestProjectRepository(projects: List[Project], currentTime: LocalDate
       deleted = None,
       name = newProject.name,
       id = ProjectId(1),
-      created = currentTime
+      created = currentTime,
+      totalTime = 0
     )
       .pure[IO]
 
@@ -29,7 +30,8 @@ case class TestProjectRepository(projects: List[Project], currentTime: LocalDate
       deleted = None,
       name = newProject.name,
       id = id,
-      created = currentTime
+      created = currentTime,
+      totalTime = 0
     )
       .pure[IO]
 

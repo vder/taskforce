@@ -34,10 +34,10 @@ final class LiveProjectRepository[F[_]: Bracket[*[_], Throwable]: MonadError[*[_
          |       author,
          |       created,
          |       deleted,
-         |       (select sum(duration) 
+         |       coalesce((select sum(duration) 
          |          from tasks 
          |         where project_id =${id.value}
-         |           and deleted is null) 
+         |           and deleted is null) ,0)
          |  from projects 
          | where id=${id.value}""".stripMargin
       .query[Project]
@@ -50,10 +50,10 @@ final class LiveProjectRepository[F[_]: Bracket[*[_], Throwable]: MonadError[*[_
           |      author,
           |      created,
           |      deleted,
-          |     (select sum(duration) 
+          |     coalesce((select sum(duration) 
           |        from tasks 
           |       where project_id = p.id
-          |         and deleted is null) 
+          |         and deleted is null),0) 
           | from projects p""".stripMargin
       .query[Project]
       .stream
