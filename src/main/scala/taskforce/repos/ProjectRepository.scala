@@ -1,4 +1,4 @@
-package taskforce.repository
+package taskforce.repos
 
 import cats.MonadError
 import cats.effect.Bracket
@@ -89,8 +89,7 @@ final class LiveProjectRepository[F[_]: Bracket[*[_], Throwable]: MonadError[*[_
       newProject: NewProject
   ): F[Project] = {
     val result = for {
-
-      dates <-
+      (created, deleted, userId) <-
         sql"""update projects 
          |       set name= ${newProject.name} 
          |     where id=${id.value}
@@ -102,7 +101,6 @@ final class LiveProjectRepository[F[_]: Bracket[*[_], Throwable]: MonadError[*[_
             "deleted",
             "author"
           )
-      (created, deleted, userId) = dates
     } yield Project(id, newProject.name, userId, created, deleted)
 
     result.transact(xa).adaptError {

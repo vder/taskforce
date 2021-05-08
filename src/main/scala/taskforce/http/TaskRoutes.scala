@@ -12,7 +12,7 @@ import org.http4s.{AuthedRequest, AuthedRoutes}
 import taskforce.Validations
 import taskforce.model._
 import taskforce.model.errors._
-import taskforce.repository.TaskRepository
+import taskforce.repos.TaskRepository
 
 final class TaskRoutes[
     F[_]: Sync: Applicative: MonadError[
@@ -62,7 +62,8 @@ final class TaskRoutes[
       case GET -> Root / LongVar(projectId) / "tasks" / UUIDVar(taskId)
           as userId =>
         for {
-          task     <- taskRepo.getTask(ProjectId(projectId), TaskId(taskId))
+          task <-
+            taskRepo.getTask(ProjectId(projectId), TaskId(taskId)).ensure(NotFoundError(taskId.toString))(_.isDefined)
           response <- Ok(task.asJson)
         } yield response
       case authReq @ POST -> Root / LongVar(projectId) / "tasks" as userId =>
@@ -83,7 +84,7 @@ final class TaskRoutes[
           allUserTasksWithoutOld = allUserTasks.filterNot(_.id == oldTask.id)
           _        <- Validations.taskPeriodIsValid(task, allUserTasksWithoutOld)
           _        <- taskRepo.updateTask(oldTask.id, task)
-          response <- Created(task)
+          response <- Ok(task)
         } yield response
       case authReq @ DELETE -> Root / LongVar(
             projectId
@@ -91,7 +92,7 @@ final class TaskRoutes[
         for {
           task     <- getTaskIfAuthor(ProjectId(projectId), TaskId(taskId), userId)
           _        <- taskRepo.deleteTask(task.id)
-          response <- Created(task)
+          response <- Ok()
         } yield response
     }
   }

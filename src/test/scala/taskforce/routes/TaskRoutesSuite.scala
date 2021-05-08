@@ -20,11 +20,12 @@ import taskforce.model.NewTask
 import taskforce.model.Task
 import taskforce.model.UserId
 import taskforce.model.errors._
-import taskforce.repository.TestTaskRepository
+import taskforce.repos.TestTaskRepository
 import java.time.Duration
 import taskforce.model.TaskDuration
+import taskforce.model.ProjectId
+import taskforce.model.TaskId
 class TasksRoutesSuite extends HttpTestSuite {
-  // implicit def decodeNewProduct: EntityDecoder[IO, NewProject] = jsonOf
   implicit def encodeNewProduct: EntityEncoder[IO, NewTask] = jsonEncoderOf
 
   val errHandler = LiveHttpErrorHandler.apply[IO]
@@ -53,7 +54,7 @@ class TasksRoutesSuite extends HttpTestSuite {
     PropF.forAllF { (t: Task) =>
       val taskRepo = new TestTaskRepository(List(t))
       val routes   = errHandler.handle(new TaskRoutes[IO](authMiddleware(t.author), taskRepo).routes)
-      val newTask  = NewTask(t.projectId, t.created.some, t.duration, None, None)
+      val newTask  = NewTask(t.created.some, t.duration, None, None)
 
       POST(newTask, Uri.unsafeFromString(s"api/v1/projects/${t.projectId.value}/tasks")).flatMap { req =>
         assertHttp(routes, req)(Status.Conflict, ErrorMessage("005", "Reporter already logged task in a given time"))
@@ -66,7 +67,7 @@ class TasksRoutesSuite extends HttpTestSuite {
       val taskRepo = new TestTaskRepository(List(t))
       val routes   = errHandler.handle(new TaskRoutes[IO](authMiddleware(t.author), taskRepo).routes)
       val newTask =
-        NewTask(t.projectId, t.created.plus(t.duration.value).minus(Duration.ofMinutes(1)).some, t.duration, None, None)
+        NewTask(t.created.plus(t.duration.value).minus(Duration.ofMinutes(1)).some, t.duration, None, None)
 
       POST(newTask, Uri.unsafeFromString(s"api/v1/projects/${t.projectId.value}/tasks")).flatMap { req =>
         assertHttp(routes, req)(Status.Conflict, ErrorMessage("005", "Reporter already logged task in a given time"))
@@ -80,7 +81,6 @@ class TasksRoutesSuite extends HttpTestSuite {
       val routes   = errHandler.handle(new TaskRoutes[IO](authMiddleware(t.author), taskRepo).routes)
       val newTask =
         NewTask(
-          t.projectId,
           t.created.minus(Duration.ofMinutes(10)).some,
           TaskDuration(Duration.ofMinutes(11L)),
           None,
@@ -97,10 +97,27 @@ class TasksRoutesSuite extends HttpTestSuite {
     PropF.forAllF { (t: Task, u: UserId) =>
       val taskRepo = new TestTaskRepository(List(t))
       val routes   = errHandler.handle(new TaskRoutes[IO](authMiddleware(u), taskRepo).routes)
-      val newTask  = NewTask(t.projectId, t.created.some, t.duration, None, None)
+      val newTask  = NewTask(t.created.some, t.duration, None, None)
 
       POST(newTask, Uri.unsafeFromString(s"api/v1/projects/${t.projectId.value}/tasks")).flatMap { req =>
         assertHttpStatus(routes, req)(Status.Created)
+      }
+    }
+  }
+
+  test("for unknown ids notFouns err is served") {
+    PropF.forAllF { (taskId: TaskId, projectId: ProjectId, u: UserId) =>
+      val taskRepo = new TestTaskRepository(List())
+      val routes   = errHandler.handle(new TaskRoutes[IO](authMiddleware(u), taskRepo).routes)
+
+      GET(Uri.unsafeFromString(s"api/v1/projects/${projectId.value}/tasks/${taskId.value}")).flatMap { req =>
+        assertHttp(routes, req)(
+          Status.NotFound,
+          ErrorMessage(
+            "007",
+            s"resource with given id ${taskId.value} does not exist"
+          )
+        )
       }
     }
   }

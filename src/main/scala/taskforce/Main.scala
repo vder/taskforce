@@ -16,8 +16,7 @@ import taskforce.http.{
   BasicRoutes,
   FilterRoutes
 }
-import taskforce.repository.LiveUserRepository
-import taskforce.repository._
+import taskforce.repos._
 import pureconfig.ConfigSource
 import taskforce.config.DatabaseConfig
 import pureconfig.module.catseffect.syntax._

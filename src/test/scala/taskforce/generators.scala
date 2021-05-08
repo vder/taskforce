@@ -1,17 +1,16 @@
 package taskforce
 
+import cats.syntax.option._
+import eu.timepit.refined._
 import eu.timepit.refined.api.Refined
-
-import org.scalacheck.Gen
-import taskforce.model._
+import eu.timepit.refined.collection._
+import eu.timepit.refined.numeric.Positive
 import eu.timepit.refined.types.string.NonEmptyString
+import java.time.Duration
 import java.time.LocalDateTime
 import java.time.ZoneOffset.UTC
-import java.time.Duration
-import eu.timepit.refined.numeric.Positive
-import eu.timepit.refined.collection._
-import eu.timepit.refined._
-import cats.syntax.option._
+import org.scalacheck.Gen
+import taskforce.model._
 
 object generators {
 
@@ -77,7 +76,7 @@ object generators {
       duration  <- taskDurationGen
       volume    <- Gen.posNum[Int].map(Refined.unsafeApply[Int, Positive])
       comment   <- Gen.alphaStr
-    } yield NewTask(projectId, created.some, duration, volume.some, refineV[NonEmpty](comment).toOption)
+    } yield NewTask(created.some, duration, volume.some, refineV[NonEmpty](comment).toOption)
 
   val operatorGen: Gen[Operator] = Gen.oneOf(List("eq", "gt", "gteq", "lteq", "lt")).map(Operator.fromString)
 

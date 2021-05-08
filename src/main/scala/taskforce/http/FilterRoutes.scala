@@ -12,7 +12,7 @@ import org.http4s.server.{AuthMiddleware, Router}
 import org.http4s.AuthedRoutes
 import taskforce.model._
 import taskforce.model.errors._
-import taskforce.repository.FilterRepository
+import taskforce.repos.FilterRepository
 import fs2.Stream
 import java.util.UUID
 
@@ -55,18 +55,19 @@ final class FilterRoutes[
         val id = FilterId(filterId)
         val filter = filterRepo
           .getFilter(id)
-          .ensure(NotFoundError(id))(!_.isEmpty)
+          .ensure(NotFoundError(id.toString()))(!_.isEmpty)
         Ok(filter)
       case GET -> Root / UUIDVar(
             filterId
           ) / "data" as userId =>
         val id = FilterId(filterId)
         val resultMap = for {
-          filterOption <- Stream.eval(filterRepo.getFilter(id))
-          filter <- Stream.eval(
-            Sync[F].fromOption(filterOption, NotFoundError(id))
+          filterOption <- Stream.eval(
+            filterRepo
+              .getFilter(id)
+              .ensure(NotFoundError(id.toString))(_.isDefined)
           )
-          (project, taskOpt) <- filterRepo.getRows(filter)
+          (project, taskOpt) <- filterRepo.getRows(filterOption.get)
           projectMap = Map(
             "projectId"      -> project.id.asJson,
             "projectName"    -> project.name.asJson,

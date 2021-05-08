@@ -12,8 +12,10 @@ services:
     environment:
       - POSTGRES_USER=vder
       - POSTGRES_PASSWORD=gordon
-      - POSTGRES_DB=exchange
+      - POSTGRES_MULTIPLE_DATABASES=task,task_test
     #   Maps port 54320 (localhost) to port 5432 on the container. You can change the ports to fix your needs.
+    volumes:
+      - ./src/main/resources/db:/docker-entrypoint-initdb.d
     networks:
       - postgres-db
     restart: always
