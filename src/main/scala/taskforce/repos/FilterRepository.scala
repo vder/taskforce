@@ -24,7 +24,7 @@ trait FilterRepository[F[_]] {
       filter: Filter,
       sortByOption: Option[SortBy],
       page: Page
-  ): Stream[F, (Project, Option[Task])]
+  ): Stream[F, Row]
   def getAllFilters: Stream[F, Filter]
 }
 
@@ -44,7 +44,7 @@ final class LiveFilterRepository[F[_]: Monad: Bracket[*[_], Throwable]](
       filter: Filter,
       sortByOption: Option[SortBy],
       page: Page
-  ): Stream[F, (Project, Option[Task])] = {
+  ): Stream[F, Row] = {
     val selectClause = fr"""select p.id,
                             |      p.name,
                             |      p.author,
@@ -69,7 +69,7 @@ final class LiveFilterRepository[F[_]: Monad: Bracket[*[_], Throwable]](
 
     val sql = selectClause ++ whereClause ++ orderClause ++ limitClause
     println(sql)
-    sql.query[(Project, Option[Task])].stream.transact(xa)
+    sql.query[(Project, Option[Task])].stream.transact(xa).map(Row.fromTuple)
   }
 
   def createCriterias(filterId: FilterId)(criteria: Criteria) =
