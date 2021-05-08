@@ -76,7 +76,7 @@ object generators {
       duration  <- taskDurationGen
       volume    <- Gen.posNum[Int].map(Refined.unsafeApply[Int, Positive])
       comment   <- Gen.alphaStr
-    } yield NewTask(projectId, created.some, duration, volume.some, refineV[NonEmpty](comment).toOption)
+    } yield NewTask(created.some, duration, volume.some, refineV[NonEmpty](comment).toOption)
 
   val operatorGen: Gen[Operator] = Gen.oneOf(List("eq", "gt", "gteq", "lteq", "lt")).map(Operator.fromString)
 

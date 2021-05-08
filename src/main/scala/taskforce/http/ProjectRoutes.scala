@@ -38,7 +38,7 @@ final class ProjectRoutes[
             MonadError[F, Throwable]
               .fromOption(
                 projectOption,
-                NotFoundError(ProjectId(projectId))
+                NotFoundError(projectId.toString())
               )
               .ensure(NotAuthorError(userId))(_.author == userId)
           _        <- projectRepo.deleteProject(ProjectId(projectId))
@@ -51,7 +51,7 @@ final class ProjectRoutes[
           project <-
             projectRepo
               .getProject(id)
-              .ensure(NotFoundError(id))(_.isDefined)
+              .ensure(NotFoundError(projectId.toString()))(_.isDefined)
           response <- Ok(project.asJson)
         } yield response
 
@@ -76,8 +76,8 @@ final class ProjectRoutes[
               .adaptError(_ => BadRequestError)
           previousProject <-
             projectRepo
-              .getProject(ProjectId(projectId))
-              .ensure(NotFoundError(id))(_.isDefined)
+              .getProject(id)
+              .ensure(NotFoundError(projectId.toString()))(_.isDefined)
               .ensure(NotAuthorError(userId))(_.filter(_.author == userId).isDefined)
           project <-
             projectRepo

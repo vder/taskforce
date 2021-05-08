@@ -22,7 +22,7 @@ object TaskId {
 }
 
 final case class NewTask(
-    projectId: ProjectId,
+    //   projectId: ProjectId,
     created: Option[LocalDateTime],
     duration: TaskDuration,
     volume: Option[Int Refined Positive],
@@ -61,7 +61,7 @@ object Task {
   ) =
     Task(
       TaskId(UUID.randomUUID()),
-      newTask.projectId,
+      projectId,
       userId,
       newTask.created.getOrElse(LocalDateTime.now()),
       newTask.duration,
