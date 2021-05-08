@@ -1,13 +1,10 @@
 package taskforce.model
 
-import doobie.util.meta.Meta
 import eu.timepit.refined.types.string.NonEmptyString
-import io.circe.generic.semiauto._
 import io.circe.refined._
 import io.circe.{Decoder, Encoder}, io.circe.generic.auto._
 import java.time.LocalDateTime
 import java.util.UUID
-import cats.implicits._
 import doobie.util.meta.Meta
 import cats.data.NonEmptyList
 import io.circe.generic.semiauto._

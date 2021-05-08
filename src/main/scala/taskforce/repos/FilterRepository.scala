@@ -15,9 +15,6 @@ import taskforce.model._
 import java.time.LocalDateTime
 import eu.timepit.refined.collection._
 import eu.timepit.refined._
-import cats.data.NonEmptyList
-import cats.instances.sortedMap
-import eu.timepit.refined.numeric._
 
 trait FilterRepository[F[_]] {
   def createFilter(filter: Filter): F[Filter]

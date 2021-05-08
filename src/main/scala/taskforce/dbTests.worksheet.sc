@@ -1,8 +1,8 @@
 import eu.timepit.refined.api.Refined
-import taskforce.repository.LiveFilterRepository
+import taskforce.repos.LiveFilterRepository
 import taskforce.model._
 import java.time.LocalDateTime
-import taskforce.repository.LiveProjectRepository
+import taskforce.repos.LiveProjectRepository
 import java.util.UUID
 import doobie._
 import doobie.implicits._

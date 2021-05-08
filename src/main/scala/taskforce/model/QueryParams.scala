@@ -1,15 +1,10 @@
 package taskforce.model
 
-import org.http4s.client.dsl.io._
-import org.http4s.QueryParam
 import org.http4s.QueryParamDecoder
 import cats.implicits._
-import taskforce.model.errors._
 import org.http4s.dsl.impl.OptionalQueryParamDecoderMatcher
-import eu.timepit.refined.api.Refined
 import eu.timepit.refined.types.numeric.PosInt
 import eu.timepit.refined._
-import eu.timepit.refined.api.Refined
 import eu.timepit.refined.auto._
 import eu.timepit.refined.numeric._
 import org.http4s.ParseFailure
