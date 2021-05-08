@@ -20,7 +20,7 @@ final case object CreatedDate extends Field
 final case object UpdatedDate extends Field
 
 sealed trait Order
-final case object Asc extends Order
+final case object Asc  extends Order
 final case object Desc extends Order
 
 final case class SortBy(field: Field, order: Order) {
@@ -65,9 +65,7 @@ object PageNo {
   val default = PageNo(refineMV[Positive](1))
   object Matcher extends OptionalQueryParamDecoderMatcher[PageNo]("page")
   implicit val pageNoParamDecoder: QueryParamDecoder[PageNo] =
-    QueryParamDecoder[Int].emap(i =>
-      refineV[Positive](i).leftMap(s => ParseFailure(s, "")).map(PageNo.apply)
-    )
+    QueryParamDecoder[Int].emap(i => refineV[Positive](i).leftMap(s => ParseFailure(s, "")).map(PageNo.apply))
 }
 
 object PageSize {
@@ -76,9 +74,7 @@ object PageSize {
   object Matcher extends OptionalQueryParamDecoderMatcher[PageSize]("size")
 
   implicit val pageSizeParamDecoder: QueryParamDecoder[PageSize] =
-    QueryParamDecoder[Int].emap(i =>
-      refineV[Positive](i).leftMap(s => ParseFailure(s, "")).map(PageSize.apply)
-    )
+    QueryParamDecoder[Int].emap(i => refineV[Positive](i).leftMap(s => ParseFailure(s, "")).map(PageSize.apply))
 }
 
 object SortBy {

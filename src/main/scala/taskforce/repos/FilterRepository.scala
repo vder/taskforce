@@ -40,26 +40,34 @@ final class LiveFilterRepository[F[_]: Monad: Bracket[*[_], Throwable]](
 
   override def getAllFilters: Stream[F, Filter] = ???
 
-  override def getRows(filter: Filter): Stream[F, (Project, Option[Task])] = {
-    val select = fr"""select p.id,
-                       |     p.name,
-                       |     p.author,
-                       |     p.created,
-                       |     p.deleted,
-                       |     t.id,
-                       |     t.project_id,
-                       |     t.author,
-                       |     t.started,
-                       |     t.duration,
-                       |     t.volume,
-                       |     t.deleted,
-                       |     t.comment 
-                       |from projects p 
-                       |left join tasks t
-                       |  on p.id = t.project_id""".stripMargin
+  override def getRows(
+      filter: Filter,
+      sortByOption: Option[SortBy],
+      page: Page
+  ): Stream[F, (Project, Option[Task])] = {
+    val selectClause = fr"""select p.id,
+                            |      p.name,
+                            |      p.author,
+                            |      p.created,
+                            |      p.deleted,
+                            |      t.id,
+                            |      t.project_id,
+                            |      t.author,
+                            |      t.started,
+                            |      t.duration,
+                            |      t.volume,
+                            |      t.deleted,
+                            |      t.comment 
+                            | from projects p left join tasks t on p.id = t.project_id""".stripMargin
 
-    val where = filter.conditions.foldLeft(fr" where 1=1 ")((fr, criteria) => fr ++ fr" And " ++ toSql(criteria))
-    val sql   = selectClause ++ whereClause ++ orderClause ++ limitClause
+    val whereClause =
+      filter.conditions.foldLeft(fr" where 1=1 ")((fr, criteria) => fr ++ fr" And " ++ criteria.toSql)
+
+    val orderClause = sortByOption.fold(Fragment.empty)(_.toSql)
+
+    val limitClause = page.toSql
+
+    val sql = selectClause ++ whereClause ++ orderClause ++ limitClause
     println(sql)
     sql.query[(Project, Option[Task])].stream.transact(xa)
 

@@ -113,7 +113,7 @@ sealed trait Criteria extends Product with Serializable {
 
 case class In(names: List[NonEmptyString]) extends Criteria {
 
-  implicit val purNonEmptyList: Put[List[NonEmptyString]] =
+  implicit val putNonEmptyList: Put[List[NonEmptyString]] =
     Put[List[String]].contramap(_.map(_.value))
 
   override def toSql: Fragment =
@@ -136,10 +136,6 @@ case class State(status: Status) extends Criteria {
       case Active   => fr"""t.deleted is null"""
     }
 }
-
-case class In(names: List[NonEmptyString])                    extends Criteria
-case class TaskCreatedDate(op: Operator, date: LocalDateTime) extends Criteria
-case class State(status: Status)                              extends Criteria
 
 object In {
   implicit val decodeIn: Decoder[In] =
