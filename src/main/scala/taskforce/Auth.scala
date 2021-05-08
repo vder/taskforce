@@ -6,7 +6,7 @@ import dev.profunktor.auth.jwt._
 import io.circe.parser._
 import pdi.jwt._
 import taskforce.model._
-import taskforce.repository.UserRepository
+import taskforce.repos.UserRepository
 
 trait Auth[F[_]] {
   def authenticate: JwtToken => JwtClaim => F[Option[UserId]]

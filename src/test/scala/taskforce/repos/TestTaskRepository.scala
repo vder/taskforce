@@ -1,4 +1,4 @@
-package taskforce.repository
+package taskforce.repos
 
 import taskforce.model._
 import cats.implicits._

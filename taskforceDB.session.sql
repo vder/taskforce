@@ -1,2 +1,2 @@
-select *
-from tasks
+SELECT datname
+FROM pg_database;

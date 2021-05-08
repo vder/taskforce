@@ -1,6 +1,6 @@
-package taskforce.routes
+package taskforce.repos
 
-import taskforce.repository.TestProjectRepository
+import taskforce.repos.TestProjectRepository
 
 import cats.data.Kleisli
 import cats.effect.IO

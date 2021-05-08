@@ -12,7 +12,7 @@ import org.http4s.{AuthedRequest, AuthedRoutes}
 import taskforce.Validations
 import taskforce.model._
 import taskforce.model.errors._
-import taskforce.repository.TaskRepository
+import taskforce.repos.TaskRepository
 
 final class TaskRoutes[
     F[_]: Sync: Applicative: MonadError[

@@ -10,7 +10,7 @@ import org.http4s.dsl.Http4sDsl
 import org.http4s.server.{AuthMiddleware, Router}
 import taskforce.model._
 import taskforce.model.errors._
-import taskforce.repository.ProjectRepository
+import taskforce.repos.ProjectRepository
 
 final class ProjectRoutes[
     F[_]: Defer: Applicative: MonadError[*[_], Throwable]: JsonDecoder
