@@ -38,6 +38,9 @@ final class LiveFilterRepository[F[_]: Monad: Bracket[*[_], Throwable]](
   implicit val getNonEmptyList: Get[List[NonEmptyString]] =
     Get[List[String]] temap (_.traverse(refineV[NonEmpty](_)))
 
+  implicit val putNonEmptyList: Put[List[NonEmptyString]] =
+    Put[List[String]].contramap(_.map(_.value))
+
   override def getAllFilters: Stream[F, Filter] = ???
 
   override def getRows(
