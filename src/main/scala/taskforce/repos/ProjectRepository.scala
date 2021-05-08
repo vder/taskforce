@@ -29,13 +29,32 @@ final class LiveProjectRepository[F[_]: Bracket[*[_], Throwable]: MonadError[*[_
 ) extends ProjectRepository[F] {
 
   override def getProject(id: ProjectId): F[Option[Project]] =
-    sql"""select id,name,author,created,deleted from projects where id=${id.value}"""
+    sql"""select id,
+         |       name,
+         |       author,
+         |       created,
+         |       deleted,
+         |       (select sum(duration) 
+         |          from tasks 
+         |         where project_id =${id.value}
+         |           and deleted is null) 
+         |  from projects 
+         | where id=${id.value}""".stripMargin
       .query[Project]
       .option
       .transact(xa)
 
   override def getAllProject: F[List[Project]] =
-    sql"""select id,name,author,created,deleted from projects"""
+    sql"""select id,
+          |      name,
+          |      author,
+          |      created,
+          |      deleted,
+          |     (select sum(duration) 
+          |        from tasks 
+          |       where project_id = p.id
+          |         and deleted is null) 
+          | from projects p""".stripMargin
       .query[Project]
       .stream
       .compile
@@ -60,7 +79,7 @@ final class LiveProjectRepository[F[_]: Bracket[*[_], Throwable]: MonadError[*[_
       )
       .map {
         case (id, created, name) =>
-          Project(ProjectId(id), name, author, created, None)
+          Project(ProjectId(id), name, author, created, None, 0)
       }
       .transact(xa)
       .adaptError {
@@ -101,7 +120,11 @@ final class LiveProjectRepository[F[_]: Bracket[*[_], Throwable]: MonadError[*[_
             "deleted",
             "author"
           )
-    } yield Project(id, newProject.name, userId, created, deleted)
+      totalTime <- sql"""select sum(duration) 
+                          |  from tasks 
+                          | where project_id =${id.value}
+                          |   and deleted is null""".stripMargin.query[Long].unique
+    } yield Project(id, newProject.name, userId, created, deleted, totalTime)
 
     result.transact(xa).adaptError {
       case x: PSQLException

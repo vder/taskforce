@@ -26,7 +26,8 @@ final case class Project(
     name: NonEmptyString,
     author: UserId,
     created: LocalDateTime,
-    deleted: Option[LocalDateTime]
+    deleted: Option[LocalDateTime],
+    totalTime: Long
 )
 
 object Project {
