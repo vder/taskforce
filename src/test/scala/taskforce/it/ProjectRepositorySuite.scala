@@ -109,6 +109,7 @@ class ProjectRepositorySuite extends CatsEffectSuite with ScalaCheckEffectSuite 
         retrieved <- repo.getProject(created.id)
       } yield assert(clue(retrieved.flatMap(_.deleted).isDefined))
     }
+
   }
 
 }

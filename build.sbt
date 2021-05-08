@@ -11,7 +11,7 @@ lazy val root = (project in file("."))
   .enablePlugins(FlywayPlugin)
   .settings(
     name := "taskforce",
-    flywayUrl := "jdbc:postgresql://localhost:54340/taskforce_db",
+    flywayUrl := "jdbc:postgresql://localhost:54340/task",
     flywayUser := "vder",
     flywayPassword := "gordon",
     Docker / packageName := "tf-dockerized",

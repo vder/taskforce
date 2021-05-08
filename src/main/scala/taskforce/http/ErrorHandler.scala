@@ -50,7 +50,7 @@ object LiveHttpErrorHandler {
           NotFound(
             ErrorMessage(
               "007",
-              s"resource with given id ${id.value} does not exist"
+              s"resource with given id ${id} does not exist"
             )
           )
       }
