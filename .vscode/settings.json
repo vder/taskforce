@@ -6,7 +6,7 @@
             "port": 54340,
             "driver": "PostgreSQL",
             "name": "taskforceDB",
-            "database": "exchange",
+            "database": "taskforce_db",
             "username": "vder",
             "password": "gordon"
         }

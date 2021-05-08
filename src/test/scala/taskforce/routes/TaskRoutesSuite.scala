@@ -20,11 +20,10 @@ import taskforce.model.NewTask
 import taskforce.model.Task
 import taskforce.model.UserId
 import taskforce.model.errors._
-import taskforce.repository.TestTaskRepository
+import taskforce.repos.TestTaskRepository
 import java.time.Duration
 import taskforce.model.TaskDuration
 class TasksRoutesSuite extends HttpTestSuite {
-  // implicit def decodeNewProduct: EntityDecoder[IO, NewProject] = jsonOf
   implicit def encodeNewProduct: EntityEncoder[IO, NewTask] = jsonEncoderOf
 
   val errHandler = LiveHttpErrorHandler.apply[IO]

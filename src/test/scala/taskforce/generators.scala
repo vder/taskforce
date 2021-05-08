@@ -1,17 +1,16 @@
 package taskforce
 
+import cats.syntax.option._
+import eu.timepit.refined._
 import eu.timepit.refined.api.Refined
-
-import org.scalacheck.Gen
-import taskforce.model._
+import eu.timepit.refined.collection._
+import eu.timepit.refined.numeric.Positive
 import eu.timepit.refined.types.string.NonEmptyString
+import java.time.Duration
 import java.time.LocalDateTime
 import java.time.ZoneOffset.UTC
-import java.time.Duration
-import eu.timepit.refined.numeric.Positive
-import eu.timepit.refined.collection._
-import eu.timepit.refined._
-import cats.syntax.option._
+import org.scalacheck.Gen
+import taskforce.model._
 
 object generators {
 

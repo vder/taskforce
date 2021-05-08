@@ -12,7 +12,7 @@ import org.http4s.server.{AuthMiddleware, Router}
 import org.http4s.AuthedRoutes
 import taskforce.model._
 import taskforce.model.errors._
-import taskforce.repository.FilterRepository
+import taskforce.repos.FilterRepository
 import fs2.Stream
 import java.util.UUID
 

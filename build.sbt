@@ -11,7 +11,7 @@ lazy val root = (project in file("."))
   .enablePlugins(FlywayPlugin)
   .settings(
     name := "taskforce",
-    flywayUrl := "jdbc:postgresql://localhost:54340/exchange",
+    flywayUrl := "jdbc:postgresql://localhost:54340/taskforce_db",
     flywayUser := "vder",
     flywayPassword := "gordon",
     Docker / packageName := "tf-dockerized",
@@ -45,7 +45,9 @@ lazy val root = (project in file("."))
       refined,
       scalaCheckEffect,
       scalaCheckEffectMunit,
-      slf4j
+      slf4j,
+      testcontainers,
+      testcontainersPostgres
     ),
     addCompilerPlugin(kindProjector),
     addCompilerPlugin(betterMonadicFor),

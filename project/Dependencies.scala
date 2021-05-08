@@ -17,6 +17,7 @@ object Dependencies {
     val kindProjector    = "0.11.3"
     val munit            = "0.7.22"
     val scalacheckEffect = "0.6.0"
+    val testcontainers   = "0.39.3"
   }
   object Libraries {
 
@@ -24,8 +25,9 @@ object Dependencies {
     def refinedLib(artifact: String): ModuleID                  = "eu.timepit"    %% artifact % V.refined
     def circeLib(artifact: String): ModuleID                    = "io.circe"      %% artifact % V.circe
     def doobieLib(artifact: String): ModuleID                   = "org.tpolecat"  %% artifact % V.doobie
-    def mUnitLib(artifact: String): ModuleID                    = "org.scalameta" %% artifact % V.munit % Test
-    def typeLevelLibTest(artifact: String, v: String): ModuleID = "org.typelevel" %% artifact % v       % Test
+    def mUnitLib(artifact: String): ModuleID                    = "org.scalameta" %% artifact % V.munit          % Test
+    def typeLevelLibTest(artifact: String, v: String): ModuleID = "org.typelevel" %% artifact % v                % Test
+    def testContainersLibTest(artifact: String): ModuleID       = "com.dimafeng"  %% artifact % V.testcontainers % Test
 
     val catsEffect            = "org.typelevel"         %% "cats-effect"            % V.catsEff
     val circe                 = circeLib("circe-generic")
@@ -57,7 +59,9 @@ object Dependencies {
     val betterMonadicFor = "com.olegpy"   %% "better-monadic-for" % V.betterMonadicFor
     val kindProjector    = "org.typelevel" % "kind-projector"     % V.kindProjector cross CrossVersion.full
 
-    val mUnit           = mUnitLib("munit")
-    val mUnitScalacheck = mUnitLib("munit-scalacheck")
+    val mUnit                  = mUnitLib("munit")
+    val mUnitScalacheck        = mUnitLib("munit-scalacheck")
+    val testcontainers         = testContainersLibTest("testcontainers-scala-munit")
+    val testcontainersPostgres = testContainersLibTest("testcontainers-scala-postgresql")
   }
 }

@@ -1,4 +1,4 @@
-package taskforce.repository
+package taskforce.repos
 
 import cats.Monad
 import cats.effect.{Bracket, Sync}
