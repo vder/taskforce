@@ -15,12 +15,13 @@ import taskforce.model.errors._
 import taskforce.repos.FilterRepository
 import fs2.Stream
 import java.util.UUID
+import io.chrisdavenport.log4cats.Logger
 
 final class FilterRoutes[
     F[_]: Sync: Applicative: MonadError[
       *[_],
       Throwable
-    ]: JsonDecoder
+    ]: JsonDecoder: Logger
 ](
     authMiddleware: AuthMiddleware[F, UserId],
     filterRepo: FilterRepository[F]
@@ -74,7 +75,7 @@ final class FilterRoutes[
           page = Page.fromParamsOrDefault(no, size)
           rows <- filterRepo.getRows(filterOption.get, sortBy, page)
         } yield rows
-        Ok(resultMap)
+        Logger[F].info(s"TEST: ${sortBy} ${Page.fromParamsOrDefault(no, size)}") *> Ok(resultMap)
     }
   }
 
@@ -84,7 +85,7 @@ final class FilterRoutes[
 }
 
 object FilterRoutes {
-  def make[F[_]: Defer: MonadError[*[_], Throwable]: Sync](
+  def make[F[_]: Defer: MonadError[*[_], Throwable]: Sync: Logger](
       authMiddleware: AuthMiddleware[F, UserId],
       filterRepo: FilterRepository[F]
   ) = Sync[F].delay { new FilterRoutes(authMiddleware, filterRepo) }

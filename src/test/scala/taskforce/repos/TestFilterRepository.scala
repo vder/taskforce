@@ -5,19 +5,10 @@ import cats.implicits._
 import cats.effect.IO
 import fs2.Stream
 
-final case class TestFilterRepository(filters: List[Filter], tasks: List[(Project, List[Task])])
-    extends FilterRepository[IO] {
+case class TestFilterRepository(filters: List[Filter], rows: List[Row]) extends FilterRepository[IO] {
 
-  override def getRows(filter: Filter, sortByOption: Option[SortBy], page: Page): Stream[IO, Row] = {
-    val rows = tasks.flatMap {
-      case (p, taskList) if taskList.isEmpty => List(Row.fromTuple(p, None))
-      case (p, taskList)                     => taskList.map(t => Row.fromTuple(p, t.some))
-    }
-
-    val result = filter.conditions.foldLeft(rows)((r, c) => r.filter(c.filter))
-
-    Stream.emits(result)
-  }
+  override def getRows(filter: Filter, sortByOption: Option[SortBy], page: Page): Stream[IO, Row] =
+    Stream.emits(rows)
 
   override def createFilter(filter: Filter): IO[Filter] = filter.pure[IO]
 

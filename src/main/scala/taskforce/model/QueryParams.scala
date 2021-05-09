@@ -24,6 +24,9 @@ final case class SortBy(field: Field, order: Order) {
       case CreatedDate => s"order by t.started $order"
       case UpdatedDate => s"order by coalesce(t.started,p.created) $order"
     })
+
+  def toQuery: String =
+    s"""sortBy=${if (order == Desc) "-" else ""}${if (field == CreatedDate) "created" else "updated"}"""
 }
 
 case class PageNo(value: PosInt)
@@ -37,6 +40,7 @@ final case class Page(no: PageNo, size: PageSize) {
           s" limit ${pageSize.value} offset ${(pageNo.value - 1) * pageSize.value}"
         )
     }
+  val toQuery = s"page=${no.value.value}&size=${size.value.value}"
 }
 
 object Page {
@@ -77,8 +81,7 @@ object SortBy {
   object Matcher extends OptionalQueryParamDecoderMatcher[SortBy]("sortBy")
 
   implicit val sortByParamDecoder: QueryParamDecoder[SortBy] =
-    QueryParamDecoder[String].map(s => {
-      println(s)
+    QueryParamDecoder[String].map(s =>
       s match {
         case "created" =>
           SortBy(CreatedDate, Asc)
@@ -87,6 +90,6 @@ object SortBy {
         case "-created" => SortBy(CreatedDate, Desc)
         case "-updated" => SortBy(UpdatedDate, Desc)
       }
-    })
+    )
 
 }
