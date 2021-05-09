@@ -112,4 +112,22 @@ object generators {
     s <- Gen.chooseNum(1, 100).map(Refined.unsafeApply[Int, Positive])
   } yield PageSize(s)
 
+  val pageNoGen = for {
+    i <- Gen.chooseNum(1, 100).map(Refined.unsafeApply[Int, Positive])
+  } yield PageNo(i)
+
+  val pageGen = for {
+    size <- pageSizeGen
+    no   <- pageNoGen
+  } yield Page(no, size)
+
+  val sortByGen = for {
+    field <- Gen.oneOf(List(CreatedDate, UpdatedDate))
+    order <- Gen.oneOf(List(Asc, Desc))
+  } yield SortBy(field, order)
+
+  val rowGen = for {
+    p <- projectGen
+    t <- taskGen
+  } yield Row.fromTuple(p, Some(t))
 }

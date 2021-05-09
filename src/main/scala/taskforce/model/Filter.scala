@@ -235,8 +235,8 @@ object Row {
         )
     }
 
-  implicit val filterNewDecoder: Decoder[Row] =
+  implicit val circeRowDecoder: Decoder[Row] =
     deriveDecoder[Row]
-  implicit val filterNewEncoder: Encoder[Row] =
+  implicit val circeRowEncoder: Encoder[Row] =
     deriveEncoder[Row]
 }

@@ -25,5 +25,8 @@ object arbitraries {
   implicit def arbNewFilterGen      = Arbitrary(newFilterGen)
   implicit def arbFilterGen         = Arbitrary(filterGen)
   implicit def arbPageSizeGen       = Arbitrary(pageSizeGen)
+  implicit def arbPageGen           = Arbitrary(pageGen)
+  implicit def arbSortBy            = Arbitrary(sortByGen)
+  implicit def arbRow               = Arbitrary(rowGen)
 
 }
