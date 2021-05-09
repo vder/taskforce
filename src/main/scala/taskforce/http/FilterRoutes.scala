@@ -71,26 +71,9 @@ final class FilterRoutes[
               .getFilter(id)
               .ensure(NotFoundError(id.toString))(_.isDefined)
           )
-
           page = Page.fromParamsOrDefault(no, size)
-          (project, taskOpt) <- filterRepo.getRows(filterOption.get, sortBy, page)
-          projectMap = Map(
-            "projectId"      -> project.id.asJson,
-            "projectName"    -> project.name.asJson,
-            "projectCreated" -> project.created.asJson
-          )
-          taskMap =
-            taskOpt
-              .map(t =>
-                Map(
-                  "taskComment"  -> t.comment.asJson,
-                  "taskCreated"  -> t.created.asJson,
-                  "taskDuration" -> t.duration.asJson
-                )
-              )
-              .getOrElse(Map())
-          map = projectMap ++ taskMap
-        } yield map.asJson
+          rows <- filterRepo.getRows(filterOption.get, sortBy, page)
+        } yield rows
         Ok(resultMap)
     }
   }

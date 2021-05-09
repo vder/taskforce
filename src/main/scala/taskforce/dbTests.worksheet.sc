@@ -1,13 +1,3 @@
-import eu.timepit.refined.api.Refined
-import taskforce.repos.LiveFilterRepository
-import taskforce.model._
-import java.time.LocalDateTime
-import taskforce.repos.LiveProjectRepository
-import java.util.UUID
-import doobie._
-import doobie.implicits._
-import doobie.util.ExecutionContexts
-
 import cats._
 import cats.effect._
 import cats.implicits._
@@ -32,10 +22,10 @@ import taskforce.repos.{LiveFilterRepository, LiveProjectRepository}
 implicit val cs = IO.contextShift(ExecutionContexts.synchronous)
 
 val xa = Transactor.fromDriverManager[IO](
-  "org.postgresql.Driver",                  // driver classname
-  "jdbc:postgresql://localhost:54340/task", // connect URL
-  "vder",                                   // username
-  "gordon",                                 // password
+  "org.postgresql.Driver",                       // driver classname
+  "jdbc:postgresql://localhost:54340/task_test", // connect URL
+  "vder",                                        // username
+  "gordon",                                      // password
   Blocker.liftExecutionContext(
     ExecutionContexts.synchronous
   ) // just for testing
