@@ -13,7 +13,6 @@ import doobie._
 import doobie.implicits._
 import doobie.postgres.implicits._
 import doobie.refined.implicits._
-import doobie.free.databasemetadata
 
 sealed trait Operator {
 
@@ -132,7 +131,7 @@ case class In(names: List[NonEmptyString]) extends Criteria {
 }
 case class TaskCreatedDate(op: Operator, date: LocalDateTime) extends Criteria {
 
-  override def toSql: Fragment = fr""" t.started ${op.toSql}  ${date}""""
+  override def toSql: Fragment = Fragment.const(s" t.started ${op.toSql}") ++ fr"${date}"
 
   val filterByOp: LocalDateTime => Boolean =
     this.op match {

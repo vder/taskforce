@@ -50,6 +50,7 @@ final class LiveFilterRepository[F[_]: Monad: Bracket[*[_], Throwable]](
                             |      p.author,
                             |      p.created,
                             |      p.deleted,
+                            |      coalesce( (sum(t.duration) over (partition by p.id)),0),
                             |      t.id,
                             |      t.project_id,
                             |      t.author,
@@ -57,19 +58,16 @@ final class LiveFilterRepository[F[_]: Monad: Bracket[*[_], Throwable]](
                             |      t.duration,
                             |      t.volume,
                             |      t.deleted,
-                            |      t.comment 
-                            | from projects p left join tasks t on p.id = t.project_id""".stripMargin
+                            |      t.comment
+                            | from projects p left join tasks t 
+                            |   on t.project_id = p.id""".stripMargin
 
     val whereClause =
-      filter.conditions.foldLeft(fr" where 1=1 ")((fr, criteria) => fr ++ fr" And " ++ criteria.toSql)
-
+      filter.conditions.foldLeft(fr" where 1=1 ")((fr, criteria) => fr ++ fr" and " ++ criteria.toSql)
     val orderClause = sortByOption.fold(Fragment.empty)(_.toSql)
-
     val limitClause = page.toSql
-
-    val sql = selectClause ++ whereClause ++ orderClause ++ limitClause
-    println(sql)
-    sql.query[(Project, Option[Task])].stream.transact(xa).map(Row.fromTuple)
+    val sql         = selectClause ++ whereClause ++ orderClause ++ limitClause
+    sql.query[(Project, Option[Task])].stream.transact(xa).map(x => Row.fromTuple(x))
   }
 
   def createCriterias(filterId: FilterId)(criteria: Criteria) =
