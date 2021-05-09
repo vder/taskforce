@@ -107,4 +107,9 @@ object generators {
     c  <- conditionsGen
     id <- filterIdGen
   } yield Filter(id, c)
+
+  val pageSizeGen = for {
+    s <- Gen.chooseNum(1, 100).map(Refined.unsafeApply[Int, Positive])
+  } yield PageSize(s)
+
 }

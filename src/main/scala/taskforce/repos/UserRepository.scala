@@ -9,12 +9,15 @@ import taskforce.model._
 
 trait UserRepository[F[_]] {
   def getUser(userId: UserId): F[Option[User]]
-
+  def createUser(user: User): F[Int]
 }
 
 final class LiveUserRepository[F[_]: Monad: Bracket[*[_], Throwable]](
     xa: Transactor[F]
 ) extends UserRepository[F] {
+
+  override def createUser(user: User): F[Int] =
+    sql"insert into users(id) values(${user.id.value})".update.run.transact(xa)
 
   override def getUser(userId: UserId): F[Option[User]] =
     sql"select id from users where id =${userId.value}"

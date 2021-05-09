@@ -75,7 +75,7 @@ class ProjectRepositorySuite extends CatsEffectSuite with ScalaCheckEffectSuite 
         allBefore <- repo.getAllProject
         project   <- repo.createProject(p, userID)
         allAfter  <- repo.getAllProject
-      } yield assertEquals((allBefore, allAfter.head.name, allAfter.size), (Nil, p.name, 1))
+      } yield assertEquals((allBefore.size, allAfter.filter(_.name == p.name).size, allAfter.size), (2, 1, 3))
     }
   }
 

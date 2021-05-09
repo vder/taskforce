@@ -15,6 +15,7 @@ import doobie.postgres.implicits._
 import doobie.refined.implicits._
 
 sealed trait Operator {
+
   override def toString =
     this match {
       case Eq   => "eq"
@@ -106,6 +107,15 @@ object Status {
 
 sealed trait Criteria extends Product with Serializable {
   def toSql: Fragment
+
+  def filter(r: Row): Boolean =
+    this match {
+      case In(names)                        => names.contains(r.projectName)
+      case State(Active)                    => r.taskDeleted.isEmpty
+      case State(Deactive)                  => r.taskDeleted.isDefined
+      case State(All)                       => true
+      case cond @ TaskCreatedDate(op, date) => r.taskCreated.map(d => cond.filterByOp(d)).getOrElse(true)
+    }
 }
 
 case class In(names: List[NonEmptyString]) extends Criteria {
@@ -121,7 +131,16 @@ case class In(names: List[NonEmptyString]) extends Criteria {
 }
 case class TaskCreatedDate(op: Operator, date: LocalDateTime) extends Criteria {
 
-  override def toSql: Fragment = fr""" t.started ${op.toSql}  ${date}""""
+  override def toSql: Fragment = Fragment.const(s" t.started ${op.toSql}") ++ fr"${date}"
+
+  val filterByOp: LocalDateTime => Boolean =
+    this.op match {
+      case Eq   => d => d.isEqual(date)
+      case Gt   => d => d.isAfter(date)
+      case Gteq => d => d.isAfter(date) || d.isEqual(date)
+      case Lt   => d => d.isBefore(date)
+      case Lteq => d => d.isBefore(date) || d.isEqual(date)
+    }
 
 }
 case class State(status: Status) extends Criteria {
@@ -155,6 +174,7 @@ object TaskCreatedDate {
       "op",
       "date"
     )(x => (x.op, x.date))
+
 }
 
 object State {
@@ -183,4 +203,40 @@ object NewFilter {
     deriveDecoder[NewFilter]
   implicit val filterNewEncoder: Encoder[NewFilter] =
     deriveEncoder[NewFilter]
+}
+
+case class Row(
+    projectId: Long,
+    projectName: String,
+    projectCreated: LocalDateTime,
+    projectDeleted: Option[LocalDateTime],
+    projectAuthor: UUID,
+    taskComment: Option[String],
+    taskCreated: Option[LocalDateTime],
+    taskDeleted: Option[LocalDateTime],
+    duration: Option[Long]
+)
+
+object Row {
+
+  def fromTuple(x: (Project, Option[Task])) =
+    x match {
+      case (p, tOpt) =>
+        Row(
+          p.id.value,
+          p.name.value,
+          p.created,
+          p.deleted,
+          p.author.value,
+          tOpt.flatMap(_.comment).map(_.value),
+          tOpt.map(_.created),
+          tOpt.flatMap(_.deleted),
+          tOpt.map(_.duration.value.toMinutes())
+        )
+    }
+
+  implicit val filterNewDecoder: Decoder[Row] =
+    deriveDecoder[Row]
+  implicit val filterNewEncoder: Encoder[Row] =
+    deriveEncoder[Row]
 }
