@@ -20,6 +20,7 @@ import taskforce.repos._
 import pureconfig.ConfigSource
 import taskforce.config.DatabaseConfig
 import pureconfig.module.catseffect.syntax._
+import taskforce.http.StatsRoutes
 
 object Main extends IOApp {
 
@@ -53,15 +54,17 @@ object Main extends IOApp {
           db        <- LiveUserRepository.make[IO](xa)
           projectDb <- LiveProjectRepository.make[IO](xa)
           taskDb    <- LiveTaskRepository.make[IO](xa)
+          statsDb   <- LiveStatsRepository.make[IO](xa)
           filterDb  <- LiveFilterRepository.make[IO](xa)
           authRepo  <- LiveAuth.make[IO](db)
           authMiddleware = TaskForceAuthMiddleware.middleware[IO](authRepo)
           basicRoutes   <- BasicRoutes.make[IO](authMiddleware)
           projectRoutes <- ProjectRoutes.make(authMiddleware, projectDb)
           filterRoutes  <- FilterRoutes.make(authMiddleware, filterDb)
+          statsRoutes   <- StatsRoutes.make(authMiddleware, statsDb)
           taskRoutes    <- TaskRoutes.make(authMiddleware, taskDb)
           routes = LiveHttpErrorHandler[IO].handle(
-            basicRoutes.routes <+> projectRoutes.routes <+> taskRoutes.routes <+> filterRoutes.routes
+            basicRoutes.routes <+> projectRoutes.routes <+> taskRoutes.routes <+> filterRoutes.routes <+> statsRoutes.routes
           )
           httpApp = (routes).orNotFound
           _ <-
