@@ -6,9 +6,8 @@ import eu.timepit.refined.api.Refined
 import eu.timepit.refined.collection._
 import eu.timepit.refined.numeric.Positive
 import eu.timepit.refined.types.string.NonEmptyString
-import java.time.Duration
-import java.time.LocalDateTime
-import java.time.ZoneOffset.UTC
+import java.time.{Duration, LocalDate, LocalDateTime}
+import java.time.format.DateTimeFormatter
 import org.scalacheck.Gen
 import taskforce.model._
 
@@ -40,13 +39,11 @@ object generators {
 
   def localDateTimeGen: Gen[LocalDateTime] =
     for {
-      seconds <- Gen.chooseNum(0, 1000000000)
-      nanos   <- Gen.chooseNum(LocalDateTime.MIN.getNano, LocalDateTime.MAX.getNano)
-    } yield LocalDateTime.ofEpochSecond(
-      seconds + (LocalDateTime.MIN.toEpochSecond(UTC) + LocalDateTime.MAX.toEpochSecond(UTC)) / 2,
-      nanos,
-      UTC
-    )
+      minutes <- Gen.chooseNum(0, 1000000000)
+    } yield LocalDate
+      .parse("2000.01.01", DateTimeFormatter.ofPattern("yyyy.MM.dd"))
+      .atStartOfDay()
+      .plusMinutes(minutes)
 
   val projectGen: Gen[Project] =
     for {
