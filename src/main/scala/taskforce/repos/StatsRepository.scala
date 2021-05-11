@@ -29,7 +29,7 @@ final class LiveStatsRepository[F[_]: Monad: Bracket[*[_], Throwable]](
     val sql = fr"""select count(*) cnt,
           |      avg(duration) avg_duration,
           |      avg(volume) avg_volume,
-          |      avg(duration* volume) avg_volume_duration
+          |      sum(duration* volume)/sum(volume) avg_volume_duration
           | from tasks t
           |where t.deleted is null
           |  and t.started between coalesce(${query.from},t.started) and coalesce(${query.to},t.started)
