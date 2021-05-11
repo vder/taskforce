@@ -1,71 +1,22 @@
 package taskforce.it
 
-import munit.CatsEffectSuite
-import munit.ScalaCheckEffectSuite
 import cats.effect.IO
 import cats.implicits._
 import org.scalacheck.effect.PropF
-import org.flywaydb.core.Flyway
-import pureconfig.ConfigSource
-import taskforce.config.DatabaseConfig
-import doobie.util.transactor
-import eu.timepit.refined._
-import eu.timepit.refined.string._
-import eu.timepit.refined.auto._
-import eu.timepit.refined.collection._
-import cats.effect.Blocker
-import doobie.util.ExecutionContexts
+import taskforce.arbitraries._
+import taskforce.model.NewProject
+
 import taskforce.repos.LiveProjectRepository
 import taskforce.repos.ProjectRepository
-import taskforce.model.UserId
-import taskforce.model.NewProject
-import taskforce.arbitraries._
-import java.util.UUID
 
-class ProjectRepositorySuite extends CatsEffectSuite with ScalaCheckEffectSuite {
+class ProjectRepositorySuite extends BasicRepositorySuite {
 
   var projectRepo: IO[ProjectRepository[IO]] = null
-  var db: DatabaseConfig                     = null
-  var flyway: Flyway                         = null
-  override def scalaCheckTestParameters =
-    super.scalaCheckTestParameters.withMinSuccessfulTests(1)
-
-  val userID = UserId(UUID.fromString("5260ca29-a70b-494e-a3d6-55374a3b0a04"))
 
   override def beforeAll(): Unit = {
-
-    db = ConfigSource.default
-      .at("database_test")
-      .load[DatabaseConfig]
-      .getOrElse(
-        DatabaseConfig(
-          refineMV[NonEmpty]("org.postgresql.Driver"),
-          refineMV[Uri]("jdbc:postgresql://localhost:54340/test"),
-          refineMV[NonEmpty]("vder"),
-          refineMV[NonEmpty]("gordon")
-        )
-      )
-
-    flyway = Flyway.configure().dataSource(db.url.value, db.user.value, db.pass.value).load()
-    flyway.clean()
-    flyway.migrate()
-
-    val xa = transactor.Transactor.fromDriverManager[IO](
-      db.driver,
-      db.url,
-      db.user,
-      db.pass,
-      Blocker.liftExecutionContext(ExecutionContexts.synchronous) // just for testing
-    )
-
+    super.beforeAll()
     projectRepo = LiveProjectRepository.make[IO](xa)
 
-  }
-
-  override def beforeEach(context: BeforeEach): Unit = {
-    val flyway = Flyway.configure().dataSource(db.url.value, db.user.value, db.pass.value).load()
-    flyway.clean()
-    flyway.migrate()
   }
 
   test("Project Creation test #1") {
