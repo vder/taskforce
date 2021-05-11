@@ -51,18 +51,14 @@ object Main extends IOApp {
     transactor
       .use { xa =>
         for {
-          db        <- LiveUserRepository.make[IO](xa)
-          projectDb <- LiveProjectRepository.make[IO](xa)
-          taskDb    <- LiveTaskRepository.make[IO](xa)
-          statsDb   <- LiveStatsRepository.make[IO](xa)
-          filterDb  <- LiveFilterRepository.make[IO](xa)
-          authRepo  <- LiveAuth.make[IO](db)
+          db       <- Db.make[IO](xa)
+          authRepo <- LiveAuth.make[IO](db.userRepo)
           authMiddleware = TaskForceAuthMiddleware.middleware[IO](authRepo)
           basicRoutes   <- BasicRoutes.make[IO](authMiddleware)
-          projectRoutes <- ProjectRoutes.make(authMiddleware, projectDb)
-          filterRoutes  <- FilterRoutes.make(authMiddleware, filterDb)
-          statsRoutes   <- StatsRoutes.make(authMiddleware, statsDb)
-          taskRoutes    <- TaskRoutes.make(authMiddleware, taskDb)
+          projectRoutes <- ProjectRoutes.make(authMiddleware, db.projectRepo)
+          filterRoutes  <- FilterRoutes.make(authMiddleware, db.filterRepo)
+          statsRoutes   <- StatsRoutes.make(authMiddleware, db.statsRepo)
+          taskRoutes    <- TaskRoutes.make(authMiddleware, db.taskRepo)
           routes = LiveHttpErrorHandler[IO].handle(
             basicRoutes.routes <+> projectRoutes.routes <+> taskRoutes.routes <+> filterRoutes.routes <+> statsRoutes.routes
           )
