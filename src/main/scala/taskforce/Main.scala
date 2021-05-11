@@ -21,12 +21,13 @@ import pureconfig.ConfigSource
 import taskforce.config.DatabaseConfig
 import pureconfig.module.catseffect.syntax._
 import taskforce.http.StatsRoutes
+import taskforce.config.HostConfig
 
 object Main extends IOApp {
 
   (2.pure[IO], 3.pure[IO]).mapN(_ + _)
 
-  val transactor: Resource[IO, HikariTransactor[IO]] =
+  val resources: Resource[IO, (HikariTransactor[IO], HostConfig)] =
     for {
       be <- Blocker[IO]
       dbConfig <- Resource.eval(
@@ -41,40 +42,43 @@ object Main extends IOApp {
         ce, // await connection here
         be  // execute JDBC operations here
       )
-    } yield xa
+      hostConfig <- Resource.eval(
+        ConfigSource.default.at("host").loadF[IO, HostConfig](be)
+      )
+    } yield (xa, hostConfig)
 
   implicit def unsafeLogger[F[_]: Sync] = Slf4jLogger.getLogger[F]
 
-  val port = sys.env.get("PORT").flatMap(_.toIntOption)
+  val port   = sys.env.get("PORT").flatMap(_.toIntOption)
+  val secret = sys.env.get("SECRET")
 
   override def run(args: List[String]): IO[ExitCode] =
-    transactor
-      .use { xa =>
-        for {
-          db       <- Db.make[IO](xa)
-          authRepo <- LiveAuth.make[IO](db.userRepo)
-          authMiddleware = TaskForceAuthMiddleware.middleware[IO](authRepo)
-          basicRoutes   <- BasicRoutes.make[IO](authMiddleware)
-          projectRoutes <- ProjectRoutes.make(authMiddleware, db.projectRepo)
-          filterRoutes  <- FilterRoutes.make(authMiddleware, db.filterRepo)
-          statsRoutes   <- StatsRoutes.make(authMiddleware, db.statsRepo)
-          taskRoutes    <- TaskRoutes.make(authMiddleware, db.taskRepo)
-          routes = LiveHttpErrorHandler[IO].handle(
-            basicRoutes.routes <+> projectRoutes.routes <+> taskRoutes.routes <+> filterRoutes.routes <+> statsRoutes.routes
-          )
-          httpApp = (routes).orNotFound
-          _ <-
-            BlazeServerBuilder[IO](global)
-              .bindHttp(
-                port.getOrElse(
-                  args.headOption.flatMap(_.toIntOption).getOrElse(9090)
-                ),
-                "0.0.0.0"
-              )
-              .withHttpApp(httpApp)
-              .serve
-              .compile
-              .drain
-        } yield ExitCode.Success
+    resources
+      .use {
+        case (xa, hostConfig) =>
+          for {
+            db       <- Db.make[IO](xa)
+            authRepo <- LiveAuth.make[IO](db.userRepo, secret.getOrElse(hostConfig.secret.value))
+            authMiddleware = TaskForceAuthMiddleware.middleware[IO](authRepo)
+            basicRoutes   <- BasicRoutes.make[IO](authMiddleware)
+            projectRoutes <- ProjectRoutes.make(authMiddleware, db.projectRepo)
+            filterRoutes  <- FilterRoutes.make(authMiddleware, db.filterRepo)
+            statsRoutes   <- StatsRoutes.make(authMiddleware, db.statsRepo)
+            taskRoutes    <- TaskRoutes.make(authMiddleware, db.taskRepo)
+            routes = LiveHttpErrorHandler[IO].handle(
+              basicRoutes.routes <+> projectRoutes.routes <+> taskRoutes.routes <+> filterRoutes.routes <+> statsRoutes.routes
+            )
+            httpApp = (routes).orNotFound
+            _ <-
+              BlazeServerBuilder[IO](global)
+                .bindHttp(
+                  port.getOrElse(hostConfig.port.value),
+                  "0.0.0.0"
+                )
+                .withHttpApp(httpApp)
+                .serve
+                .compile
+                .drain
+          } yield ExitCode.Success
       }
 }

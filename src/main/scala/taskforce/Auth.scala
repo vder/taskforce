@@ -13,7 +13,7 @@ trait Auth[F[_]] {
   val jwtAuth: JwtSymmetricAuth
 }
 
-case class LiveAuth[F[_]: Sync](userRepo: UserRepository[F]) extends Auth[F] {
+class LiveAuth[F[_]: Sync](userRepo: UserRepository[F], secret: String) extends Auth[F] {
   def authenticate: JwtToken => (JwtClaim => F[Option[UserId]]) =
     _ =>
       c => {
@@ -30,10 +30,10 @@ case class LiveAuth[F[_]: Sync](userRepo: UserRepository[F]) extends Auth[F] {
       }
 
   override val jwtAuth: JwtSymmetricAuth =
-    JwtAuth.hmac("53cr3t", JwtAlgorithm.HS256)
+    JwtAuth.hmac(secret, JwtAlgorithm.HS256)
 }
 
 object LiveAuth {
-  def make[F[_]: Sync](userRepo: UserRepository[F]) =
-    Sync[F].delay(LiveAuth(userRepo))
+  def make[F[_]: Sync](userRepo: UserRepository[F], secret: String) =
+    Sync[F].delay(new LiveAuth(userRepo, secret))
 }
