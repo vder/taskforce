@@ -16,6 +16,7 @@ import taskforce.repos.FilterRepository
 import fs2.Stream
 import java.util.UUID
 import io.chrisdavenport.log4cats.Logger
+import io.circe.fs2._
 
 final class FilterRoutes[
     F[_]: Sync: Applicative: MonadError[
@@ -36,6 +37,9 @@ final class FilterRoutes[
     val dsl = new Http4sDsl[F] {}
     import dsl._
 
+    val prefix = Stream.eval("[".pure[F])
+    val suffix = Stream.eval("]".pure[F])
+
     AuthedRoutes.of {
       case authReq @ POST -> Root as userId =>
         for {
@@ -51,7 +55,8 @@ final class FilterRoutes[
           response <- Created(filter.asJson)
         } yield response
       case GET -> Root as userId =>
-        Ok(filterRepo.getAllFilters)
+        val result = prefix ++ filterRepo.getAllFilters.map(_.asJson.noSpaces).intersperse(",") ++ suffix
+        Ok(result.through(stringArrayParser))
       case GET -> Root / UUIDVar(
             filterId
           ) as userId =>
@@ -66,7 +71,7 @@ final class FilterRoutes[
           :? PageNo.Matcher(no)
           :? PageSize.Matcher(size) as userId =>
         val id = FilterId(filterId)
-        val resultMap = for {
+        val rowsStream = for {
           filterOption <- Stream.eval(
             filterRepo
               .getFilter(id)
@@ -74,8 +79,10 @@ final class FilterRoutes[
           )
           page = Page.fromParamsOrDefault(no, size)
           rows <- filterRepo.getRows(filterOption.get, sortBy, page)
-        } yield rows
-        Logger[F].info(s"TEST: ${sortBy} ${Page.fromParamsOrDefault(no, size)}") *> Ok(resultMap)
+        } yield rows.asJson.noSpaces
+
+        val result = prefix ++ rowsStream.intersperse(",") ++ suffix
+        Ok(result.through(stringArrayParser))
     }
   }
 

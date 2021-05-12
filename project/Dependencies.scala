@@ -33,6 +33,7 @@ object Dependencies {
     val circe                 = circeLib("circe-generic")
     val circeDerivation       = "io.circe"              %% "circe-derivation"       % V.circeDerivation
     val circeExtras           = circeLib("circe-generic-extras")
+    val circeFs2              = circeLib("circe-fs2")
     val circeParser           = circeLib("circe-parser")
     val circeRefined          = circeLib("circe-refined")
     val doobie                = doobieLib("doobie-core")

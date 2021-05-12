@@ -13,6 +13,8 @@ import doobie._
 import doobie.implicits._
 import doobie.postgres.implicits._
 import doobie.refined.implicits._
+import cats.syntax.functor._
+import io.circe.syntax._
 
 sealed trait Operator {
 
@@ -118,6 +120,23 @@ sealed trait Criteria extends Product with Serializable {
     }
 }
 
+object Criteria {
+
+  implicit val encodeCriteria: Encoder[Criteria] = Encoder.instance {
+    case in @ In(_)                   => in.asJson
+    case state @ State(_)             => state.asJson
+    case task @ TaskCreatedDate(_, _) => task.asJson
+  }
+
+  implicit val decodeCriteria: Decoder[Criteria] =
+    List[Decoder[Criteria]](
+      Decoder[In].widen,
+      Decoder[State].widen,
+      Decoder[TaskCreatedDate].widen
+    ).reduceLeft(_ or _)
+
+}
+
 case class In(names: List[NonEmptyString]) extends Criteria {
 
   implicit val putNonEmptyList: Put[List[NonEmptyString]] =
@@ -186,23 +205,31 @@ object State {
 
 final case class FilterId(value: UUID) extends ResourceId[UUID]
 
+object FilterId {
+
+  implicit val decodeFilterId: Decoder[FilterId] =
+    Decoder[UUID].map(FilterId.apply)
+  implicit val encodeFilterId: Encoder[FilterId] =
+    Encoder[UUID].contramap(_.value)
+}
+
 case class NewFilter(conditions: List[Criteria])
 case class Filter(id: FilterId, conditions: List[Criteria])
 
 object Filter {
 
-  implicit val filterDecoder: Decoder[Filter] =
-    deriveDecoder[Filter]
-  implicit val filterEncoder: Encoder[Filter] =
-    deriveEncoder[Filter]
+  implicit val decodeFilter: Decoder[Filter] =
+    Decoder.forProduct2("id", "conditions")(Filter.apply)
+  implicit val encodeFilter: Encoder[Filter] =
+    Encoder.forProduct2("id", "conditions")(x => (x.id, x.conditions))
 }
 
 object NewFilter {
 
-  implicit val filterNewDecoder: Decoder[NewFilter] =
-    deriveDecoder[NewFilter]
-  implicit val filterNewEncoder: Encoder[NewFilter] =
-    deriveEncoder[NewFilter]
+  implicit val decodeNewFilter: Decoder[NewFilter] =
+    Decoder.forProduct1("conditions")(NewFilter.apply)
+  implicit val encodeNewFilter: Encoder[NewFilter] =
+    Encoder.forProduct1("conditions")(_.conditions)
 }
 
 case class Row(

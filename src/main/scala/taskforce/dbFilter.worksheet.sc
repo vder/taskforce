@@ -29,6 +29,8 @@ val y = xa.yolo // a stable reference is required
 
 val f = Filter(FilterId(UUID.randomUUID()), List(In(List("project 2"))))
 
+f.asJson.noSpaces
+
 val runFilter = for {
   db <- LiveFilterRepository.make[IO](xa)
   rows <-
@@ -67,3 +69,13 @@ result.foreach(println)
 println(result.size)
 
 result.sortBy(_.taskCreated)
+
+NewFilter(List(In(List("project 2")))).asJson.noSpaces
+
+NewFilter(List(In(List("project 2")))).asJson.noSpaces
+
+NewFilter(List(State(Active), In(List("project 2")))).asJson.noSpaces
+
+State(Active).asJson.noSpaces
+
+List(State(Active), In(List("project 2"))).asJson.noSpaces
