@@ -82,7 +82,7 @@ final class LiveTaskRepository[F[_]: Monad: Bracket[*[_], Throwable]](
       .as(task)
 
   override def deleteTask(id: TaskId): F[Int] =
-    sql"""update tasks set deleted = CURRENT_TIMESTAMP where id =${id.value}""".update.run
+    sql"""update tasks set deleted = CURRENT_TIMESTAMP where id =${id.value} and deleted is null""".update.run
       .transact(xa)
 
   override def getAllTasks(projectId: ProjectId): Stream[F, Task] =

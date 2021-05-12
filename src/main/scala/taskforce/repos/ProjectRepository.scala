@@ -94,10 +94,10 @@ final class LiveProjectRepository[F[_]: Bracket[*[_], Throwable]: MonadError[*[_
     val result = for {
       x <- sql"""update projects 
          |   set deleted = CURRENT_TIMESTAMP
-         | where id =$id""".stripMargin.update.run
+         | where id =$id and deleted is null""".stripMargin.update.run
       y <- sql"""update tasks 
            |   set deleted = CURRENT_TIMESTAMP
-           | where project_id =$id""".stripMargin.update.run
+           | where project_id =$id and deleted is null""".stripMargin.update.run
     } yield (x + y)
 
     result.transact(xa)
