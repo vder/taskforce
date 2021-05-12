@@ -25,6 +25,7 @@ lazy val root = (project in file("."))
       circe,
       circeDerivation,
       circeExtras,
+      circeFs2,
       circeParser,
       circeRefined,
       doobie,

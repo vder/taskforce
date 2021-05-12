@@ -16,6 +16,7 @@ import taskforce.repos.FilterRepository
 import fs2.Stream
 import java.util.UUID
 import io.chrisdavenport.log4cats.Logger
+import io.circe.fs2._
 
 final class FilterRoutes[
     F[_]: Sync: Applicative: MonadError[
@@ -35,6 +36,9 @@ final class FilterRoutes[
   val httpRoutes: AuthedRoutes[UserId, F] = {
     val dsl = new Http4sDsl[F] {}
     import dsl._
+
+    val prefix = Stream.eval("[".pure[F])
+    val suffix = Stream.eval("]".pure[F])
 
     AuthedRoutes.of {
       case authReq @ POST -> Root as userId =>
