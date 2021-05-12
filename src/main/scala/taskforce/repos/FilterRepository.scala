@@ -3,7 +3,7 @@ package taskforce.repos
 import cats.Monad
 import cats.effect.Bracket
 import cats.effect.Sync
-import cats.syntax.all._
+import cats.implicits._
 import doobie._
 import doobie.implicits._
 import doobie.postgres.implicits._
@@ -15,6 +15,7 @@ import taskforce.model._
 import java.time.LocalDateTime
 import eu.timepit.refined.collection._
 import eu.timepit.refined._
+import java.util.UUID
 
 trait FilterRepository[F[_]] {
   def createFilter(filter: Filter): F[Filter]
@@ -32,13 +33,37 @@ final class LiveFilterRepository[F[_]: Monad: Bracket[*[_], Throwable]](
     xa: Transactor[F]
 ) extends FilterRepository[F] {
 
+  private val tuple2Condition: PartialFunction[
+    (String, Option[Operator], Option[LocalDateTime], Option[Status], Option[List[NonEmptyString]]),
+    Criteria
+  ] = {
+    case ("in", _, _, _, Some(list)) =>
+      In(list)
+    case ("cond", Some(op), Some(date), _, _) =>
+      TaskCreatedDate(op, date)
+    case ("state", _, _, Some(status), _) => State(status)
+  }
+
   implicit val getNonEmptyList: Get[List[NonEmptyString]] =
     Get[List[String]] temap (_.traverse(refineV[NonEmpty](_)))
 
   implicit val putNonEmptyList: Put[List[NonEmptyString]] =
     Put[List[String]].contramap(_.map(_.value))
 
-  override def getAllFilters: Stream[F, Filter] = ???
+  override def getAllFilters: Stream[F, Filter] =
+    sql"""select filter_id,criteria_type,operator,date_value,status_value,list_value 
+         |  from filters order by filter_id""".stripMargin
+      .query[
+        (
+            UUID,
+            (String, Option[Operator], Option[LocalDateTime], Option[Status], Option[List[NonEmptyString]])
+        )
+      ]
+      .stream
+      .transact(xa)
+      .map { case (k, v) => (k, tuple2Condition(v)) }
+      .groupAdjacentBy { case (uuid, criteria) => uuid }
+      .map { case (uuid, criteriaChunk) => Filter(FilterId(uuid), criteriaChunk.map(_._2).toList) }
 
   override def getRows(
       filter: Filter,
@@ -99,8 +124,7 @@ final class LiveFilterRepository[F[_]: Monad: Bracket[*[_], Throwable]](
   override def deleteFilter(id: FilterId): F[Int] =
     sql"delete from filters where filter_id = $id".update.run.transact(xa)
 
-  override def getFilter(id: FilterId): F[Option[Filter]] = {
-
+  override def getFilter(id: FilterId): F[Option[Filter]] =
     sql"""select criteria_type,operator,date_value,status_value,list_value 
          |  from filters 
          | where filter_id = ${id.value}""".stripMargin
@@ -129,7 +153,6 @@ final class LiveFilterRepository[F[_]: Monad: Bracket[*[_], Throwable]](
         case l   => Filter(id, l).some
       }
 
-  }
 }
 
 object LiveFilterRepository {

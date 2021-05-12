@@ -51,7 +51,8 @@ final class FilterRoutes[
           response <- Created(filter.asJson)
         } yield response
       case GET -> Root as userId =>
-        Ok(filterRepo.getAllFilters)
+        val result = filterRepo.getAllFilters.map(_.asJson)
+        Ok(result)
       case GET -> Root / UUIDVar(
             filterId
           ) as userId =>
@@ -66,7 +67,7 @@ final class FilterRoutes[
           :? PageNo.Matcher(no)
           :? PageSize.Matcher(size) as userId =>
         val id = FilterId(filterId)
-        val resultMap = for {
+        val rowsStream = for {
           filterOption <- Stream.eval(
             filterRepo
               .getFilter(id)
@@ -74,8 +75,8 @@ final class FilterRoutes[
           )
           page = Page.fromParamsOrDefault(no, size)
           rows <- filterRepo.getRows(filterOption.get, sortBy, page)
-        } yield rows
-        Logger[F].info(s"TEST: ${sortBy} ${Page.fromParamsOrDefault(no, size)}") *> Ok(resultMap)
+        } yield rows.asJson
+        Ok(rowsStream)
     }
   }
 
