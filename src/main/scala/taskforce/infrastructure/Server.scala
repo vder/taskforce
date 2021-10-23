@@ -1,19 +1,20 @@
 package taskforce.infrastructure
 
+import cats.effect.kernel.Async
 import cats.effect.{ExitCode, Sync}
 import cats.implicits._
+import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.implicits._
 import org.http4s.server.AuthMiddleware
 import org.http4s.server.middleware.{AutoSlash, Logger => LoggerMiddleware}
+import org.typelevel.log4cats.Logger
+import scala.concurrent.ExecutionContext.global
 import taskforce.authentication.UserId
 import taskforce.common._
 import taskforce.filter.{FilterRoutes, FilterService}
 import taskforce.project.{ProjectRoutes, ProjectService}
 import taskforce.stats.{StatsRoutes, StatsService}
 import taskforce.task.{TaskRoutes, TaskService}
-import org.typelevel.log4cats.Logger
-import org.http4s.blaze.server.BlazeServerBuilder
-import cats.effect.kernel.Async
 
 final class Server[F[_]: Logger: Async] private (
     port: Int,
@@ -37,12 +38,11 @@ final class Server[F[_]: Logger: Async] private (
         basicRoutes.routes <+> projectRoutes.routes(errHandler) <+>
           taskRoutes.routes(errHandler) <+> filterRoutes.routes(errHandler) <+>
           statsRoutes.routes(errHandler)
-
       middlewares =
         LoggerMiddleware
           .httpRoutes[F](logHeaders = true, logBody = true) _ andThen AutoSlash.httpRoutes[F]
       _ <-
-        BlazeServerBuilder[F]
+        BlazeServerBuilder[F].withExecutionContext(global)
           .bindHttp(port, "0.0.0.0")
           .withHttpApp(middlewares(routes).orNotFound)
           .serve
