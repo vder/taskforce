@@ -13,7 +13,7 @@ object Dependencies {
     val http4s           = "0.23.0-RC1"
     val jwtCirce         = "7.1.5"
     val kindProjector    = "0.13.0"
-    val munit            = "0.7.26"
+    val munit            = "0.7.29"
     val pureConfig       = "0.16.0"
     val refined          = "0.9.23"
     val scalacheckEffect = "1.0.2"
