@@ -15,7 +15,7 @@ object Dependencies {
     val kindProjector    = "0.13.0"
     val munit            = "0.7.26"
     val pureConfig       = "0.16.0"
-    val refined          = "0.9.23"
+    val refined          = "0.9.27"
     val scalacheckEffect = "1.0.2"
     val simulacrum       = "1.0.1"
   }
