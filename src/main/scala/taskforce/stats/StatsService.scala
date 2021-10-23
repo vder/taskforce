@@ -1,9 +1,8 @@
 package taskforce.stats
 
 import cats.effect.Sync
-import cats.{Applicative, MonadError}
 
-final class StatsService[F[_]: Sync: Applicative: MonadError[*[_], Throwable]](
+final class StatsService[F[_]](
     statsRepo: StatsRepository[F]
 ) {
   def getStats(query: StatsQuery) = statsRepo.get(query)

@@ -45,7 +45,7 @@ object generators {
     } yield LocalDate
       .parse("2000.01.01", DateTimeFormatter.ofPattern("yyyy.MM.dd"))
       .atStartOfDay()
-      .plusMinutes(minutes)
+      .plusMinutes(minutes.toLong)
 
   val projectGen: Gen[Project] =
     for {
@@ -70,7 +70,6 @@ object generators {
 
   val newTaskGen: Gen[NewTask] =
     for {
-      projectId <- projectIdGen
       created   <- localDateTimeGen
       duration  <- taskDurationGen
       volume    <- Gen.posNum[Int].map(Refined.unsafeApply[Int, Positive])
@@ -128,5 +127,5 @@ object generators {
   val rowGen = for {
     p <- projectGen
     t <- taskGen
-  } yield FilterResultRow.fromTuple(p, Some(t))
+  } yield FilterResultRow.fromTuple((p, Some(t)))
 }

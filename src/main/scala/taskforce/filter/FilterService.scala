@@ -2,11 +2,10 @@ package taskforce.filter
 
 import cats.effect.Sync
 import cats.implicits._
-import cats.{Applicative, MonadError}
 import fs2.Stream
 import java.util.UUID
 import taskforce.common.{errors => commonErrors}
-final class FilterService[F[_]: Sync: Applicative: MonadError[*[_], Throwable]](
+final class FilterService[F[_]: Sync ](
     filterRepo: FilterRepository[F]
 ) {
 

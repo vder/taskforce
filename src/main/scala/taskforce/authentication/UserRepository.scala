@@ -1,6 +1,5 @@
 package taskforce.authentication
 
-import cats.Monad
 import cats.effect.Sync
 import doobie.implicits._
 import doobie.postgres.implicits._
@@ -12,7 +11,7 @@ trait UserRepository[F[_]] {
   def create(user: User): F[Int]
 }
 
-final class LiveUserRepository[F[_]: Monad: MonadCancel[*[_], Throwable]](
+final class LiveUserRepository[F[_]:  MonadCancel[*[_], Throwable]](
     xa: Transactor[F]
 ) extends UserRepository[F] {
 

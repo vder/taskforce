@@ -2,7 +2,6 @@ package taskforce.project
 
 import cats.effect.Sync
 import cats.implicits._
-import cats.{Applicative, MonadError}
 import org.http4s.{AuthedRequest, AuthedRoutes, Response}
 import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
@@ -10,7 +9,7 @@ import org.http4s.server.{AuthMiddleware, Router}
 import taskforce.authentication.UserId
 import taskforce.common.{ErrorMessage, ErrorHandler, errors => commonErrors}
 
-final class ProjectRoutes[F[_]: Sync: Applicative: MonadError[*[_], Throwable]: JsonDecoder](
+final class ProjectRoutes[F[_]: Sync: JsonDecoder](
     authMiddleware: AuthMiddleware[F, UserId],
     projectService: ProjectService[F]
 ) extends instances.Http4s[F] {
@@ -35,16 +34,16 @@ final class ProjectRoutes[F[_]: Sync: Applicative: MonadError[*[_], Throwable]: 
   val httpRoutes: AuthedRoutes[UserId, F] = {
 
     AuthedRoutes.of {
-      case GET -> Root as userId =>
+      case GET -> Root as _ =>
         projectService.list.flatMap(Ok(_))
 
       case DELETE -> Root / LongVar(projectId) as userId =>
         projectService.delete(ProjectId(projectId), userId) *> Ok()
 
-      case GET -> Root / LongVar(projectId) as userId =>
+      case GET -> Root / LongVar(projectId) as _ =>
         projectService.find(ProjectId(projectId)).flatMap(Ok(_))
 
-      case GET -> Root / LongVar(projectId) / "totalTime" as userId =>
+      case GET -> Root / LongVar(projectId) / "totalTime" as _ =>
         projectService.totalTime(ProjectId(projectId)).flatMap(Ok(_))
 
       case authReq @ POST -> Root as userId =>
@@ -57,7 +56,7 @@ final class ProjectRoutes[F[_]: Sync: Applicative: MonadError[*[_], Throwable]: 
           }
         } yield response
 
-      case authReq @ PUT -> Root / IntVar(projectId) as userId =>
+      case authReq @ PUT -> Root / LongVar(projectId) as userId =>
         for {
           newProject    <- newProjectFromReq(authReq)
           updatedResult <- projectService.update(ProjectId(projectId), newProject, userId)
@@ -77,7 +76,7 @@ final class ProjectRoutes[F[_]: Sync: Applicative: MonadError[*[_], Throwable]: 
 }
 
 object ProjectRoutes {
-  def make[F[_]: MonadError[*[_], Throwable]: Sync: JsonDecoder](
+  def make[F[_]: Sync: JsonDecoder](
       authMiddleware: AuthMiddleware[F, UserId],
       projectService: ProjectService[F]
   ) = Sync[F].delay { new ProjectRoutes(authMiddleware, projectService) }
