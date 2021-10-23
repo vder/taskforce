@@ -12,7 +12,7 @@ object Dependencies {
     val flyway           = "7.8.1"
     val http4s           = "0.23.0-RC1"
     val jwtCirce         = "7.1.5"
-    val kindProjector    = "0.13.0"
+    val kindProjector    = "0.13.2"
     val munit            = "0.7.26"
     val pureConfig       = "0.16.0"
     val refined          = "0.9.23"
