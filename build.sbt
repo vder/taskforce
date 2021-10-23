@@ -4,7 +4,7 @@ import com.typesafe.sbt.packager.docker.Cmd
 ThisBuild / githubWorkflowPublishTargetBranches := Seq()
 ThisBuild / organization := "com.pfl"
 ThisBuild / organizationName := "pfl"
-ThisBuild / scalaVersion := "2.13.5"
+ThisBuild / scalaVersion := "2.13.6"
 ThisBuild / scalacOptions += "-P:semanticdb:synthetics:on"
 ThisBuild / version := "0.1.0-SNAPSHOT"
 ThisBuild / versionScheme := Some("early-semver")
