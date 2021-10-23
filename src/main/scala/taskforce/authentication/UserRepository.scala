@@ -11,7 +11,7 @@ trait UserRepository[F[_]] {
   def create(user: User): F[Int]
 }
 
-final class LiveUserRepository[F[_]:  MonadCancel[*[_], Throwable]](
+final class LiveUserRepository[F[_]: MonadCancel[*[_], Throwable]](
     xa: Transactor[F]
 ) extends UserRepository[F] {
 
