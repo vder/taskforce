@@ -45,6 +45,7 @@ trait BasicRepositorySuite extends CatsEffectSuite with ScalaCheckEffectSuite {
     val flyway = Flyway.configure().dataSource(db.url.value, db.user.value, db.pass.value).load()
     flyway.clean()
     flyway.migrate()
+    ()
   }
 
 }

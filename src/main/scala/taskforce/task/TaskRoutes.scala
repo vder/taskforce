@@ -2,7 +2,6 @@ package taskforce.task
 
 import cats.effect.Sync
 import cats.implicits._
-import cats.{Applicative, MonadError}
 import io.circe.syntax._
 import org.http4s.circe.CirceEntityEncoder._
 import org.http4s.circe._
@@ -15,11 +14,7 @@ import taskforce.project.ProjectId
 import org.http4s.Response
 
 final class TaskRoutes[
-    F[_]: Sync: Applicative: MonadError[
-      *[_],
-      Throwable
-    ]: JsonDecoder
-](
+    F[_]: Sync: JsonDecoder](
     authMiddleware: AuthMiddleware[F, UserId],
     taskService: TaskService[F]
 ) extends instances.Circe {
@@ -53,11 +48,11 @@ final class TaskRoutes[
   val httpRoutes: AuthedRoutes[UserId, F] = {
 
     AuthedRoutes.of {
-      case GET -> Root / LongVar(projectId) / "tasks" as userId =>
+      case GET -> Root / LongVar(projectId) / "tasks" as _ =>
         val taskStream = taskService.list(ProjectId(projectId)).map(x => x.asJson)
         Ok(taskStream)
       case GET -> Root / LongVar(projectId) / "tasks" / UUIDVar(taskId)
-          as userId =>
+          as _ =>
         taskService.find(ProjectId(projectId), TaskId(taskId)).flatMap(Ok(_))
 
       case authReq @ POST -> Root / LongVar(projectId) / "tasks" as userId =>
@@ -82,7 +77,7 @@ final class TaskRoutes[
           }
         } yield response
 
-      case authReq @ DELETE -> Root / LongVar(
+      case DELETE -> Root / LongVar(
             projectId
           ) / "tasks" / UUIDVar(taskId) as userId =>
         taskService.delete(ProjectId(projectId), TaskId(taskId), userId) *> Ok()
@@ -96,7 +91,7 @@ final class TaskRoutes[
 }
 
 object TaskRoutes {
-  def make[F[_]: Sync: MonadError[*[_], Throwable]: JsonDecoder](
+  def make[F[_]: Sync: JsonDecoder](
       authMiddleware: AuthMiddleware[F, UserId],
       taskService: TaskService[F]
   ) = Sync[F].delay { new TaskRoutes(authMiddleware, taskService) }

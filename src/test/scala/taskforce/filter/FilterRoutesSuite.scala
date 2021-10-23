@@ -47,7 +47,7 @@ class FilterRoutesSuite extends HttpTestSuite with instances.Circe {
     PropF.forAllF { (f: NewFilter, fId: FilterId) =>
       val filterRepo = new TestFilterRepository(List(Filter(fId, f.conditions)), List())
       val routes     = new FilterRoutes[IO](authMiddleware, new FilterService(filterRepo)).routes(errHandler)
-      POST(f, uri).pure[IO].flatMap { req =>
+      POST(f, uri).pure[IO].flatMap { _ =>
         assertHttpStatus(routes, POST(f, uri))(
           Status.Created
         )

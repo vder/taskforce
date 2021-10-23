@@ -2,7 +2,6 @@ package taskforce.filter
 
 import cats.effect.Sync
 import cats.implicits._
-import cats.{Applicative, Defer, MonadError}
 import io.circe.syntax._
 import org.http4s.AuthedRoutes
 import org.http4s.circe.CirceEntityEncoder._
@@ -11,13 +10,9 @@ import org.http4s.dsl.Http4sDsl
 import org.http4s.server.{AuthMiddleware, Router}
 import taskforce.authentication.UserId
 import taskforce.common.{ErrorHandler, errors => commonErrors}
-import org.typelevel.log4cats.Logger
 
 final class FilterRoutes[
-    F[_]: Sync: Applicative: MonadError[
-      *[_],
-      Throwable
-    ]: JsonDecoder: Logger
+    F[_]: Sync: JsonDecoder
 ](
     authMiddleware: AuthMiddleware[F, UserId],
     filterService: FilterService[F]
@@ -31,7 +26,7 @@ final class FilterRoutes[
     import dsl._
 
     AuthedRoutes.of {
-      case authReq @ POST -> Root as userId =>
+      case authReq @ POST -> Root as _ =>
         for {
           newFilter <-
             authReq.req
@@ -41,12 +36,12 @@ final class FilterRoutes[
           response <- Created(filter.asJson)
         } yield response
 
-      case GET -> Root as userId =>
+      case GET -> Root as _ =>
         val result = filterService.getAll.map(_.asJson)
         Ok(result)
       case GET -> Root / UUIDVar(
             filterId
-          ) as userId =>
+          ) as _ =>
         val id = FilterId(filterId)
         val filter = filterService
           .get(id)
@@ -56,7 +51,7 @@ final class FilterRoutes[
             filterId
           ) / "data" :? SortByMatcher(sortBy)
           :? PageNoMatcher(no)
-          :? PageSizeMatcher(size) as userId =>
+          :? PageSizeMatcher(size) as _ =>
         val id         = FilterId(filterId)
         val rowsStream = filterService.getData(id, Page.fromParamsOrDefault(no, size), sortBy)
         Ok(rowsStream.map(_.asJson))
@@ -70,7 +65,7 @@ final class FilterRoutes[
 }
 
 object FilterRoutes {
-  def make[F[_]: Defer: MonadError[*[_], Throwable]: Sync: Logger: JsonDecoder](
+  def make[F[_]: Sync: JsonDecoder](
       authMiddleware: AuthMiddleware[F, UserId],
       filterService: FilterService[F]
   ) = Sync[F].delay { new FilterRoutes(authMiddleware, filterService) }

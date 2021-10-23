@@ -23,7 +23,7 @@ object LiveHttpErrorHandler {
       val A: ApplicativeError[F, Throwable] = implicitly
 
       val handler: PartialFunction[Throwable, F[Response[F]]] = {
-        case errors.NotAuthor(x) =>
+        case errors.NotAuthor(_) =>
           Forbidden(
             ErrorMessage("BASIC-003", "User is not an owner of the resource")
           )

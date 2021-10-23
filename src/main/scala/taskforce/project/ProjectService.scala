@@ -1,12 +1,12 @@
 package taskforce.project
 
-import cats.{Applicative, MonadError}
 import cats.effect.Sync
 import cats.implicits._
 import taskforce.authentication.UserId
 import taskforce.common.errors._
+import cats.MonadThrow
 
-final class ProjectService[F[_]: Sync: Applicative: MonadError[*[_], Throwable]](
+final class ProjectService[F[_]: Sync](
     projectRepo: ProjectRepository[F]
 ) {
 
@@ -17,8 +17,8 @@ final class ProjectService[F[_]: Sync: Applicative: MonadError[*[_], Throwable]]
   def delete(projectId: ProjectId, actionBy: UserId) =
     for {
       projectOption <- projectRepo.find(projectId)
-      project <-
-        MonadError[F, Throwable]
+      _ <-
+        MonadThrow[F]
           .fromOption(projectOption, NotFound(projectId.value.toString()))
           .ensure(NotAuthor(actionBy))(_.author == actionBy)
       rowsCount <- projectRepo.delete(projectId)
@@ -34,7 +34,7 @@ final class ProjectService[F[_]: Sync: Applicative: MonadError[*[_], Throwable]]
 
   def update(projectId: ProjectId, newProject: NewProject, userId: UserId) =
     for {
-      previousProject <-
+      _ <-
         projectRepo
           .find(projectId)
           .ensure(NotFound(projectId.value.toString()))(_.isDefined)

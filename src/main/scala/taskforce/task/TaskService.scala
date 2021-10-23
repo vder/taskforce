@@ -2,13 +2,11 @@ package taskforce.task
 
 import cats.effect.Sync
 import cats.implicits._
-import cats.Applicative
-import cats.MonadError
 import taskforce.common.{errors => commonErrors}
 import taskforce.authentication.UserId
 import taskforce.project.ProjectId
 
-final class TaskService[F[_]: Sync: Applicative: MonadError[*[_], Throwable]](
+final class TaskService[F[_]: Sync](
     taskRepo: TaskRepository[F]
 ) {
 

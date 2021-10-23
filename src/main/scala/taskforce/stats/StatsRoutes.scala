@@ -2,7 +2,6 @@ package taskforce.stats
 
 import cats.effect.Sync
 import cats.implicits._
-import cats.{Applicative, Defer, MonadError}
 import org.http4s.AuthedRoutes
 import org.http4s.circe.CirceEntityEncoder._
 import org.http4s.circe._
@@ -11,11 +10,9 @@ import org.http4s.server.{AuthMiddleware, Router}
 import org.typelevel.log4cats.Logger
 import taskforce.authentication.UserId
 import taskforce.common.{ErrorHandler, errors => commonErrors}
+
 final class StatsRoutes[
-    F[_]: Sync: Applicative: MonadError[
-      *[_],
-      Throwable
-    ]: JsonDecoder: Logger
+    F[_]: Sync: JsonDecoder: Logger
 ](
     authMiddleware: AuthMiddleware[F, UserId],
     statsService: StatsService[F]
@@ -28,7 +25,7 @@ final class StatsRoutes[
     import dsl._
 
     AuthedRoutes.of {
-      case authReq @ GET -> Root as userId =>
+      case authReq @ GET -> Root as _ =>
         for {
           query <-
             authReq.req
@@ -51,7 +48,7 @@ final class StatsRoutes[
 }
 
 object StatsRoutes {
-  def make[F[_]: Defer: MonadError[*[_], Throwable]: Sync: Logger: JsonDecoder](
+  def make[F[_]: Sync: Logger: JsonDecoder](
       authMiddleware: AuthMiddleware[F, UserId],
       statsService: StatsService[F]
   ) = Sync[F].delay { new StatsRoutes(authMiddleware, statsService) }

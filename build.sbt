@@ -1,11 +1,13 @@
 import Dependencies.Libraries._
 import com.typesafe.sbt.packager.docker.Cmd
 
-ThisBuild / scalaVersion := "2.13.5"
-ThisBuild / version := "0.1.0-SNAPSHOT"
+ThisBuild / githubWorkflowPublishTargetBranches := Seq()
 ThisBuild / organization := "com.pfl"
 ThisBuild / organizationName := "pfl"
+ThisBuild / scalaVersion := "2.13.5"
 ThisBuild / scalacOptions += "-P:semanticdb:synthetics:on"
+ThisBuild / version := "0.1.0-SNAPSHOT"
+ThisBuild / versionScheme := Some("early-semver")
 
 IntegrationTest / parallelExecution := false
 
@@ -21,6 +23,8 @@ lazy val root = (project in file("."))
     flywayUser := "vder",
     flywayPassword := "password",
     Defaults.itSettings,
+    publish := {},
+    publish / skip := true,
     Docker / packageName := "taskforce",
     dockerCommands := dockerCommands.value.flatMap {
       case cmd @ Cmd("FROM", _) => List(cmd, Cmd("RUN", "apk update && apk add bash"))

@@ -1,18 +1,17 @@
 package taskforce.stats
 
-import cats.Monad
 import cats.effect.Sync
 import doobie.implicits._
 import doobie.postgres.implicits._
 import doobie.refined.implicits._
 import doobie.util.transactor.Transactor
 import taskforce.common.Sqlizer.ops._
-import cats.effect.kernel.MonadCancel
+import cats.effect.kernel.MonadCancelThrow
 trait StatsRepository[F[_]] {
   def get(query: StatsQuery): F[StatsResponse]
 }
 
-final class LiveStatsRepository[F[_]: Monad: MonadCancel[*[_], Throwable]](
+final class LiveStatsRepository[F[_]: MonadCancelThrow](
     xa: Transactor[F]
 ) extends StatsRepository[F]
     with instances.Doobie {
@@ -39,6 +38,6 @@ final class LiveStatsRepository[F[_]: Monad: MonadCancel[*[_], Throwable]](
 }
 
 object LiveStatsRepository {
-  def make[F[_]: Sync: Monad: MonadCancel[*[_], Throwable]](xa: Transactor[F]) =
+  def make[F[_]: Sync](xa: Transactor[F]) =
     Sync[F].delay { new LiveStatsRepository[F](xa) }
 }

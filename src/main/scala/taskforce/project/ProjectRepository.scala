@@ -1,6 +1,5 @@
 package taskforce.project
 
-import cats.MonadError
 import cats.effect.Sync
 import cats.effect.kernel.MonadCancel
 import cats.syntax.all._
@@ -25,7 +24,7 @@ trait ProjectRepository[F[_]] {
   def totalTime(projectId: ProjectId): F[TotalTime]
 }
 
-final class LiveProjectRepository[F[_]: MonadCancel[*[_], Throwable]: MonadError[*[_], Throwable]](
+final class LiveProjectRepository[F[_]: MonadCancel[*[_], Throwable]](
     xa: Transactor[F]
 ) extends ProjectRepository[F]
     with instances.Doobie {

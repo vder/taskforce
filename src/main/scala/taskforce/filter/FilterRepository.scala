@@ -56,7 +56,7 @@ final class LiveFilterRepository[F[_]: MonadCancel[*[_], Throwable]](
       .stream
       .transact(xa)
       .map { case (k, v) => (k, tuple2Condition(v)) }
-      .groupAdjacentBy { case (uuid, criteria) => uuid }
+      .groupAdjacentBy { case (uuid, _) => uuid }
       .map { case (uuid, criteriaChunk) => Filter(FilterId(uuid), criteriaChunk.map(_._2).toList) }
 
   override def execute(
@@ -74,11 +74,11 @@ final class LiveFilterRepository[F[_]: MonadCancel[*[_], Throwable]](
 
   def createCriterias(filterId: FilterId)(criteria: Criteria) =
     criteria match {
-      case in @ In(names) =>
+      case in @ In(_) =>
         sql.createInCritaria(filterId, in).update.run
-      case date @ TaskCreatedDate(op, value) =>
+      case date @ TaskCreatedDate(_, _) =>
         sql.createDateCritaria(filterId, date).update.run
-      case state @ State(status) =>
+      case state @ State(_) =>
         sql.createStateCritaria(filterId, state).update.run
     }
   override def create(filter: Filter): F[Filter] = {

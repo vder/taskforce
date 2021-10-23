@@ -1,6 +1,5 @@
 package taskforce.task
 
-import cats.Monad
 import cats.effect.Sync
 import cats.effect.kernel.MonadCancel
 import cats.syntax.all._
@@ -22,7 +21,7 @@ trait TaskRepository[F[_]] {
   def update(id: TaskId, task: Task): F[Either[DuplicateTaskNameError, Task]]
 }
 
-final class LiveTaskRepository[F[_]: Monad: MonadCancel[*[_], Throwable]](
+final class LiveTaskRepository[F[_]: MonadCancel[*[_], Throwable]](
     xa: Transactor[F]
 ) extends TaskRepository[F]
     with instances.Doobie {
