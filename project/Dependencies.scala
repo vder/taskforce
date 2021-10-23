@@ -47,7 +47,7 @@ object Dependencies {
     val jwtCirce              = "com.github.jwt-scala"  %% "jwt-circe"              % V.jwtCirce
     val logback               = "ch.qos.logback"         % "logback-classic"        % V.Logback
     val mUnit                 = mUnitLib("munit")
-    val mUnitCE               = typeLevelLibTest("munit-cats-effect-3", "1.0.5")
+    val mUnitCE               = typeLevelLibTest("munit-cats-effect-3", "1.0.6")
     val mUnitScalacheck       = mUnitLib("munit-scalacheck")
     val pureConfig            = "com.github.pureconfig" %% "pureconfig"             % V.pureConfig
     val pureConfigCE          = "com.github.pureconfig" %% "pureconfig-cats-effect" % V.pureConfig
