@@ -70,10 +70,10 @@ object generators {
 
   val newTaskGen: Gen[NewTask] =
     for {
-      created   <- localDateTimeGen
-      duration  <- taskDurationGen
-      volume    <- Gen.posNum[Int].map(Refined.unsafeApply[Int, Positive])
-      comment   <- Gen.alphaStr
+      created  <- localDateTimeGen
+      duration <- taskDurationGen
+      volume   <- Gen.posNum[Int].map(Refined.unsafeApply[Int, Positive])
+      comment  <- Gen.alphaStr
     } yield NewTask(created.some, duration, volume.some, refineV[NonEmpty](comment).toOption)
 
   val operatorGen: Gen[Operator] = Gen.oneOf(List(Eq, Gt, Gteq, Lteq, Lt))

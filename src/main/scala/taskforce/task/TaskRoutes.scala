@@ -13,8 +13,7 @@ import taskforce.authentication.UserId
 import taskforce.project.ProjectId
 import org.http4s.Response
 
-final class TaskRoutes[
-    F[_]: Sync: JsonDecoder](
+final class TaskRoutes[F[_]: Sync: JsonDecoder](
     authMiddleware: AuthMiddleware[F, UserId],
     taskService: TaskService[F]
 ) extends instances.Circe {
