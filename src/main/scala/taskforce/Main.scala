@@ -39,17 +39,16 @@ object Main extends IOApp {
 
   override def run(args: List[String]): IO[ExitCode] =
     resources
-      .use {
-        case (xa, hostConfig) =>
-          for {
-            db             <- Db.make[IO](xa)
-            authMiddleware <- TaskForceAuthMiddleware(db.userRepo, hostConfig.secret.value).pure[IO]
-            server <- Server.make[IO](
-              hostConfig.port.value,
-              authMiddleware,
-              db
-            )
-            exitCode <- server.run
-          } yield exitCode
+      .use { case (xa, hostConfig) =>
+        for {
+          db             <- Db.make[IO](xa)
+          authMiddleware <- TaskForceAuthMiddleware(db.userRepo, hostConfig.secret.value).pure[IO]
+          server <- Server.make[IO](
+            hostConfig.port.value,
+            authMiddleware,
+            db
+          )
+          exitCode <- server.run
+        } yield exitCode
       }
 }

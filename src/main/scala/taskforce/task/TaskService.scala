@@ -23,9 +23,8 @@ final class TaskService[F[_]: Sync](
             case t if t.deleted.isEmpty =>
               (t.created, t.created.plus(t.duration.value))
           }
-          .forall {
-            case (start, end) =>
-              (start.isAfter(taskEnd) || taskStart.isAfter(end))
+          .forall { case (start, end) =>
+            (start.isAfter(taskEnd) || taskStart.isAfter(end))
           }
           .compile
           .toList

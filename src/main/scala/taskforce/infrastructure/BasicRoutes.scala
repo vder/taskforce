@@ -16,11 +16,10 @@ final class BasicRoutes[F[_]: Sync](
   val httpRoutes: AuthedRoutes[UserId, F] = {
     val dsl = new Http4sDsl[F] {}
     import dsl._
-    AuthedRoutes.of {
-      case GET -> Root / "test" as userId =>
-        for {
-          response <- Ok(s"its alive ${userId}")
-        } yield response
+    AuthedRoutes.of { case GET -> Root / "test" as userId =>
+      for {
+        response <- Ok(s"its alive ${userId}")
+      } yield response
 
     }
   }
