@@ -1,0 +1,13 @@
+version: '3.4'
+services:
+  taskforce-app:
+    restart: always
+    image: taskforce:latest
+    network_mode: host
+    ports:
+      - "9090:9090"
+    environment:
+      - DB_PASS=password
+      - DB_PASS_TEST=password
+      - SECRET=53cr3t
+      - PORT=9090
