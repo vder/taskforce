@@ -5,6 +5,7 @@ import cats.implicits._
 import org.http4s.implicits._
 import org.http4s.server.AuthMiddleware
 import org.http4s.server.middleware.{AutoSlash, Logger => LoggerMiddleware}
+import scala.concurrent.ExecutionContext.global
 import taskforce.authentication.UserId
 import taskforce.common._
 import taskforce.filter.{FilterRoutes, FilterService}
@@ -42,7 +43,7 @@ final class Server[F[_]: Logger: Async] private (
         LoggerMiddleware
           .httpRoutes[F](logHeaders = true, logBody = true) _ andThen AutoSlash.httpRoutes[F]
       _ <-
-        BlazeServerBuilder[F]
+        BlazeServerBuilder[F].withExecutionContext(global)
           .bindHttp(port, "0.0.0.0")
           .withHttpApp(middlewares(routes).orNotFound)
           .serve
