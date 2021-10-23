@@ -16,7 +16,7 @@ object Dependencies {
     val munit            = "0.7.26"
     val pureConfig       = "0.17.0"
     val refined          = "0.9.23"
-    val scalacheckEffect = "1.0.2"
+    val scalacheckEffect = "1.0.3"
     val simulacrum       = "1.0.1"
   }
   object Libraries {
