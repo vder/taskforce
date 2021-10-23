@@ -69,9 +69,8 @@ final class LiveProjectRepository[F[_]: MonadCancel[*[_], Throwable]](
         "created",
         "name"
       )
-      .map {
-        case (id, created, name) =>
-          Project(ProjectId(id), name, author, created, None)
+      .map { case (id, created, name) =>
+        Project(ProjectId(id), name, author, created, None)
       }
       .transact(xa)
       .map(_.asRight[DuplicateProjectNameError])

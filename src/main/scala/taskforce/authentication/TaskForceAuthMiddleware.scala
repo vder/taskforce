@@ -28,8 +28,8 @@ object TaskForceAuthMiddleware extends instances.Circe {
             encodedString <-
               request.headers
                 .get[Authorization]
-                .collect {
-                  case Authorization(Credentials.Token(AuthScheme.Bearer, t)) => t
+                .collect { case Authorization(Credentials.Token(AuthScheme.Bearer, t)) =>
+                  t
                 }
                 .toRight("missing Authorization header")
             jwtClaim <-

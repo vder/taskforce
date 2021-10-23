@@ -24,19 +24,18 @@ final class StatsRoutes[
     val dsl = new Http4sDsl[F] {}
     import dsl._
 
-    AuthedRoutes.of {
-      case authReq @ GET -> Root as _ =>
-        for {
-          query <-
-            authReq.req
-              .asJsonDecode[StatsQuery]
-              .adaptError(_ => commonErrors.BadRequest)
-          _ <- Logger[F].info(query.toString())
-          stats <-
-            statsService
-              .getStats(query)
-          response <- Ok(stats)
-        } yield response
+    AuthedRoutes.of { case authReq @ GET -> Root as _ =>
+      for {
+        query <-
+          authReq.req
+            .asJsonDecode[StatsQuery]
+            .adaptError(_ => commonErrors.BadRequest)
+        _ <- Logger[F].info(query.toString())
+        stats <-
+          statsService
+            .getStats(query)
+        response <- Ok(stats)
+      } yield response
 
     }
   }
