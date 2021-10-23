@@ -21,7 +21,7 @@ class ProjectRepositorySuite extends BasicRepositorySuite {
       for {
         repo      <- projectRepo
         allBefore <- repo.list
-        _   <- repo.create(p, userID)
+        _         <- repo.create(p, userID)
         allAfter  <- repo.list
       } yield assertEquals((allBefore.size, allAfter.filter(_.name == p.name).size, allAfter.size), (2, 1, 3))
     }
@@ -43,7 +43,7 @@ class ProjectRepositorySuite extends BasicRepositorySuite {
       for {
         repo           <- projectRepo
         createdEither1 <- repo.create(p1, userID)
-        _       <- repo.create(p2, userID)
+        _              <- repo.create(p2, userID)
         created1       <- IO.fromEither(createdEither1)
         result         <- repo.update(created1.id, p2)
       } yield assert(result.isLeft)

@@ -5,7 +5,7 @@ import cats.implicits._
 import fs2.Stream
 import java.util.UUID
 import taskforce.common.{errors => commonErrors}
-final class FilterService[F[_]: Sync ](
+final class FilterService[F[_]: Sync](
     filterRepo: FilterRepository[F]
 ) {
 
