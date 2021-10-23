@@ -9,7 +9,7 @@ object Dependencies {
     val circe            = "0.14.0"
     val circeDerivation  = "0.13.0-M4"
     val doobie           = "1.0.0-M5"
-    val flyway           = "7.8.1"
+    val flyway           = "7.8.2"
     val http4s           = "0.23.0-RC1"
     val jwtCirce         = "7.1.5"
     val kindProjector    = "0.13.0"
