@@ -1,0 +1,8 @@
+target/
+.metals/
+.bloop/
+.history/
+project/target/
+.bsp/sbt.json
+project/project/project/metals.sbt
+*.worksheet.sc
