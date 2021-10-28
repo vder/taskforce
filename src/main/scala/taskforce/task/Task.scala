@@ -6,11 +6,10 @@ import eu.timepit.refined.types.string.NonEmptyString
 import java.time.Duration
 import java.time.LocalDateTime
 import java.util.UUID
-import taskforce.common.ResourceId
 import taskforce.project.ProjectId
 import taskforce.authentication.UserId
 
-final case class TaskId(value: UUID) extends ResourceId[UUID]
+final case class TaskId(value: UUID) extends AnyVal
 
 final case class NewTask(
     created: Option[LocalDateTime],

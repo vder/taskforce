@@ -3,7 +3,6 @@ package taskforce.filter
 import eu.timepit.refined.types.string.NonEmptyString
 import java.time.LocalDateTime
 import java.util.UUID
-import taskforce.common.ResourceId
 import taskforce.project.Project
 import taskforce.task.Task
 
@@ -27,7 +26,7 @@ final case class In(names: List[NonEmptyString])                    extends Crit
 final case class TaskCreatedDate(op: Operator, date: LocalDateTime) extends Criteria
 final case class State(status: Status)                              extends Criteria
 
-final case class FilterId(value: UUID) extends ResourceId[UUID]
+final case class FilterId(value: UUID) extends AnyVal
 final case class NewFilter(conditions: List[Criteria])
 final case class Filter(id: FilterId, conditions: List[Criteria])
 
