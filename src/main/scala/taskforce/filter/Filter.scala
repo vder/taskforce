@@ -56,7 +56,7 @@ object FilterResultRow {
           tOpt.flatMap(_.comment).map(_.value),
           tOpt.map(_.created),
           tOpt.flatMap(_.deleted),
-          tOpt.map(_.duration.value.toMinutes())
+          tOpt.map(_.duration.value.toMinutes)
         )
     }
 
