@@ -4,18 +4,20 @@ import cats.effect.Sync
 import cats.effect.kernel.MonadCancel
 import cats.syntax.all._
 import doobie.implicits._
+import doobie.quill.DoobieContext
 import doobie.util.transactor.Transactor
+import eu.timepit.refined.api.Refined
+import eu.timepit.refined.types.string
+import java.time.Duration
 import java.time.LocalDateTime
 import org.postgresql.util.PSQLException
 import taskforce.authentication.UserId
-import doobie.quill.DoobieContext
-import io.getquill.Literal
 import taskforce.task.Task
-import eu.timepit.refined.types.string
-import eu.timepit.refined.api.Refined
 import taskforce.task.TaskDuration
 import taskforce.task.instances.{Doobie => doobieTaskInstances}
-import java.time.Duration
+import io.getquill.NamingStrategy
+import io.getquill.SnakeCase
+import io.getquill.PluralizedTableNames
 
 trait ProjectRepository[F[_]] {
   def create(newProject: NewProject, userId: UserId): F[Either[DuplicateProjectNameError, Project]]
@@ -35,15 +37,15 @@ final class LiveProjectRepository[F[_]: MonadCancel[*[_], Throwable]](
     with instances.Doobie
     with doobieTaskInstances {
 
-  val ctx = new DoobieContext.Postgres(Literal)
+  val ctx = new DoobieContext.Postgres(NamingStrategy(PluralizedTableNames, SnakeCase))
   import ctx._
 
   val projectQuery = quote {
-    querySchema[Project]("projects")
+    query[Project]
   }
 
   val taskQuery = quote {
-    querySchema[Task]("tasks", _.projectId -> "project_id")
+    querySchema[Task]("tasks", _.created -> "started")
   }
 
   val newProjectId = ProjectId(0L)
@@ -66,7 +68,7 @@ final class LiveProjectRepository[F[_]: MonadCancel[*[_], Throwable]](
       .map(t => TotalTime(t.getOrElse(TaskDuration(Duration.ZERO)).value))
 
   override def find(id: ProjectId): F[Option[Project]] =
-    run(projectQuery.filter(_.id == lift(id))).transact(xa).map(_.headOption)
+    run(query[Project].filter(_.id == lift(id))).transact(xa).map(_.headOption)
 
   override def list: F[List[Project]] =
     run(projectQuery)

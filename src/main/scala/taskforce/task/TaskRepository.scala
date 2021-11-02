@@ -4,13 +4,19 @@ import cats.effect.Sync
 import cats.effect.kernel.MonadCancel
 import cats.syntax.all._
 import doobie.implicits._
-import doobie.postgres.implicits._
-import doobie.refined.implicits._
+import doobie.quill.DoobieContext
 import doobie.util.transactor.Transactor
-import fs2._
 import org.postgresql.util.PSQLException
 import taskforce.authentication.UserId
 import taskforce.project.ProjectId
+import fs2.Stream
+import eu.timepit.refined.numeric
+import eu.timepit.refined.api.Refined
+import eu.timepit.refined.types.string
+import java.time.LocalDateTime
+import io.getquill.NamingStrategy
+import io.getquill.PluralizedTableNames
+import io.getquill.SnakeCase
 
 trait TaskRepository[F[_]] {
   def create(task: Task): F[Either[DuplicateTaskNameError, Task]]
@@ -26,6 +32,19 @@ final class LiveTaskRepository[F[_]: MonadCancel[*[_], Throwable]](
 ) extends TaskRepository[F]
     with instances.Doobie {
 
+  val ctx = new DoobieContext.Postgres(NamingStrategy(PluralizedTableNames, SnakeCase))
+  import ctx._
+
+  val taskQuery = quote {
+    querySchema[Task]("tasks", _.created -> "started")
+  }
+
+  implicit val decodePositiveInt = MappedEncoding[Int, Int Refined numeric.Positive](Refined.unsafeApply(_))
+  implicit val encodePositiveInt = MappedEncoding[Int Refined numeric.Positive, Int](_.value)
+
+  implicit val decodeNonEmptyString = MappedEncoding[String, string.NonEmptyString](Refined.unsafeApply(_))
+  implicit val encodeNonEmptyString = MappedEncoding[string.NonEmptyString, String](_.value)
+
   private def mapDatabaseErr(task: Task): PartialFunction[Throwable, Either[DuplicateTaskNameError, Task]] = {
     case x: PSQLException
         if x.getMessage.contains(
@@ -36,92 +55,44 @@ final class LiveTaskRepository[F[_]: MonadCancel[*[_], Throwable]](
 
   override def update(id: TaskId, task: Task): F[Either[DuplicateTaskNameError, Task]] = {
     val update = for {
-      _ <- sql.delete(id).update.run
-      _ <- sql.create(task).update.run
+      _ <- run(
+        taskQuery
+          .filter(p => p.id == lift(id) && p.deleted.isEmpty)
+          .update(_.deleted -> lift(LocalDateTime.now().some))
+      )
+      _ <- run(taskQuery.insert(lift(task)))
     } yield ()
     update.transact(xa).as(task.asRight[DuplicateTaskNameError]).recover(mapDatabaseErr(task))
 
   }
 
   override def listByUser(author: UserId): Stream[F, Task] =
-    sql
-      .getAllByAuthor(author)
-      .query[Task]
-      .stream
+    stream(taskQuery.filter(_.author == lift(author)))
       .transact(xa)
 
   override def find(projectId: ProjectId, taskId: TaskId): F[Option[Task]] =
-    sql
-      .getOne(projectId, taskId)
-      .query[Task]
-      .option
+    run(taskQuery.filter(t => t.projectId == lift(projectId) && t.id == lift(taskId)))
       .transact(xa)
+      .map(_.headOption)
 
   override def create(task: Task): F[Either[DuplicateTaskNameError, Task]] =
-    sql
-      .create(task)
-      .update
-      .run
+    run(taskQuery.insert(lift(task)))
       .transact(xa)
       .as(task.asRight[DuplicateTaskNameError])
       .recover(mapDatabaseErr(task))
 
   override def delete(id: TaskId): F[Int] =
-    sql
-      .delete(id)
-      .update
-      .run
+    run(
+      taskQuery
+        .filter(p => p.id == lift(id) && p.deleted.isEmpty)
+        .update(_.deleted -> lift(LocalDateTime.now().some))
+    )
       .transact(xa)
+      .map(_.toInt)
 
   override def list(projectId: ProjectId): Stream[F, Task] =
-    sql
-      .getAll(projectId)
-      .query[Task]
-      .stream
+    stream(taskQuery.filter(_.projectId == lift(projectId)))
       .transact(xa)
-
-  object sql {
-
-    def getAllByAuthor(author: UserId) =
-      sql"""select id,
-            |      project_id,
-            |      author,
-            |      started,
-            |      duration,
-            |      volume,
-            |      deleted,
-            |      comment
-            | from tasks where author = ${author.value}""".stripMargin
-
-    def getOne(projectId: ProjectId, taskId: TaskId) =
-      sql"""select id,
-           |       project_id,
-           |       author,
-           |       started,
-           |       duration,
-           |       volume,
-           |       deleted,
-           |       comment
-           |  from tasks 
-           | where id = ${taskId} 
-           |   and project_id = ${projectId}""".stripMargin
-
-    def getAll(projectId: ProjectId) =
-      sql"""select id,project_id,author,started,duration,volume,deleted,comment from tasks where project_id = ${projectId}"""
-
-    def delete(id: TaskId) =
-      sql"""update tasks set deleted = CURRENT_TIMESTAMP where id =${id} and deleted is null"""
-
-    def create(task: Task) =
-      sql"""insert into tasks(id,project_id,author,started,duration,volume,comment)
-            | values(${task.id.value},
-            |        ${task.projectId.value},
-            |        ${task.author.value},
-            |        ${task.created},
-            |        ${task.duration},
-            |        ${task.volume},
-            |        ${task.comment})""".stripMargin
-  }
 
 }
 
