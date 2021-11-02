@@ -4,13 +4,20 @@ import cats.effect.Sync
 import cats.effect.kernel.MonadCancel
 import cats.syntax.all._
 import doobie.implicits._
-import doobie.postgres.implicits._
-import doobie.refined.implicits._
+import doobie.quill.DoobieContext
 import doobie.util.transactor.Transactor
-import eu.timepit.refined.types.string.NonEmptyString
+import eu.timepit.refined.api.Refined
+import eu.timepit.refined.types.string
+import java.time.Duration
 import java.time.LocalDateTime
 import org.postgresql.util.PSQLException
 import taskforce.authentication.UserId
+import taskforce.task.Task
+import taskforce.task.TaskDuration
+import taskforce.task.instances.{Doobie => doobieTaskInstances}
+import io.getquill.NamingStrategy
+import io.getquill.SnakeCase
+import io.getquill.PluralizedTableNames
 
 trait ProjectRepository[F[_]] {
   def create(newProject: NewProject, userId: UserId): F[Either[DuplicateProjectNameError, Project]]
@@ -27,7 +34,25 @@ trait ProjectRepository[F[_]] {
 final class LiveProjectRepository[F[_]: MonadCancel[*[_], Throwable]](
     xa: Transactor[F]
 ) extends ProjectRepository[F]
-    with instances.Doobie {
+    with instances.Doobie
+    with doobieTaskInstances {
+
+  val ctx = new DoobieContext.Postgres(NamingStrategy(PluralizedTableNames, SnakeCase))
+  import ctx._
+
+  val projectQuery = quote {
+    query[Project]
+  }
+
+  val taskQuery = quote {
+    querySchema[Task]("tasks", _.created -> "started")
+  }
+
+  val newProjectId = ProjectId(0L)
+
+  implicit val decodeNonEmptyString = MappedEncoding[String, string.NonEmptyString](Refined.unsafeApply(_))
+  implicit val encodeNonEmptyString = MappedEncoding[string.NonEmptyString, String](_.value)
+  implicit val taskDurationNumeric  = fakeNumeric[TaskDuration]
 
   def mapDatabaseErr(newProject: NewProject): PartialFunction[Throwable, Either[DuplicateProjectNameError, Project]] = {
     case x: PSQLException
@@ -38,129 +63,61 @@ final class LiveProjectRepository[F[_]: MonadCancel[*[_], Throwable]](
   }
 
   override def totalTime(projectId: ProjectId): F[TotalTime] =
-    sql.getTotalTime(projectId).query[TotalTime].unique.transact(xa)
+    run(taskQuery.filter(t => t.projectId == lift(projectId) && t.deleted.isEmpty).map(_.duration).sum)
+      .transact(xa)
+      .map(t => TotalTime(t.getOrElse(TaskDuration(Duration.ZERO)).value))
 
   override def find(id: ProjectId): F[Option[Project]] =
-    sql
-      .getOne(id)
-      .query[Project]
-      .option
-      .transact(xa)
+    run(query[Project].filter(_.id == lift(id))).transact(xa).map(_.headOption)
 
   override def list: F[List[Project]] =
-    sql.getAll
-      .query[Project]
-      .stream
-      .compile
-      .toList
+    run(projectQuery)
       .transact(xa)
 
   override def create(
       newProject: NewProject,
       author: UserId
-  ): F[Either[DuplicateProjectNameError, Project]] =
-    sql
-      .create(newProject.name, author)
-      .update
-      .withUniqueGeneratedKeys[
-        (Long, LocalDateTime, NonEmptyString)
-      ](
-        "id",
-        "created",
-        "name"
-      )
-      .map { case (id, created, name) =>
-        Project(ProjectId(id), name, author, created, None)
-      }
+  ): F[Either[DuplicateProjectNameError, Project]] = {
+    val created = LocalDateTime.now()
+    run(
+      projectQuery
+        .insert(lift(Project(newProjectId, newProject.name, author, created, None)))
+        .returningGenerated(_.id)
+    )
       .transact(xa)
+      .map { case id =>
+        Project(id, newProject.name, author, created, None)
+      }
       .map(_.asRight[DuplicateProjectNameError])
       .recover(mapDatabaseErr(newProject))
+  }
 
   override def delete(id: ProjectId): F[Int] = {
+    val deleted = LocalDateTime.now().some
     val result = for {
-      x <- sql.deleteProject(id).stripMargin.update.run
-      y <- sql.deleteTask(id).update.run
+      x <- run(projectQuery.filter(p => p.id == lift(id) && p.deleted.isEmpty).update(_.deleted -> lift(deleted)))
+      y <- run(taskQuery.filter(t => t.projectId == lift(id) && t.deleted.isEmpty).update(_.deleted -> lift(deleted)))
     } yield (x + y)
 
-    result.transact(xa)
+    result.transact(xa).map(_.toInt)
   }
 
   override def update(
       id: ProjectId,
       newProject: NewProject
   ): F[Either[DuplicateProjectNameError, Project]] = {
-    val result = for {
-      (created, deleted, userId) <-
-        sql
-          .update(id, newProject.name)
-          .update
-          .withUniqueGeneratedKeys[
-            (LocalDateTime, Option[LocalDateTime], UserId)
-          ](
-            "created",
-            "deleted",
-            "author"
-          )
-      //    totalTime <- sql.totalTime(id).query[Long].unique
-    } yield Project(id, newProject.name, userId, created, deleted).asRight[DuplicateProjectNameError]
-
-    result.transact(xa).recover(mapDatabaseErr(newProject))
+    run(
+      projectQuery
+        .filter(_.id == lift(id))
+        .update(_.name -> lift(newProject.name))
+        .returning(p => p)
+    )
+      .transact(xa)
+      .map(_.asRight[DuplicateProjectNameError])
+      .recover(mapDatabaseErr(newProject))
 
   }
 
-  object sql {
-
-    def getTotalTime(projectId: ProjectId) =
-      sql"""select coalesce(sum(duration),0) 
-           |  from tasks 
-           | where project_id = ${projectId}
-           |   and deleted is null""".stripMargin
-
-    def create(projectName: NonEmptyString, author: UserId) =
-      sql"""insert into projects(name,author,created) 
-       |    values (${projectName.value},
-       |            ${author.value},
-       |            CURRENT_TIMESTAMP) 
-       | returning id,created,name""".stripMargin
-
-    def update(projectId: ProjectId, projectName: NonEmptyString) =
-      sql"""update projects 
-       |       set name= ${projectName.value} 
-       |     where id=${projectId.value}
-       | returning created,deleted,author""".stripMargin
-
-    def totalTime(projectId: ProjectId) =
-      sql"""select sum(duration) 
-           |  from tasks 
-           | where project_id =${projectId.value}
-           |   and deleted is null""".stripMargin
-
-    def deleteProject(projectId: ProjectId) =
-      sql"""update projects 
-           |   set deleted = CURRENT_TIMESTAMP
-           | where id =${projectId} and deleted is null""".stripMargin
-
-    def deleteTask(projectId: ProjectId) =
-      sql"""update tasks 
-          |   set deleted = CURRENT_TIMESTAMP
-          | where project_id =$projectId and deleted is null""".stripMargin
-
-    def getOne(projectId: ProjectId) =
-      sql"""select id,
-           |       name,
-           |       author,
-           |       created,
-           |       deleted
-           |  from projects 
-           | where id=${projectId}""".stripMargin
-    val getAll =
-      sql"""select id,
-              |    name,
-              |    author,
-              |    created,
-              |    deleted
-              | from projects p""".stripMargin
-  }
 }
 
 object LiveProjectRepository {
