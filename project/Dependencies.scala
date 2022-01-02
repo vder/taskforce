@@ -49,7 +49,7 @@ object Dependencies {
     val jwtCirce        = "com.github.jwt-scala" %% "jwt-circe"        % V.jwtCirce
     val logback         = "ch.qos.logback"        % "logback-classic"  % V.Logback
     val mUnit           = mUnitLib("munit")
-    val mUnitCE         = typeLevelLibTest("munit-cats-effect-3", "1.0.6")
+    val mUnitCE         = typeLevelLibTest("munit-cats-effect-3", "1.0.7")
     val mUnitScalacheck = mUnitLib("munit-scalacheck")
     // https://mvnrepository.com/artifact/io.estatico/newtype
     val newType = "io.estatico" %% "newtype" % V.newType
