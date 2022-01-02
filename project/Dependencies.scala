@@ -9,13 +9,13 @@ object Dependencies {
     val circe            = "0.14.0"
     val circeDerivation  = "0.13.0-M5"
     val doobie           = "1.0.0-RC1"
-    val flyway           = "8.0.3"
+    val flyway           = "8.0.5"
     val http4s           = "0.23.7"
     val jwtCirce         = "9.0.2"
     val kindProjector    = "0.13.2"
     val munit            = "0.7.29"
     val newType          = "0.4.4"
-    val pureConfig       = "0.17.0"
+    val pureConfig       = "0.17.1"
     val refined          = "0.9.23"
     val scalacheckEffect = "1.0.3"
     val simulacrum       = "1.0.1"
@@ -49,7 +49,7 @@ object Dependencies {
     val jwtCirce        = "com.github.jwt-scala" %% "jwt-circe"        % V.jwtCirce
     val logback         = "ch.qos.logback"        % "logback-classic"  % V.Logback
     val mUnit           = mUnitLib("munit")
-    val mUnitCE         = typeLevelLibTest("munit-cats-effect-3", "1.0.6")
+    val mUnitCE         = typeLevelLibTest("munit-cats-effect-3", "1.0.7")
     val mUnitScalacheck = mUnitLib("munit-scalacheck")
     // https://mvnrepository.com/artifact/io.estatico/newtype
     val newType = "io.estatico" %% "newtype" % V.newType
