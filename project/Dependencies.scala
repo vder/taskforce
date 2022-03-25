@@ -5,7 +5,7 @@ object Dependencies {
     val Logback          = "1.2.10"
     val betterMonadicFor = "0.3.1"
     val cats             = "2.6.0"
-    val catsEff          = "3.3.3"
+    val catsEff          = "3.3.9"
     val circe            = "0.14.0"
     val circeDerivation  = "0.13.0-M5"
     val doobie           = "1.0.0-RC1"
