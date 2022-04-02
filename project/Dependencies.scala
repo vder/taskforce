@@ -2,7 +2,7 @@ import sbt._
 
 object Dependencies {
   object V {
-    val Logback          = "1.2.10"
+    val Logback          = "1.2.11"
     val betterMonadicFor = "0.3.1"
     val cats             = "2.6.0"
     val catsEff          = "3.3.3"
