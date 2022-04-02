@@ -2,16 +2,16 @@ import sbt._
 
 object Dependencies {
   object V {
-    val Logback          = "1.2.6"
+    val Logback          = "1.2.10"
     val betterMonadicFor = "0.3.1"
     val cats             = "2.6.0"
-    val catsEff          = "3.2.9"
+    val catsEff          = "3.3.3"
     val circe            = "0.14.0"
     val circeDerivation  = "0.13.0-M5"
     val doobie           = "1.0.0-RC1"
     val flyway           = "8.0.5"
     val http4s           = "0.23.6"
-    val jwtCirce         = "9.0.2"
+    val jwtCirce         = "9.0.3"
     val kindProjector    = "0.13.2"
     val munit            = "0.7.29"
     val newType          = "0.4.4"
@@ -49,7 +49,7 @@ object Dependencies {
     val jwtCirce        = "com.github.jwt-scala" %% "jwt-circe"        % V.jwtCirce
     val logback         = "ch.qos.logback"        % "logback-classic"  % V.Logback
     val mUnit           = mUnitLib("munit")
-    val mUnitCE         = typeLevelLibTest("munit-cats-effect-3", "1.0.6")
+    val mUnitCE         = typeLevelLibTest("munit-cats-effect-3", "1.0.7")
     val mUnitScalacheck = mUnitLib("munit-scalacheck")
     // https://mvnrepository.com/artifact/io.estatico/newtype
     val newType = "io.estatico" %% "newtype" % V.newType
