@@ -16,7 +16,7 @@ object Dependencies {
     val munit            = "0.7.29"
     val newType          = "0.4.4"
     val pureConfig       = "0.17.1"
-    val refined          = "0.9.23"
+    val refined          = "0.9.28"
     val scalacheckEffect = "1.0.3"
     val simulacrum       = "1.0.1"
   }
@@ -59,7 +59,7 @@ object Dependencies {
     val refined               = refinedLib("refined")
     val scalaCheckEffect      = typeLevelLibTest("scalacheck-effect", V.scalacheckEffect)
     val scalaCheckEffectMunit = typeLevelLibTest("scalacheck-effect-munit", V.scalacheckEffect)
-    val slf4j                 = "org.typelevel"         %% "log4cats-slf4j"         % "2.1.1"
+    val slf4j                 = "org.typelevel"         %% "log4cats-slf4j"         % "2.2.0"
     val simulacrum            = "org.typelevel"         %% "simulacrum"             % V.simulacrum
 
     // Compiler plugins
