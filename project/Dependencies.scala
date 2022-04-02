@@ -2,21 +2,21 @@ import sbt._
 
 object Dependencies {
   object V {
-    val Logback          = "1.2.10"
+    val Logback          = "1.2.11"
     val betterMonadicFor = "0.3.1"
     val cats             = "2.6.0"
-    val catsEff          = "3.3.3"
+    val catsEff          = "3.3.9"
     val circe            = "0.14.0"
     val circeDerivation  = "0.13.0-M5"
     val doobie           = "1.0.0-RC2"
-    val flyway           = "8.0.5"
-    val http4s           = "0.23.6"
+    val flyway           = "8.5.5"
+    val http4s           = "0.23.11"
     val jwtCirce         = "9.0.3"
     val kindProjector    = "0.13.2"
     val munit            = "0.7.29"
     val newType          = "0.4.4"
     val pureConfig       = "0.17.1"
-    val refined          = "0.9.23"
+    val refined          = "0.9.28"
     val scalacheckEffect = "1.0.3"
     val simulacrum       = "1.0.1"
   }
@@ -59,7 +59,7 @@ object Dependencies {
     val refined               = refinedLib("refined")
     val scalaCheckEffect      = typeLevelLibTest("scalacheck-effect", V.scalacheckEffect)
     val scalaCheckEffectMunit = typeLevelLibTest("scalacheck-effect-munit", V.scalacheckEffect)
-    val slf4j                 = "org.typelevel"         %% "log4cats-slf4j"         % "2.1.1"
+    val slf4j                 = "org.typelevel"         %% "log4cats-slf4j"         % "2.2.0"
     val simulacrum            = "org.typelevel"         %% "simulacrum"             % V.simulacrum
 
     // Compiler plugins
