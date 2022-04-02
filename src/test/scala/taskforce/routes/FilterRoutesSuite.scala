@@ -81,7 +81,7 @@ class FilterRoutesSuite extends HttpTestSuite {
       GET(f, Uri.unsafeFromString(s"api/v1/filters/${fId.value}/data?${queryParams}")).flatMap { req =>
         assertHttp(routes, req)(
           Status.Ok,
-          row
+          Vector(row)
         )
       }
     }
