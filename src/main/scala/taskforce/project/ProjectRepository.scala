@@ -4,7 +4,7 @@ import cats.effect.Sync
 import cats.effect.kernel.MonadCancel
 import cats.syntax.all._
 import doobie.implicits._
-import doobie.quill.DoobieContext
+import org.polyvariant.doobiequill._
 import doobie.util.transactor.Transactor
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.types.string

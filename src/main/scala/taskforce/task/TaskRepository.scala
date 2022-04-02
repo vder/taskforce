@@ -4,7 +4,7 @@ import cats.effect.Sync
 import cats.effect.kernel.MonadCancel
 import cats.syntax.all._
 import doobie.implicits._
-import doobie.quill.DoobieContext
+import org.polyvariant.doobiequill.DoobieContext
 import doobie.util.transactor.Transactor
 import org.postgresql.util.PSQLException
 import taskforce.authentication.UserId

@@ -8,7 +8,8 @@ object Dependencies {
     val catsEff          = "3.3.9"
     val circe            = "0.14.0"
     val circeDerivation  = "0.13.0-M5"
-    val doobie           = "1.0.0-RC1"
+    val doobie           = "1.0.0-RC2"
+    val doobieQuill      = "0.0.5"
     val jwtCirce         = "9.0.5"
     val flyway           = "8.5.5"
     val http4s           = "0.23.11"
@@ -40,7 +41,7 @@ object Dependencies {
     val doobieHikari    = doobieLib("doobie-hikari")
     val doobiePostgres  = doobieLib("doobie-postgres")
     val doobieRefined   = doobieLib("doobie-refined")
-    val doobieQuill     = doobieLib("doobie-quill")
+    val doobieQuill     = "org.polyvariant" %% "doobie-quill" % V.doobieQuill
     val flyway          = "org.flywaydb"          % "flyway-core"      % V.flyway
     val http4sCirce     = http4sLib("http4s-circe")
     val http4sClient    = http4sLib("http4s-blaze-client")
