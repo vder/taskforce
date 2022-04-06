@@ -67,19 +67,18 @@ lazy val root = (project in file("."))
       scalaCheckEffect,
       scalaCheckEffectMunit,
       simulacrum,
-      slf4j
-    ),
+      slf4j,
+      log4cats
+    ).map(_.exclude("org.slf4j", "*")),
     addCompilerPlugin(kindProjector),
     addCompilerPlugin(betterMonadicFor),
     scalacOptions ++= Seq(
-      "-deprecation",
-      "-encoding",
-      "UTF-8",
-      "-language:higherKinds",
-      "-language:postfixOps",
+       "-deprecation",
+      "-encoding", "UTF-8",
+       "-language:higherKinds",
+       "-language:postfixOps",
       "-feature",
-      //  "-Xfatal-warnings",
       "-Xlint:unused",
-      "-Ymacro-annotations"
-    )
+       "-Ymacro-annotations"
+     )
   )
