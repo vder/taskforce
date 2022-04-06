@@ -20,7 +20,7 @@ final class ProjectService[F[_]: Sync](
       _ <-
         MonadThrow[F]
           .fromOption(projectOption, NotFound(projectId.value.toString()))
-          .ensure(NotAuthor(actionBy))(_.author == actionBy)
+          .ensure(NotAuthor(actionBy.value))(_.author == actionBy)
       rowsCount <- projectRepo.delete(projectId)
     } yield rowsCount
 
@@ -38,7 +38,7 @@ final class ProjectService[F[_]: Sync](
         projectRepo
           .find(projectId)
           .ensure(NotFound(projectId.value.toString()))(_.isDefined)
-          .ensure(NotAuthor(userId))(_.filter(_.author == userId).isDefined)
+          .ensure(NotAuthor(userId.value))(_.filter(_.author == userId).isDefined)
       project <-
         projectRepo
           .update(projectId, newProject)
