@@ -10,5 +10,6 @@ object errors {
   case class NotFound(resourceId: String) extends NoStackTrace
 
   case class InvalidQueryParam(s: String) extends NoStackTrace
+  case class InvalidPort(port:Int) extends NoStackTrace
 
 }

@@ -46,9 +46,9 @@ object Dependencies {
     val doobieQuill     = "org.polyvariant" %% "doobie-quill" % V.doobieQuill
     val flyway          = "org.flywaydb"          % "flyway-core"      % V.flyway
     val http4sCirce     = http4sLib("http4s-circe")
-    val http4sClient    = http4sLib("http4s-blaze-client")
+    val http4sClient    = http4sLib("http4s-ember-client")
     val http4sDsl       = http4sLib("http4s-dsl")
-    val http4sServer    = http4sLib("http4s-blaze-server")
+    val http4sServer    = http4sLib("http4s-ember-server")
     val jwtCirce        = "com.github.jwt-scala" %% "jwt-circe"        % V.jwtCirce
     val logback         = "ch.qos.logback"        % "logback-classic"  % V.Logback
     val mUnit           = mUnitLib("munit")

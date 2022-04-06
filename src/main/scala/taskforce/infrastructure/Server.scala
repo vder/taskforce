@@ -3,18 +3,18 @@ package taskforce.infrastructure
 import cats.effect.kernel.Async
 import cats.effect.{ExitCode, Sync}
 import cats.implicits._
-import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.implicits._
 import org.http4s.server.AuthMiddleware
 import org.http4s.server.middleware.{AutoSlash, Logger => LoggerMiddleware}
 import org.typelevel.log4cats.Logger
-import scala.concurrent.ExecutionContext.global
 import taskforce.authentication.UserId
 import taskforce.common._
 import taskforce.filter.{FilterRoutes, FilterService}
 import taskforce.project.{ProjectRoutes, ProjectService}
 import taskforce.stats.{StatsRoutes, StatsService}
 import taskforce.task.{TaskRoutes, TaskService}
+import com.comcast.ip4s._
+import org.http4s.ember.server._
 
 final class Server[F[_]: Logger: Async] private (
     port: Int,
@@ -41,14 +41,16 @@ final class Server[F[_]: Logger: Async] private (
       middlewares =
         LoggerMiddleware
           .httpRoutes[F](logHeaders = true, logBody = true) _ andThen AutoSlash.httpRoutes[F]
-      _ <-
-        BlazeServerBuilder[F].withExecutionContext(global)
-          .bindHttp(port, "0.0.0.0")
+      portChecked <- Port.fromInt(port).liftTo[F](errors.InvalidPort(port))    
+      exitCode <-
+        EmberServerBuilder.default[F]
+          .withHost(ipv4"0.0.0.0")
+          .withPort(portChecked)
           .withHttpApp(middlewares(routes).orNotFound)
-          .serve
-          .compile
-          .drain
-    } yield ExitCode.Success
+          .build
+          .use( _ => Async[F].never.as(ExitCode.Success))
+          
+    } yield exitCode
 
 }
 
