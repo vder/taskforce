@@ -20,6 +20,8 @@ object Dependencies {
     val refined          = "0.9.28"
     val scalacheckEffect = "1.0.3"
     val simulacrum       = "1.0.1"
+    val log4cats = "2.2.0"
+    val slf4j = "1.7.36"
   }
   object Libraries {
 
@@ -52,7 +54,6 @@ object Dependencies {
     val mUnit           = mUnitLib("munit")
     val mUnitCE         = typeLevelLibTest("munit-cats-effect-3", "1.0.7")
     val mUnitScalacheck = mUnitLib("munit-scalacheck")
-    // https://mvnrepository.com/artifact/io.estatico/newtype
     val newType = "io.estatico" %% "newtype" % V.newType
     val pureConfig            = "com.github.pureconfig" %% "pureconfig"             % V.pureConfig
     val pureConfigCE          = "com.github.pureconfig" %% "pureconfig-cats-effect" % V.pureConfig
@@ -60,7 +61,8 @@ object Dependencies {
     val refined               = refinedLib("refined")
     val scalaCheckEffect      = typeLevelLibTest("scalacheck-effect", V.scalacheckEffect)
     val scalaCheckEffectMunit = typeLevelLibTest("scalacheck-effect-munit", V.scalacheckEffect)
-    val slf4j                 = "org.typelevel"         %% "log4cats-slf4j"         % "2.2.0"
+    val log4cats              = "org.typelevel"         %% "log4cats-slf4j"         % V.log4cats
+    val slf4j                 = "org.slf4j"             %  "slf4j-api" % V.slf4j
     val simulacrum            = "org.typelevel"         %% "simulacrum"             % V.simulacrum
 
     // Compiler plugins

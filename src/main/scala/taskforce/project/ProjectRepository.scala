@@ -18,6 +18,7 @@ import taskforce.task.instances.{Doobie => doobieTaskInstances}
 import io.getquill.NamingStrategy
 import io.getquill.SnakeCase
 import io.getquill.PluralizedTableNames
+import java.time.temporal.ChronoUnit
 
 trait ProjectRepository[F[_]] {
   def create(newProject: NewProject, userId: UserId): F[Either[DuplicateProjectNameError, Project]]
@@ -78,7 +79,7 @@ final class LiveProjectRepository[F[_]: MonadCancel[*[_], Throwable]](
       newProject: NewProject,
       author: UserId
   ): F[Either[DuplicateProjectNameError, Project]] = {
-    val created = LocalDateTime.now()
+    val created = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
     run(
       projectQuery
         .insert(lift(Project(newProjectId, newProject.name, author, created, None)))
