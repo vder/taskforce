@@ -25,9 +25,13 @@ trait BasicRepositorySuite extends CatsEffectSuite with ScalaCheckEffectSuite {
     db = ConfigSource.default
       .at("database_test")
       .load[DatabaseConfig]
-      .toOption
-      .get
-
+      match {
+        case Left(errors) =>
+          throw new RuntimeException(s"Configuration loading Err: ${errors.toList.mkString("\n")}")
+        case Right(value) =>
+          value
+      }
+     
     flyway = Flyway.configure().dataSource(db.url.value, db.user.value, db.pass.value).load()
     flyway.clean()
     flyway.migrate()

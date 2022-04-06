@@ -1,6 +1,5 @@
 package taskforce.authentication
 
-import cats.MonadError
 import cats.data.{EitherT, Kleisli, OptionT}
 import cats.implicits._
 import io.circe.parser._
@@ -9,10 +8,11 @@ import org.http4s.headers.Authorization
 import org.http4s.server.AuthMiddleware
 import org.http4s.{AuthScheme, AuthedRoutes, Credentials, Request}
 import pdi.jwt.{JwtAlgorithm, JwtCirce}
+import cats.MonadThrow
 
 object TaskForceAuthMiddleware extends instances.Circe {
 
-  def apply[F[_]: MonadError[*[_], Throwable]](
+  def apply[F[_]:  MonadThrow](
       userRepo: UserRepository[F],
       secret: String
   ): AuthMiddleware[F, UserId] = {
@@ -28,18 +28,19 @@ object TaskForceAuthMiddleware extends instances.Circe {
             encodedString <-
               request.headers
                 .get[Authorization]
-                .collect { case Authorization(Credentials.Token(AuthScheme.Bearer, t)) =>
-                  t
-                }
-                .toRight("missing Authorization header")
+                .fold(s"missing Authorization header: ${request}".asLeft[String]){ 
+                  case Authorization(Credentials.Token(AuthScheme.Bearer, t)) =>
+                    t.asRight[String]
+                  case header => s"invalid header type $header".asLeft[String]
+                      }
             jwtClaim <-
               JwtCirce
                 .decode(encodedString, secret, Seq(JwtAlgorithm.HS256))
                 .toEither
-                .leftMap(_ => "token decode error")
+                .leftMap(_ => s"token decode error: $encodedString")
             user <- parse(jwtClaim.content)
               .flatMap(_.as[User])
-              .leftMap(_ => "cannot parse user")
+              .leftMap(_ => s"cannot parse user: ${jwtClaim.content}")
           } yield user
 
         val userId = for {
