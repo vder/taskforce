@@ -5,7 +5,6 @@ ThisBuild / githubWorkflowPublishTargetBranches := Seq()
 ThisBuild / organization := "com.pfl"
 ThisBuild / organizationName := "pfl"
 ThisBuild / scalaVersion := "2.13.8"
-ThisBuild / scalacOptions += "-P:semanticdb:synthetics:on"
 ThisBuild / version := "0.1.0-SNAPSHOT"
 ThisBuild / versionScheme := Some("early-semver")
 
@@ -27,13 +26,14 @@ lazy val root = (project in file("."))
     publish / skip := true,
     Docker / packageName := "taskforce",
     dockerCommands := dockerCommands.value.flatMap {
-      case cmd @ Cmd("FROM", _) => List(cmd, Cmd("RUN", "apk update && apk add bash"))
-      case other                => List(other)
+      case cmd @ Cmd("FROM", _) =>
+        List(cmd, Cmd("RUN", "apk update && apk add bash"))
+      case other => List(other)
     },
     dockerExposedPorts ++= Seq(9090),
     dockerBaseImage := "openjdk:8-jre-alpine",
     dockerUpdateLatest := true,
-    semanticdbEnabled := true,                        // enable SemanticDB
+    semanticdbEnabled := true, // enable SemanticDB
     semanticdbVersion := scalafixSemanticdb.revision, // only required for Scala 2.x
     libraryDependencies ++= Seq(
       catsEffect,
@@ -55,15 +55,16 @@ lazy val root = (project in file("."))
       http4sServer,
       jwtCirce,
       logback,
+      monixNewType,
+      monixNewTypeCirce,
       mUnit,
       mUnitCE,
       mUnitScalacheck,
-      newType,
       pureConfig,
       pureConfigCE,
       pureConfigRefined,
       refined,
-     // quill,
+      // quill,
       scalaCheckEffect,
       scalaCheckEffectMunit,
       simulacrum,
@@ -73,12 +74,13 @@ lazy val root = (project in file("."))
     addCompilerPlugin(kindProjector),
     addCompilerPlugin(betterMonadicFor),
     scalacOptions ++= Seq(
-       "-deprecation",
-      "-encoding", "UTF-8",
-       "-language:higherKinds",
-       "-language:postfixOps",
+      "-deprecation",
+      "-encoding",
+      "UTF-8",
+      "-language:higherKinds",
+      "-language:postfixOps",
       "-feature",
       "-Xlint:unused",
-       "-Ymacro-annotations"
-     )
+      "-Ymacro-annotations"
+    )
   )

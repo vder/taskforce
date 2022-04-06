@@ -32,20 +32,27 @@ final class LiveTaskRepository[F[_]: MonadCancel[*[_], Throwable]](
 ) extends TaskRepository[F]
     with instances.Doobie {
 
-  val ctx = new DoobieContext.Postgres(NamingStrategy(PluralizedTableNames, SnakeCase))
+  val ctx =
+    new DoobieContext.Postgres(NamingStrategy(PluralizedTableNames, SnakeCase))
   import ctx._
 
   val taskQuery = quote {
     querySchema[Task]("tasks", _.created -> "started")
   }
 
-  implicit val decodePositiveInt = MappedEncoding[Int, Int Refined numeric.Positive](Refined.unsafeApply(_))
-  implicit val encodePositiveInt = MappedEncoding[Int Refined numeric.Positive, Int](_.value)
+  implicit val decodePositiveInt =
+    MappedEncoding[Int, Int Refined numeric.Positive](Refined.unsafeApply(_))
+  implicit val encodePositiveInt =
+    MappedEncoding[Int Refined numeric.Positive, Int](_.value)
 
-  implicit val decodeNonEmptyString = MappedEncoding[String, string.NonEmptyString](Refined.unsafeApply(_))
-  implicit val encodeNonEmptyString = MappedEncoding[string.NonEmptyString, String](_.value)
+  implicit val decodeNonEmptyString =
+    MappedEncoding[String, string.NonEmptyString](Refined.unsafeApply(_))
+  implicit val encodeNonEmptyString =
+    MappedEncoding[string.NonEmptyString, String](_.value)
 
-  private def mapDatabaseErr(task: Task): PartialFunction[Throwable, Either[DuplicateTaskNameError, Task]] = {
+  private def mapDatabaseErr(
+      task: Task
+  ): PartialFunction[Throwable, Either[DuplicateTaskNameError, Task]] = {
     case x: PSQLException
         if x.getMessage.contains(
           "unique constraint"
@@ -53,7 +60,10 @@ final class LiveTaskRepository[F[_]: MonadCancel[*[_], Throwable]](
       DuplicateTaskNameError(task).asLeft[Task]
   }
 
-  override def update(id: TaskId, task: Task): F[Either[DuplicateTaskNameError, Task]] = {
+  override def update(
+      id: TaskId,
+      task: Task
+  ): F[Either[DuplicateTaskNameError, Task]] = {
     val update = for {
       _ <- run(
         taskQuery
@@ -62,7 +72,10 @@ final class LiveTaskRepository[F[_]: MonadCancel[*[_], Throwable]](
       )
       _ <- run(taskQuery.insert(lift(task)))
     } yield ()
-    update.transact(xa).as(task.asRight[DuplicateTaskNameError]).recover(mapDatabaseErr(task))
+    update
+      .transact(xa)
+      .as(task.asRight[DuplicateTaskNameError])
+      .recover(mapDatabaseErr(task))
 
   }
 
@@ -71,7 +84,11 @@ final class LiveTaskRepository[F[_]: MonadCancel[*[_], Throwable]](
       .transact(xa)
 
   override def find(projectId: ProjectId, taskId: TaskId): F[Option[Task]] =
-    run(taskQuery.filter(t => t.projectId == lift(projectId) && t.id == lift(taskId)))
+    run(
+      taskQuery.filter(t =>
+        t.projectId == lift(projectId) && t.id == lift(taskId)
+      )
+    )
       .transact(xa)
       .map(_.headOption)
 

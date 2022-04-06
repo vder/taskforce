@@ -1,7 +1,6 @@
 package taskforce.filter.instances
 
 import cats.syntax.functor._
-import io.circe.generic.semiauto._
 import io.circe.refined._
 import io.circe.syntax._
 import io.circe.{Decoder, Encoder}
@@ -75,9 +74,41 @@ trait Circe extends taskforce.task.instances.Circe {
     Encoder.forProduct1("conditions")(_.conditions)
 
   implicit lazy val circeRowDecoder: Decoder[FilterResultRow] =
-    deriveDecoder[FilterResultRow]
+    Decoder.forProduct9(
+      "projectId",
+      "projectName",
+      "projectCreated",
+      "projectDeleted",
+      "projectAuthor",
+      "taskComment",
+      "taskCreated",
+      "taskDeleted",
+      "duration"
+    )(FilterResultRow.apply)
   implicit lazy val circeRowEncoder: Encoder[FilterResultRow] =
-    deriveEncoder[FilterResultRow]
+    Encoder.forProduct9(
+      "projectId",
+      "projectName",
+      "projectCreated",
+      "projectDeleted",
+      "projectAuthor",
+      "taskComment",
+      "taskCreated",
+      "taskDeleted",
+      "duration"
+    )(x =>
+      (
+        x.projectId,
+        x.projectName,
+        x.projectCreated,
+        x.projectDeleted,
+        x.projectAuthor,
+        x.taskComment,
+        x.taskCreated,
+        x.taskDeleted,
+        x.duration
+      )
+    )
 
   implicit lazy val decodeIn: Decoder[In] =
     Decoder.forProduct1("in")(In.apply)
