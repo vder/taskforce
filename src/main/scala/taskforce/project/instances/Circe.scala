@@ -2,10 +2,10 @@ package taskforce.project.instances
 
 import io.circe.refined._
 import io.circe.{Decoder, Encoder}
-import taskforce.authentication.instances
+// import taskforce.authentication.instances
 import taskforce.project.{NewProject, Project, ProjectId, TotalTime}
 
-trait Circe extends instances.Circe {
+trait Circe  {
 
   implicit val projectIdDecoder: Decoder[ProjectId] =
     Decoder[Long].map(ProjectId.apply)

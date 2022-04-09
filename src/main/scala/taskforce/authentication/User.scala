@@ -1,3 +1,5 @@
 package taskforce.authentication
 
-final case class User(id: UserId)
+import io.circe.generic.JsonCodec
+
+@JsonCodec final case class User(id: UserId)
