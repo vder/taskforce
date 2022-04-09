@@ -10,11 +10,11 @@ case class TestProjectRepository(projects: List[Project], currentTime: LocalDate
 
   override def totalTime(projectId: ProjectId): IO[TotalTime] = TotalTime(Duration.ZERO).pure[IO]
 
-  override def create(newProject: NewProject, userId: UserId): IO[Either[DuplicateProjectNameError, Project]] =
+  override def create(newProject: ProjectName, userId: UserId): IO[Either[DuplicateProjectNameError, Project]] =
     Project(
       author = userId,
       deleted = None,
-      name = newProject.name,
+      name = newProject,
       id = ProjectId(1),
       created = currentTime
     ).asRight[DuplicateProjectNameError]
@@ -24,12 +24,12 @@ case class TestProjectRepository(projects: List[Project], currentTime: LocalDate
 
   override def update(
       id: ProjectId,
-      newProject: NewProject
+      newProject: ProjectName
   ): IO[Either[DuplicateProjectNameError, Project]] =
     Project(
       author = UserId(UUID.randomUUID()),
       deleted = None,
-      name = newProject.name,
+      name = newProject,
       id = id,
       created = currentTime
     ).asRight[DuplicateProjectNameError]

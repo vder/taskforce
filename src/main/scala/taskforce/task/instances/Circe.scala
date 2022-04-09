@@ -11,7 +11,7 @@ import taskforce.task.Task
 import taskforce.task.TaskId
 import taskforce.task.NewTask
 
-trait Circe extends taskforce.project.instances.Circe {
+trait Circe {
 
   implicit val taskDecoder: Decoder[Task] =
     deriveDecoder[Task]

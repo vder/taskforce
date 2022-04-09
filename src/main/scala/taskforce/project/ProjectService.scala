@@ -29,10 +29,10 @@ final class ProjectService[F[_]: Sync](
       .find(projectId)
       .ensure(NotFound(projectId.value.toString()))(_.isDefined)
 
-  def create(newProject: NewProject, userId: UserId) =
+  def create(newProject: ProjectName, userId: UserId) =
     projectRepo.create(newProject, userId)
 
-  def update(projectId: ProjectId, newProject: NewProject, userId: UserId) =
+  def update(projectId: ProjectId, newProject: ProjectName, userId: UserId) =
     for {
       _ <-
         projectRepo

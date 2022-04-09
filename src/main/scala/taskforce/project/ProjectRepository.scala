@@ -22,11 +22,11 @@ import java.time.temporal.ChronoUnit
 import taskforce.common._
 
 trait ProjectRepository[F[_]] {
-  def create(newProject: NewProject, userId: UserId): F[Either[DuplicateProjectNameError, Project]]
+  def create(newProject: ProjectName, userId: UserId): F[Either[DuplicateProjectNameError, Project]]
   def delete(id: ProjectId): F[Int]
   def update(
       id: ProjectId,
-      newProject: NewProject
+      newProject: ProjectName
   ): F[Either[DuplicateProjectNameError, Project]]
   def find(id: ProjectId): F[Option[Project]]
   def list: F[List[Project]]
@@ -57,7 +57,7 @@ final class LiveProjectRepository[F[_]: MonadCancel[*[_], Throwable]](
   implicit val encodeNonEmptyString = MappedEncoding[string.NonEmptyString, String](_.value)
   implicit val taskDurationNumeric  = fakeNumeric[TaskDuration]
 
-  def mapDatabaseErr(newProject: NewProject): PartialFunction[Throwable, Either[DuplicateProjectNameError, Project]] = {
+  def mapDatabaseErr(newProject: ProjectName): PartialFunction[Throwable, Either[DuplicateProjectNameError, Project]] = {
     case x: PSQLException
         if x.getMessage.contains(
           "unique constraint"
@@ -78,18 +78,18 @@ final class LiveProjectRepository[F[_]: MonadCancel[*[_], Throwable]](
       .transact(xa)
 
   override def create(
-      newProject: NewProject,
+      newProject: ProjectName,
       author: UserId
   ): F[Either[DuplicateProjectNameError, Project]] = {
     val created = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
     run(
       projectQuery
-        .insert(lift(Project(newProjectId, newProject.name, author, created, None)))
+        .insert(lift(Project(newProjectId, newProject, author, created, None)))
         .returningGenerated(_.id)
     )
       .transact(xa)
       .map { case id =>
-        Project(id, newProject.name, author, created, None)
+        Project(id, newProject, author, created, None)
       }
       .map(_.asRight[DuplicateProjectNameError])
       .recover(mapDatabaseErr(newProject))
@@ -107,12 +107,12 @@ final class LiveProjectRepository[F[_]: MonadCancel[*[_], Throwable]](
 
   override def update(
       id: ProjectId,
-      newProject: NewProject
+      newProject: ProjectName
   ): F[Either[DuplicateProjectNameError, Project]] = {
     run(
       projectQuery
         .filter(_.id == lift(id))
-        .update(_.name -> lift(newProject.name))
+        .update(_.name -> lift(newProject))
         .returning(p => p)
     )
       .transact(xa)

@@ -60,6 +60,7 @@ object Dependencies {
     val pureConfigCE          = "com.github.pureconfig" %% "pureconfig-cats-effect" % V.pureConfig
     val pureConfigRefined     = refinedLib("refined-pureconfig")
     val refined               = refinedLib("refined")
+    val refinedCats               = refinedLib("refined-cats")
     val scalaCheckEffect      = typeLevelLibTest("scalacheck-effect", V.scalacheckEffect)
     val scalaCheckEffectMunit = typeLevelLibTest("scalacheck-effect-munit", V.scalacheckEffect)
     val log4cats              = "org.typelevel"         %% "log4cats-slf4j"         % V.log4cats

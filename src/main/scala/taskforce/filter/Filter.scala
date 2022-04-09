@@ -49,7 +49,7 @@ object FilterResultRow {
       case (p, tOpt) =>
         FilterResultRow(
           p.id.value,
-          p.name.value,
+          p.name.value.value,
           p.created,
           p.deleted,
           p.author.value,

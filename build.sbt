@@ -64,6 +64,7 @@ lazy val root = (project in file("."))
       pureConfigCE,
       pureConfigRefined,
       refined,
+      refinedCats,
       // quill,
       scalaCheckEffect,
       scalaCheckEffectMunit,

@@ -16,6 +16,7 @@ import taskforce.common.Sqlizer.ops._
 import taskforce.project.Project
 import taskforce.task.Task
 import cats.effect.kernel.MonadCancel
+import eu.timepit.refined.cats._
 
 trait FilterRepository[F[_]] {
   def create(filter: Filter): F[Filter]

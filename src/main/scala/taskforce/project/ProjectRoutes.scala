@@ -2,6 +2,7 @@ package taskforce.project
 
 import cats.effect.Sync
 import cats.implicits._
+import io.circe.refined._
 import org.http4s.{AuthedRequest, AuthedRoutes, Response}
 import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
@@ -22,13 +23,13 @@ final class ProjectRoutes[F[_]: Sync: JsonDecoder](
   val prepareFailedResponse: PartialFunction[ProjectError, F[Response[F]]] = {
     case DuplicateProjectNameError(newProject) =>
       Conflict(
-        ErrorMessage("PROJECT-001", s"name given in request: ${newProject.name} already exists")
+        ErrorMessage("PROJECT-001", s"name given in request: ${newProject.value} already exists")
       )
   }
 
-  def newProjectFromReq(authReq: AuthedRequest[F, UserId]) =
+  def newProjectFromReq(authReq: AuthedRequest[F, UserId]):F[ProjectName] =
     authReq.req
-      .asJsonDecode[NewProject]
+      .asJsonDecode[ProjectName]
       .adaptError(_ => commonErrors.BadRequest)
 
   val httpRoutes: AuthedRoutes[UserId, F] = {

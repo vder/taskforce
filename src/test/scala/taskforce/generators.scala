@@ -34,10 +34,10 @@ object generators {
   val taskDurationGen: Gen[TaskDuration] =
     Gen.chooseNum[Long](10, 1000).map(x => TaskDuration(Duration.ofMinutes(x)))
 
-  val newProjectGen: Gen[NewProject] =
+  val newProjectGen: Gen[ProjectName] =
     nonEmptyStringGen
       .map[NonEmptyString](Refined.unsafeApply)
-      .map(NewProject.apply)
+      .map(ProjectName.apply)
 
   def localDateTimeGen: Gen[LocalDateTime] =
     for {
@@ -50,9 +50,7 @@ object generators {
   val projectGen: Gen[Project] =
     for {
       projectId <- projectIdGen
-      name <-
-        nonEmptyStringGen
-          .map[NonEmptyString](Refined.unsafeApply)
+      name <-newProjectGen
       userId  <- userIdGen
       created <- localDateTimeGen
     } yield Project(projectId, name, userId, created, None)
