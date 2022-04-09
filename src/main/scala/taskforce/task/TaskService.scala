@@ -41,7 +41,7 @@ final class TaskService[F[_]: Sync](
             taskOption,
             commonErrors.NotFound(taskId.value.toString())
           )
-          .ensure(commonErrors.NotAuthor(userId))(_.author == userId)
+          .ensure(commonErrors.NotAuthor(userId.value))(_.author == userId)
     } yield task
 
   def list(projectId: ProjectId) = taskRepo.list(projectId)

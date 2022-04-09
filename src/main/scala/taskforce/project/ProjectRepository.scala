@@ -14,11 +14,12 @@ import org.postgresql.util.PSQLException
 import taskforce.authentication.UserId
 import taskforce.task.Task
 import taskforce.task.TaskDuration
-import taskforce.task.instances.{Doobie => doobieTaskInstances}
+import taskforce.task.instances.{Doobie => DoobieTaskInstances}
 import io.getquill.NamingStrategy
 import io.getquill.SnakeCase
 import io.getquill.PluralizedTableNames
 import java.time.temporal.ChronoUnit
+import taskforce.common._
 
 trait ProjectRepository[F[_]] {
   def create(newProject: NewProject, userId: UserId): F[Either[DuplicateProjectNameError, Project]]
@@ -36,7 +37,8 @@ final class LiveProjectRepository[F[_]: MonadCancel[*[_], Throwable]](
     xa: Transactor[F]
 ) extends ProjectRepository[F]
     with instances.Doobie
-    with doobieTaskInstances {
+    with DoobieTaskInstances
+    with NewTypeQuillInstances {
 
   val ctx = new DoobieContext.Postgres(NamingStrategy(PluralizedTableNames, SnakeCase))
   import ctx._

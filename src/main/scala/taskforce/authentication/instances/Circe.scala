@@ -2,8 +2,9 @@ package taskforce.authentication.instances
 
 import io.circe.{Decoder, Encoder}
 import taskforce.authentication._
+import monix.newtypes.integrations.DerivedCirceCodec
 
-trait Circe {
+trait Circe extends DerivedCirceCodec {
 
   implicit val userDecoder: Decoder[User] =
     Decoder.forProduct1("id")(User.apply)
