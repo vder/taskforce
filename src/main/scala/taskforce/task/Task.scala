@@ -1,21 +1,20 @@
 package taskforce.task
 
-import eu.timepit.refined.api.Refined
-import eu.timepit.refined.numeric._
-import io.circe.refined._
-import eu.timepit.refined.types.string.NonEmptyString
 import java.time.LocalDateTime
 import java.util.UUID
 import taskforce.project.ProjectId
 import taskforce.authentication.UserId
 import taskforce.common._
+import io.circe.refined._
 import io.circe.generic.JsonCodec
+import taskforce.task.TaskVolume
+import taskforce.task.TaskComment
 
 @JsonCodec final case class NewTask(
     created: Option[CreationDate] = None,
     duration: TaskDuration,
-    volume: Option[Int Refined Positive],
-    comment: Option[NonEmptyString]
+    volume: Option[TaskVolume],
+    comment: Option[TaskComment]
 )
 
 @JsonCodec final case class Task(
@@ -24,9 +23,9 @@ import io.circe.generic.JsonCodec
     author: UserId,
     created: CreationDate,
     duration: TaskDuration,
-    volume: Option[Int Refined Positive],
+    volume: Option[TaskVolume],
     deleted: Option[DeletionDate],
-    comment: Option[NonEmptyString]
+    comment: Option[TaskComment]
 )
 
 object Task {

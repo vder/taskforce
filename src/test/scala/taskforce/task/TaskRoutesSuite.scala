@@ -19,7 +19,7 @@ import taskforce.common.{ErrorMessage, LiveHttpErrorHandler}
 import taskforce.project.ProjectId
 import taskforce.common.CreationDate
 
-class TasksRoutesSuite extends HttpTestSuite  {
+class TasksRoutesSuite extends HttpTestSuite {
 
   implicit def encodeNewProduct: EntityEncoder[IO, NewTask] = jsonEncoderOf
 
@@ -38,11 +38,19 @@ class TasksRoutesSuite extends HttpTestSuite  {
   test("cannot delete not other's task") {
     PropF.forAllF { (t: Task, u: UserId) =>
       val taskRepo = new TestTaskRepository(List(t))
-      val routes   = new TaskRoutes[IO](authMiddleware(u), new TaskService(taskRepo)).routes(errHandler)
+      val routes =
+        new TaskRoutes[IO](authMiddleware(u), new TaskService(taskRepo))
+          .routes(errHandler)
 
-      DELETE(Uri.unsafeFromString(s"api/v1/projects/${t.projectId.value}/tasks/${t.id.value}")).pure[IO].flatMap {
-        req =>
-          assertHttp(routes, req)(Status.Forbidden, ErrorMessage("BASIC-003", "User is not an owner of the resource"))
+      DELETE(
+        Uri.unsafeFromString(
+          s"api/v1/projects/${t.projectId.value}/tasks/${t.id.value}"
+        )
+      ).pure[IO].flatMap { req =>
+        assertHttp(routes, req)(
+          Status.Forbidden,
+          ErrorMessage("BASIC-003", "User is not an owner of the resource")
+        )
       }
     }
   }
@@ -50,13 +58,21 @@ class TasksRoutesSuite extends HttpTestSuite  {
   test("cannot add overlapping tasks #1") {
     PropF.forAllF { (t: Task) =>
       val taskRepo = new TestTaskRepository(List(t))
-      val routes   = new TaskRoutes[IO](authMiddleware(t.author), new TaskService(taskRepo)).routes(errHandler)
-      val newTask  = NewTask(t.created.some, t.duration, None, None)
+      val routes =
+        new TaskRoutes[IO](authMiddleware(t.author), new TaskService(taskRepo))
+          .routes(errHandler)
+      val newTask = NewTask(t.created.some, t.duration, None, None)
 
-      POST(newTask, Uri.unsafeFromString(s"api/v1/projects/${t.projectId.value}/tasks")).pure[IO].flatMap { req =>
+      POST(
+        newTask,
+        Uri.unsafeFromString(s"api/v1/projects/${t.projectId.value}/tasks")
+      ).pure[IO].flatMap { req =>
         assertHttp(routes, req)(
           Status.Conflict,
-          ErrorMessage("TASK-002", "Reporter already logged task in a given time")
+          ErrorMessage(
+            "TASK-002",
+            "Reporter already logged task in a given time"
+          )
         )
       }
     }
@@ -65,14 +81,29 @@ class TasksRoutesSuite extends HttpTestSuite  {
   test("cannot add overlapping tasks #2") {
     PropF.forAllF { (t: Task) =>
       val taskRepo = new TestTaskRepository(List(t))
-      val routes   = new TaskRoutes[IO](authMiddleware(t.author), new TaskService(taskRepo)).routes(errHandler)
+      val routes =
+        new TaskRoutes[IO](authMiddleware(t.author), new TaskService(taskRepo))
+          .routes(errHandler)
       val newTask =
-        NewTask(CreationDate(t.created.value.plus(t.duration.value).minus(Duration.ofMinutes(1))).some, t.duration, None, None)
+        NewTask(
+          CreationDate(
+            t.created.value.plus(t.duration.value).minus(Duration.ofMinutes(1))
+          ).some,
+          t.duration,
+          None,
+          None
+        )
 
-      POST(newTask, Uri.unsafeFromString(s"api/v1/projects/${t.projectId.value}/tasks")).pure[IO].flatMap { req =>
+      POST(
+        newTask,
+        Uri.unsafeFromString(s"api/v1/projects/${t.projectId.value}/tasks")
+      ).pure[IO].flatMap { req =>
         assertHttp(routes, req)(
           Status.Conflict,
-          ErrorMessage("TASK-002", "Reporter already logged task in a given time")
+          ErrorMessage(
+            "TASK-002",
+            "Reporter already logged task in a given time"
+          )
         )
       }
     }
@@ -81,7 +112,9 @@ class TasksRoutesSuite extends HttpTestSuite  {
   test("cannot add overlapping tasks #3") {
     PropF.forAllF { (t: Task) =>
       val taskRepo = new TestTaskRepository(List(t))
-      val routes   = new TaskRoutes[IO](authMiddleware(t.author), new TaskService(taskRepo)).routes(errHandler)
+      val routes =
+        new TaskRoutes[IO](authMiddleware(t.author), new TaskService(taskRepo))
+          .routes(errHandler)
       val newTask =
         NewTask(
           CreationDate(t.created.value.minus(Duration.ofMinutes(10))).some,
@@ -90,10 +123,16 @@ class TasksRoutesSuite extends HttpTestSuite  {
           None
         )
 
-      POST(newTask, Uri.unsafeFromString(s"api/v1/projects/${t.projectId.value}/tasks")).pure[IO].flatMap { req =>
+      POST(
+        newTask,
+        Uri.unsafeFromString(s"api/v1/projects/${t.projectId.value}/tasks")
+      ).pure[IO].flatMap { req =>
         assertHttp(routes, req)(
           Status.Conflict,
-          ErrorMessage("TASK-002", "Reporter already logged task in a given time")
+          ErrorMessage(
+            "TASK-002",
+            "Reporter already logged task in a given time"
+          )
         )
       }
     }
@@ -102,10 +141,15 @@ class TasksRoutesSuite extends HttpTestSuite  {
   test("different users can add overlapping tasks") {
     PropF.forAllF { (t: Task, u: UserId) =>
       val taskRepo = new TestTaskRepository(List(t))
-      val routes   = new TaskRoutes[IO](authMiddleware(u), new TaskService(taskRepo)).routes(errHandler)
-      val newTask  = NewTask(t.created.some, t.duration, None, None)
+      val routes =
+        new TaskRoutes[IO](authMiddleware(u), new TaskService(taskRepo))
+          .routes(errHandler)
+      val newTask = NewTask(t.created.some, t.duration, None, None)
 
-      POST(newTask, Uri.unsafeFromString(s"api/v1/projects/${t.projectId.value}/tasks")).pure[IO].flatMap { req =>
+      POST(
+        newTask,
+        Uri.unsafeFromString(s"api/v1/projects/${t.projectId.value}/tasks")
+      ).pure[IO].flatMap { req =>
         assertHttpStatus(routes, req)(Status.Created)
       }
     }
@@ -114,9 +158,15 @@ class TasksRoutesSuite extends HttpTestSuite  {
   test("for unknown ids notFouns err is served") {
     PropF.forAllF { (taskId: TaskId, projectId: ProjectId, u: UserId) =>
       val taskRepo = new TestTaskRepository(List())
-      val routes   = new TaskRoutes[IO](authMiddleware(u), new TaskService(taskRepo)).routes(errHandler)
+      val routes =
+        new TaskRoutes[IO](authMiddleware(u), new TaskService(taskRepo))
+          .routes(errHandler)
 
-      GET(Uri.unsafeFromString(s"api/v1/projects/${projectId.value}/tasks/${taskId.value}")).pure[IO].flatMap { req =>
+      GET(
+        Uri.unsafeFromString(
+          s"api/v1/projects/${projectId.value}/tasks/${taskId.value}"
+        )
+      ).pure[IO].flatMap { req =>
         assertHttp(routes, req)(
           Status.NotFound,
           ErrorMessage(
