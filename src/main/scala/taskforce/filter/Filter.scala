@@ -50,12 +50,12 @@ object FilterResultRow {
         FilterResultRow(
           p.id.value,
           p.name.value.value,
-          p.created,
-          p.deleted,
+          p.created.value,
+          p.deleted.map(_.value),
           p.author.value,
           tOpt.flatMap(_.comment).map(_.value),
-          tOpt.map(_.created),
-          tOpt.flatMap(_.deleted),
+          tOpt.map(_.created.value),
+          tOpt.flatMap(_.deleted.map(_.value)),
           tOpt.map(_.duration.value.toMinutes)
         )
     }

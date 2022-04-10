@@ -17,6 +17,7 @@ import taskforce.arbitraries._
 import taskforce.authentication.UserId
 import taskforce.common.{ErrorMessage, LiveHttpErrorHandler}
 import taskforce.project.ProjectId
+import taskforce.common.CreationDate
 
 class TasksRoutesSuite extends HttpTestSuite with instances.Circe {
 
@@ -66,7 +67,7 @@ class TasksRoutesSuite extends HttpTestSuite with instances.Circe {
       val taskRepo = new TestTaskRepository(List(t))
       val routes   = new TaskRoutes[IO](authMiddleware(t.author), new TaskService(taskRepo)).routes(errHandler)
       val newTask =
-        NewTask(t.created.plus(t.duration.value).minus(Duration.ofMinutes(1)).some, t.duration, None, None)
+        NewTask(CreationDate(t.created.value.plus(t.duration.value).minus(Duration.ofMinutes(1))).some, t.duration, None, None)
 
       POST(newTask, Uri.unsafeFromString(s"api/v1/projects/${t.projectId.value}/tasks")).pure[IO].flatMap { req =>
         assertHttp(routes, req)(
@@ -83,7 +84,7 @@ class TasksRoutesSuite extends HttpTestSuite with instances.Circe {
       val routes   = new TaskRoutes[IO](authMiddleware(t.author), new TaskService(taskRepo)).routes(errHandler)
       val newTask =
         NewTask(
-          t.created.minus(Duration.ofMinutes(10)).some,
+          CreationDate(t.created.value.minus(Duration.ofMinutes(10))).some,
           TaskDuration(Duration.ofMinutes(11L)),
           None,
           None

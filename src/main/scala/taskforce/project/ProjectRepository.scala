@@ -81,7 +81,7 @@ final class LiveProjectRepository[F[_]: MonadCancel[*[_], Throwable]](
       newProject: ProjectName,
       author: UserId
   ): F[Either[DuplicateProjectNameError, Project]] = {
-    val created = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
+    val created = CreationDate(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS))
     run(
       projectQuery
         .insert(lift(Project(newProjectId, newProject, author, created, None)))
@@ -96,7 +96,7 @@ final class LiveProjectRepository[F[_]: MonadCancel[*[_], Throwable]](
   }
 
   override def delete(id: ProjectId): F[Int] = {
-    val deleted = LocalDateTime.now().some
+    val deleted = DeletionDate(LocalDateTime.now()).some
     val result = for {
       x <- run(projectQuery.filter(p => p.id == lift(id) && p.deleted.isEmpty).update(_.deleted -> lift(deleted)))
       y <- run(taskQuery.filter(t => t.projectId == lift(id) && t.deleted.isEmpty).update(_.deleted -> lift(deleted)))

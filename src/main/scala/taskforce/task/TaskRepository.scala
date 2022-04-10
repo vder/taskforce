@@ -17,6 +17,7 @@ import java.time.LocalDateTime
 import io.getquill.NamingStrategy
 import io.getquill.PluralizedTableNames
 import io.getquill.SnakeCase
+import taskforce.common.DeletionDate
 
 trait TaskRepository[F[_]] {
   def create(task: Task): F[Either[DuplicateTaskNameError, Task]]
@@ -68,7 +69,7 @@ final class LiveTaskRepository[F[_]: MonadCancel[*[_], Throwable]](
       _ <- run(
         taskQuery
           .filter(p => p.id == lift(id) && p.deleted.isEmpty)
-          .update(_.deleted -> lift(LocalDateTime.now().some))
+          .update(_.deleted -> lift(DeletionDate(LocalDateTime.now()).some))
       )
       _ <- run(taskQuery.insert(lift(task)))
     } yield ()
@@ -102,7 +103,7 @@ final class LiveTaskRepository[F[_]: MonadCancel[*[_], Throwable]](
     run(
       taskQuery
         .filter(p => p.id == lift(id) && p.deleted.isEmpty)
-        .update(_.deleted -> lift(LocalDateTime.now().some))
+        .update(_.deleted -> lift(DeletionDate(LocalDateTime.now()).some))
     )
       .transact(xa)
       .map(_.toInt)

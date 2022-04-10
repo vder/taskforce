@@ -9,9 +9,12 @@ import munit.{CatsEffectSuite, ScalaCheckEffectSuite}
 import org.flywaydb.core.Flyway
 import taskforce.config.DatabaseConfig
 import taskforce.authentication.UserId
+import cats.effect.kernel.Sync
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 trait BasicRepositorySuite extends CatsEffectSuite with ScalaCheckEffectSuite {
 
+  implicit def unsafeLogger[F[_]: Sync] = Slf4jLogger.getLogger[F]
   var db: DatabaseConfig                      = null
   var flyway: Flyway                          = null
   var xa: transactor.Transactor.Aux[IO, Unit] = null

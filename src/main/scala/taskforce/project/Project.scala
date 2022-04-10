@@ -1,9 +1,10 @@
 package taskforce.project
 
-import java.time.LocalDateTime
 import taskforce.authentication.UserId
 import io.circe.generic.JsonCodec
 import io.circe.refined._
+import taskforce.common.CreationDate
+import taskforce.common.DeletionDate
 
 
 
@@ -11,7 +12,7 @@ import io.circe.refined._
     id: ProjectId,
     name: ProjectName,
     author: UserId,
-    created: LocalDateTime,
-    deleted: Option[LocalDateTime]
+    created: CreationDate,
+    deleted: Option[DeletionDate]
 )
 

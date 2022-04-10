@@ -13,6 +13,8 @@ import taskforce.authentication.UserId
 import taskforce.filter._
 import taskforce.project._
 import taskforce.task._
+import taskforce.common.CreationDate
+import taskforce.common.DeletionDate
 object generators {
 
   val nonEmptyStringGen: Gen[String] =
@@ -39,13 +41,19 @@ object generators {
       .map[NonEmptyString](Refined.unsafeApply)
       .map(ProjectName.apply)
 
-  def localDateTimeGen: Gen[LocalDateTime] =
+  def creationDateTimeGen: Gen[CreationDate] =
+    localDateTimeGen.map(CreationDate.apply)
+
+  def deletionDateTimeGen: Gen[DeletionDate] =
+    localDateTimeGen.map(DeletionDate.apply)
+
+    def localDateTimeGen: Gen[LocalDateTime] =
     for {
       minutes <- Gen.chooseNum(0, 1000000000)
     } yield LocalDate
       .parse("2000.01.01", DateTimeFormatter.ofPattern("yyyy.MM.dd"))
       .atStartOfDay()
-      .plusMinutes(minutes.toLong)
+      .plusMinutes(minutes.toLong)    
 
   val projectGen: Gen[Project] =
     for {
@@ -53,7 +61,7 @@ object generators {
       name <-newProjectGen
       userId  <- userIdGen
       created <- localDateTimeGen
-    } yield Project(projectId, name, userId, created, None)
+    } yield Project(projectId, name, userId, CreationDate(created), None)
 
   val taskGen: Gen[Task] =
     for {
@@ -64,11 +72,11 @@ object generators {
       duration  <- taskDurationGen
       volume    <- Gen.posNum[Int].map(Refined.unsafeApply[Int, Positive])
       comment   <- Gen.alphaStr
-    } yield Task(id, projectId, author, created, duration, volume.some, None, refineV[NonEmpty](comment).toOption)
+    } yield Task(id, projectId, author, CreationDate(created), duration, volume.some, None, refineV[NonEmpty](comment).toOption)
 
   val newTaskGen: Gen[NewTask] =
     for {
-      created  <- localDateTimeGen
+      created  <- creationDateTimeGen
       duration <- taskDurationGen
       volume   <- Gen.posNum[Int].map(Refined.unsafeApply[Int, Positive])
       comment  <- Gen.alphaStr

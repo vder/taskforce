@@ -2,9 +2,11 @@ package taskforce.project
 
 import cats.effect.IO
 import cats.implicits._
-import java.time.{Duration, LocalDateTime}
+import java.time.Duration
 import java.util.UUID
 import taskforce.authentication.UserId
+import taskforce.common.CreationDate
+import java.time.LocalDateTime
 
 case class TestProjectRepository(projects: List[Project], currentTime: LocalDateTime) extends ProjectRepository[IO] {
 
@@ -16,7 +18,7 @@ case class TestProjectRepository(projects: List[Project], currentTime: LocalDate
       deleted = None,
       name = newProject,
       id = ProjectId(1),
-      created = currentTime
+      created = CreationDate(currentTime)
     ).asRight[DuplicateProjectNameError]
       .pure[IO]
 
@@ -31,7 +33,7 @@ case class TestProjectRepository(projects: List[Project], currentTime: LocalDate
       deleted = None,
       name = newProject,
       id = id,
-      created = currentTime
+      created = CreationDate(currentTime)
     ).asRight[DuplicateProjectNameError]
       .pure[IO]
 

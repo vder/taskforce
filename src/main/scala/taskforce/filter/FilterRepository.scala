@@ -17,6 +17,8 @@ import taskforce.project.Project
 import taskforce.task.Task
 import cats.effect.kernel.MonadCancel
 import eu.timepit.refined.cats._
+import org.typelevel.log4cats.Logger
+import cats.Show
 
 trait FilterRepository[F[_]] {
   def create(filter: Filter): F[Filter]
@@ -30,13 +32,22 @@ trait FilterRepository[F[_]] {
   def list: Stream[F, Filter]
 }
 
-final class LiveFilterRepository[F[_]: MonadCancel[*[_], Throwable]](
+final class LiveFilterRepository[F[_]: MonadCancel[*[_], Throwable]: Logger](
     xa: Transactor[F]
 ) extends FilterRepository[F]
     with instances.Doobie {
 
+  implicit val showInstance: Show[LocalDateTime] =
+    Show.fromToString[LocalDateTime]    
+
   private val tuple2Condition: PartialFunction[
-    (String, Option[Operator], Option[LocalDateTime], Option[Status], Option[List[NonEmptyString]]),
+    (
+        String,
+        Option[Operator],
+        Option[LocalDateTime],
+        Option[Status],
+        Option[List[NonEmptyString]]
+    ),
     Criteria
   ] = {
     case ("in", _, _, _, Some(list)) =>
@@ -51,14 +62,22 @@ final class LiveFilterRepository[F[_]: MonadCancel[*[_], Throwable]](
       .query[
         (
             UUID,
-            (String, Option[Operator], Option[LocalDateTime], Option[Status], Option[List[NonEmptyString]])
+            (
+                String,
+                Option[Operator],
+                Option[LocalDateTime],
+                Option[Status],
+                Option[List[NonEmptyString]]
+            )
         )
       ]
       .stream
       .transact(xa)
       .map { case (k, v) => (k, tuple2Condition(v)) }
       .groupAdjacentBy { case (uuid, _) => uuid }
-      .map { case (uuid, criteriaChunk) => Filter(FilterId(uuid), criteriaChunk.map(_._2).toList) }
+      .map { case (uuid, criteriaChunk) =>
+        Filter(FilterId(uuid), criteriaChunk.map(_._2).toList)
+      }
 
   override def execute(
       filter: Filter,
@@ -66,11 +85,20 @@ final class LiveFilterRepository[F[_]: MonadCancel[*[_], Throwable]](
       page: Page
   ): Stream[F, FilterResultRow] = {
 
-    val whereClause = fragments.whereAnd(filter.conditions.map(_.toFragment): _*)
+    val whereClause =
+      fragments.whereAnd(filter.conditions.map(_.toFragment): _*)
     val orderClause = sortByOption.fold(Fragment.empty)(_.toFragment)
     val limitClause = page.toFragment
-    val sqlQuery    = sql.getData ++ whereClause ++ orderClause ++ limitClause
-    sqlQuery.query[(Project, Option[Task])].stream.transact(xa).map(x => FilterResultRow.fromTuple(x))
+    val sqlQuery = sql.getData ++ whereClause ++ orderClause ++ limitClause
+
+    Stream.eval[F, Unit](Logger[F].info("test")) >>
+      sqlQuery
+        .query[(Project, Option[Task])]
+        //.query[CreationDate]
+        .stream
+       // .as( null : FilterResultRow)
+        .transact(xa)
+        .map(x => FilterResultRow.fromTuple(x))
   }
 
   def createCriterias(filterId: FilterId)(criteria: Criteria) =
@@ -174,6 +202,6 @@ final class LiveFilterRepository[F[_]: MonadCancel[*[_], Throwable]](
 }
 
 object LiveFilterRepository {
-  def make[F[_]: Sync](xa: Transactor[F]) =
+  def make[F[_]: Sync: Logger](xa: Transactor[F]) =
     Sync[F].delay { new LiveFilterRepository[F](xa) }
 }
