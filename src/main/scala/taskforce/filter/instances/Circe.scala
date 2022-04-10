@@ -8,7 +8,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 import taskforce.filter._
 
-trait Circe extends taskforce.task.instances.Circe {
+trait Circe  {
 
   implicit lazy val encodeCriteria: Encoder[Criteria] = Encoder.instance {
     case in @ In(_)                   => in.asJson

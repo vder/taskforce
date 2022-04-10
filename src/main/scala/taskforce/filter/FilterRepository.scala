@@ -9,7 +9,7 @@ import doobie.refined.implicits._
 import doobie.util.fragments
 import doobie.util.transactor.Transactor
 import eu.timepit.refined.types.string._
-import fs2._
+import fs2.Stream
 import java.time.LocalDateTime
 import java.util.UUID
 import taskforce.common.Sqlizer.ops._
@@ -19,6 +19,7 @@ import cats.effect.kernel.MonadCancel
 import eu.timepit.refined.cats._
 import org.typelevel.log4cats.Logger
 import cats.Show
+
 
 trait FilterRepository[F[_]] {
   def create(filter: Filter): F[Filter]
@@ -35,7 +36,8 @@ trait FilterRepository[F[_]] {
 final class LiveFilterRepository[F[_]: MonadCancel[*[_], Throwable]: Logger](
     xa: Transactor[F]
 ) extends FilterRepository[F]
-    with instances.Doobie {
+  with instances.Doobie 
+    {
 
   implicit val showInstance: Show[LocalDateTime] =
     Show.fromToString[LocalDateTime]    

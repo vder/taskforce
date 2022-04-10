@@ -6,6 +6,7 @@ import taskforce.common.NewTypeDoobieMeta
 import taskforce.common.NewTypeQuillInstances
 import java.util.UUID
 import java.time.Duration
+import io.circe.{Encoder => JsonEncoder,Decoder => JsonDecoder}
 
 package object task {
   type TaskId = TaskId.Type
@@ -21,5 +22,11 @@ package object task {
       with DerivedCirceCodec
       with NewTypeDoobieMeta
       with NewTypeQuillInstances
+
+  implicit val taskDurationEncoder: JsonEncoder[TaskDuration] =
+    JsonEncoder[Long].contramap(_.value.toMinutes())
+
+  implicit val taskDurationDecoder: JsonDecoder[TaskDuration] =
+    JsonDecoder[Long].map(x => TaskDuration(Duration.ofMinutes(x)))
 
 }
