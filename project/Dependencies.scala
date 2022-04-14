@@ -11,7 +11,7 @@ object Dependencies {
     val doobie           = "1.0.0-RC2"
     val doobieQuill      = "0.0.5"
     val jwtCirce         = "9.0.5"
-    val flyway           = "8.5.5"
+    val flyway           = "8.5.8"
     val http4s           = "0.23.11"
     val kindProjector    = "0.13.2"
     val munit            = "0.7.29"
