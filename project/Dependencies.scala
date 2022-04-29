@@ -18,7 +18,7 @@ object Dependencies {
     val newType          = "0.4.4"
     val pureConfig       = "0.17.1"
     val refined          = "0.9.28"
-    val scalacheckEffect = "1.0.3"
+    val scalacheckEffect = "1.0.4"
     val simulacrum       = "1.0.1"
     val log4cats = "2.2.0"
     val slf4j = "1.7.36"
