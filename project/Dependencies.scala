@@ -20,7 +20,7 @@ object Dependencies {
     val refined          = "0.9.28"
     val scalacheckEffect = "1.0.3"
     val simulacrum       = "1.0.1"
-    val log4cats = "2.2.0"
+    val log4cats = "2.3.1"
     val slf4j = "1.7.36"
   }
   object Libraries {
