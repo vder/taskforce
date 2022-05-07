@@ -55,8 +55,6 @@ lazy val root = (project in file("."))
       http4sServer,
       jwtCirce,
       logback,
-      monixNewType,
-      monixNewTypeCirce,
       mUnit,
       mUnitCE,
       mUnitScalacheck,
@@ -64,8 +62,7 @@ lazy val root = (project in file("."))
       pureConfigCE,
       pureConfigRefined,
       refined,
-      refinedCats,
-      // quill,
+     // quill,
       scalaCheckEffect,
       scalaCheckEffectMunit,
     //  simulacrum,
@@ -75,17 +72,28 @@ lazy val root = (project in file("."))
     addCompilerPlugin(kindProjector),
     addCompilerPlugin(betterMonadicFor),
     scalacOptions ++= Seq(
-       "-deprecation",
-      "-encoding", "UTF-8",
-       "-language:higherKinds",
-       "-language:postfixOps",
+      "-deprecation",
+      "-encoding",
+      "UTF-8",
+      "-language:higherKinds",
+      "-language:postfixOps",
       "-feature",
       "-Xlint:unused",
-       "-Ymacro-annotations"
-     )
-  ).dependsOn(common)
+      "-Ymacro-annotations"
+    )
+  )
+  .dependsOn(authentication)
 
-lazy val common = (project in file("taskforce/common")).settings(
-  libraryDependencies ++= Seq(cats,http4sDsl,circe,http4sCirce,doobie,simulacrum),
+lazy val common = (project in file("common")).settings(
+  libraryDependencies ++= Seq(cats, http4sDsl, circe, http4sCirce, doobie, simulacrum),
   addCompilerPlugin(kindProjector),
-  scalacOptions ++= Seq( "-Ymacro-annotations" ))
+  scalacOptions ++= Seq("-Ymacro-annotations")
+)
+
+lazy val authentication = (project in file("auth"))
+  .settings(
+    libraryDependencies ++= Seq(circeParser, http4sServer, jwtCirce,doobiePostgres),
+    addCompilerPlugin(kindProjector),
+    scalacOptions ++= Seq("-Ymacro-annotations")
+  )
+  .dependsOn(common)
