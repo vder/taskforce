@@ -32,6 +32,7 @@ object Dependencies {
     def refinedLib(artifact: String): ModuleID                  = "eu.timepit"    %% artifact % V.refined
     def typeLevelLibTest(artifact: String, v: String): ModuleID = "org.typelevel" %% artifact % v       % "it,test"
 
+    val cats                  = "org.typelevel"         %% "cats-core"
     val catsEffect      = "org.typelevel"        %% "cats-effect"      % V.catsEff
     val circe           = circeLib("circe-generic")
     val circeDerivation = "io.circe"             %% "circe-derivation" % V.circeDerivation

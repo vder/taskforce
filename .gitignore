@@ -6,3 +6,4 @@ project/target/
 .bsp/sbt.json
 **/metals.sbt
 *.worksheet.sc
+.idea

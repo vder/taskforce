@@ -5,6 +5,7 @@ ThisBuild / githubWorkflowPublishTargetBranches := Seq()
 ThisBuild / organization := "com.pfl"
 ThisBuild / organizationName := "pfl"
 ThisBuild / scalaVersion := "2.13.8"
+//ThisBuild / scalacOptions += "-P:semanticdb:synthetics:on"
 ThisBuild / version := "0.1.0-SNAPSHOT"
 ThisBuild / versionScheme := Some("early-semver")
 
@@ -26,32 +27,31 @@ lazy val root = (project in file("."))
     publish / skip := true,
     Docker / packageName := "taskforce",
     dockerCommands := dockerCommands.value.flatMap {
-      case cmd @ Cmd("FROM", _) =>
-        List(cmd, Cmd("RUN", "apk update && apk add bash"))
-      case other => List(other)
+      case cmd @ Cmd("FROM", _) => List(cmd, Cmd("RUN", "apk update && apk add bash"))
+      case other                => List(other)
     },
     dockerExposedPorts ++= Seq(9090),
     dockerBaseImage := "openjdk:8-jre-alpine",
     dockerUpdateLatest := true,
-    semanticdbEnabled := true, // enable SemanticDB
+    semanticdbEnabled := true,                        // enable SemanticDB
     semanticdbVersion := scalafixSemanticdb.revision, // only required for Scala 2.x
     libraryDependencies ++= Seq(
-      catsEffect,
+    //  catsEffect,
       circe,
       circeDerivation,
       circeExtras,
       circeFs2,
       circeParser,
       circeRefined,
-      doobie,
+   //   doobie,
       doobieHikari,
       doobiePostgres,
       doobieRefined,
       doobieQuill,
       flyway,
-      http4sCirce,
+   //   http4sCirce,
       http4sClient,
-      http4sDsl,
+    //  http4sDsl,
       http4sServer,
       jwtCirce,
       logback,
@@ -68,20 +68,24 @@ lazy val root = (project in file("."))
       // quill,
       scalaCheckEffect,
       scalaCheckEffectMunit,
-      simulacrum,
+    //  simulacrum,
       slf4j,
       log4cats
     ).map(_.exclude("org.slf4j", "*")),
     addCompilerPlugin(kindProjector),
     addCompilerPlugin(betterMonadicFor),
     scalacOptions ++= Seq(
-      "-deprecation",
-      "-encoding",
-      "UTF-8",
-      "-language:higherKinds",
-      "-language:postfixOps",
+       "-deprecation",
+      "-encoding", "UTF-8",
+       "-language:higherKinds",
+       "-language:postfixOps",
       "-feature",
       "-Xlint:unused",
-      "-Ymacro-annotations"
-    )
-  )
+       "-Ymacro-annotations"
+     )
+  ).dependsOn(common)
+
+lazy val common = (project in file("taskforce/common")).settings(
+  libraryDependencies ++= Seq(cats,http4sDsl,circe,http4sCirce,doobie,simulacrum),
+  addCompilerPlugin(kindProjector),
+  scalacOptions ++= Seq( "-Ymacro-annotations" ))

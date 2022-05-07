@@ -77,9 +77,7 @@ final class TaskService[F[_]: Sync](
       allUserTasksWithoutOld = allUserTasks.filterNot(_.id == oldTask.id)
       _ <- taskPeriodIsValid(task, allUserTasksWithoutOld)
       updatedTask <- taskRepo.update(oldTask.id, task)
-    } yield updatedTask.leftWiden[TaskError]).recover { case WrongPeriodError =>
-      WrongPeriodError.asLeft[Task]
-    }
+    } yield updatedTask.leftWiden[TaskError]).recover { case WrongPeriodError => WrongPeriodError.asLeft[Task] }
 
   def delete(projectId: ProjectId, taskId: TaskId, caller: UserId) =
     for {
