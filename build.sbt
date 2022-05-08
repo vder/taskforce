@@ -2,11 +2,10 @@ import Dependencies.Libraries._
 import com.typesafe.sbt.packager.docker.Cmd
 
 ThisBuild / githubWorkflowPublishTargetBranches := Seq()
-ThisBuild / organization := "com.pfl"
-ThisBuild / organizationName := "pfl"
-ThisBuild / scalaVersion := "2.13.8"
-//ThisBuild / scalacOptions += "-P:semanticdb:synthetics:on"
-ThisBuild / version := "0.1.0-SNAPSHOT"
+ThisBuild / organization                        := "com.pfl"
+ThisBuild / organizationName                    := "pfl"
+ThisBuild / scalaVersion                        := "2.13.8"
+ThisBuild / version       := "0.1.0-SNAPSHOT"
 ThisBuild / versionScheme := Some("early-semver")
 
 IntegrationTest / parallelExecution := false
@@ -18,40 +17,40 @@ lazy val root = (project in file("."))
   .enablePlugins(AshScriptPlugin)
   .configs(IntegrationTest.extend(Test))
   .settings(
-    name := "taskforce",
-    flywayUrl := "jdbc:postgresql://localhost:54340/task",
-    flywayUser := "vder",
+    name           := "taskforce",
+    flywayUrl      := "jdbc:postgresql://localhost:54340/task",
+    flywayUser     := "vder",
     flywayPassword := "password",
     Defaults.itSettings,
-    publish := {},
-    publish / skip := true,
+    publish              := {},
+    publish / skip       := true,
     Docker / packageName := "taskforce",
     dockerCommands := dockerCommands.value.flatMap {
       case cmd @ Cmd("FROM", _) => List(cmd, Cmd("RUN", "apk update && apk add bash"))
       case other                => List(other)
     },
     dockerExposedPorts ++= Seq(9090),
-    dockerBaseImage := "openjdk:8-jre-alpine",
+    dockerBaseImage    := "openjdk:8-jre-alpine",
     dockerUpdateLatest := true,
-    semanticdbEnabled := true,                        // enable SemanticDB
-    semanticdbVersion := scalafixSemanticdb.revision, // only required for Scala 2.x
+    semanticdbEnabled  := true,                        // enable SemanticDB
+    semanticdbVersion  := scalafixSemanticdb.revision, // only required for Scala 2.x
     libraryDependencies ++= Seq(
-    //  catsEffect,
+      //  catsEffect,
       circe,
       circeDerivation,
       circeExtras,
       circeFs2,
       circeParser,
       circeRefined,
-   //   doobie,
+      //   doobie,
       doobieHikari,
       doobiePostgres,
       doobieRefined,
       doobieQuill,
       flyway,
-   //   http4sCirce,
+      //   http4sCirce,
       http4sClient,
-    //  http4sDsl,
+      //  http4sDsl,
       http4sServer,
       jwtCirce,
       logback,
@@ -62,10 +61,11 @@ lazy val root = (project in file("."))
       pureConfigCE,
       pureConfigRefined,
       refined,
-     // quill,
+      refinedCats,
+      // quill,
       scalaCheckEffect,
       scalaCheckEffectMunit,
-    //  simulacrum,
+      //  simulacrum,
       slf4j,
       log4cats
     ).map(_.exclude("org.slf4j", "*")),
@@ -84,15 +84,31 @@ lazy val root = (project in file("."))
   )
   .dependsOn(authentication)
 
-lazy val common = (project in file("common")).settings(
-  libraryDependencies ++= Seq(cats, http4sDsl, circe, http4sCirce, doobie, simulacrum),
-  addCompilerPlugin(kindProjector),
-  scalacOptions ++= Seq("-Ymacro-annotations")
-)
+lazy val common = (project in file("common"))
+  .settings(
+    libraryDependencies ++= Seq(
+      cats,
+      circe,
+      doobie,
+      doobieQuill,
+      http4sCirce,
+      http4sDsl,
+      monixNewType,
+      monixNewTypeCirce,
+      simulacrum
+    ).map(_.exclude("org.slf4j", "*")),
+    addCompilerPlugin(kindProjector),
+    scalacOptions ++= Seq("-Ymacro-annotations")
+  )
 
 lazy val authentication = (project in file("auth"))
   .settings(
-    libraryDependencies ++= Seq(circeParser, http4sServer, jwtCirce,doobiePostgres),
+    libraryDependencies ++= Seq(
+      circeParser,
+      doobiePostgres,
+      http4sServer,
+      jwtCirce
+    ).map(_.exclude("org.slf4j", "*")),
     addCompilerPlugin(kindProjector),
     scalacOptions ++= Seq("-Ymacro-annotations")
   )

@@ -4,7 +4,7 @@ object Dependencies {
   object V {
     val Logback          = "1.2.11"
     val betterMonadicFor = "0.3.1"
-    val cats             = "2.6.0"
+    val cats             = "2.7.0"
     val catsEff          = "3.3.11"
     val circe            = "0.14.0"
     val circeDerivation  = "0.13.0-M5"
@@ -32,7 +32,7 @@ object Dependencies {
     def refinedLib(artifact: String): ModuleID                  = "eu.timepit"    %% artifact % V.refined
     def typeLevelLibTest(artifact: String, v: String): ModuleID = "org.typelevel" %% artifact % v       % "it,test"
 
-    val cats                  = "org.typelevel"         %% "cats-core"
+    val cats                  = "org.typelevel"         %% "cats-core" % V.cats
     val catsEffect      = "org.typelevel"        %% "cats-effect"      % V.catsEff
     val circe           = circeLib("circe-generic")
     val circeDerivation = "io.circe"             %% "circe-derivation" % V.circeDerivation
