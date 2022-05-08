@@ -15,10 +15,10 @@ import org.typelevel.log4cats.slf4j.Slf4jLogger
 trait BasicRepositorySuite extends CatsEffectSuite with ScalaCheckEffectSuite {
 
   implicit def unsafeLogger[F[_]: Sync] = Slf4jLogger.getLogger[F]
-  var db: DatabaseConfig                      = null
-  var flyway: Flyway                          = null
+  var db: DatabaseConfig = null
+  var flyway: Flyway = null
   var xa: transactor.Transactor.Aux[IO, Unit] = null
-  val userID                                  = UserId(UUID.fromString("5260ca29-a70b-494e-a3d6-55374a3b0a04"))
+  val userID = UserId(UUID.fromString("5260ca29-a70b-494e-a3d6-55374a3b0a04"))
 
   override def scalaCheckTestParameters =
     super.scalaCheckTestParameters.withMinSuccessfulTests(1)
@@ -27,15 +27,19 @@ trait BasicRepositorySuite extends CatsEffectSuite with ScalaCheckEffectSuite {
 
     db = ConfigSource.default
       .at("database_test")
-      .load[DatabaseConfig]
-      match {
-        case Left(errors) =>
-          throw new RuntimeException(s"Configuration loading Err: ${errors.toList.mkString("\n")}")
-        case Right(value) =>
-          value
-      }
-     
-    flyway = Flyway.configure().dataSource(db.url.value, db.user.value, db.pass.value).load()
+      .load[DatabaseConfig] match {
+      case Left(errors) =>
+        throw new RuntimeException(
+          s"Configuration loading Err: ${errors.toList.mkString("\n")}"
+        )
+      case Right(value) =>
+        value
+    }
+
+    flyway = Flyway
+      .configure()
+      .dataSource(db.url.value, db.user.value, db.pass.value)
+      .load()
     flyway.clean()
     flyway.migrate()
 
@@ -49,7 +53,10 @@ trait BasicRepositorySuite extends CatsEffectSuite with ScalaCheckEffectSuite {
   }
 
   override def beforeEach(context: BeforeEach): Unit = {
-    val flyway = Flyway.configure().dataSource(db.url.value, db.user.value, db.pass.value).load()
+    val flyway = Flyway
+      .configure()
+      .dataSource(db.url.value, db.user.value, db.pass.value)
+      .load()
     flyway.clean()
     flyway.migrate()
     ()

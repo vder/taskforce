@@ -10,7 +10,8 @@ final class ProjectService[F[_]: Sync](
     projectRepo: ProjectRepository[F]
 ) {
 
-  def totalTime(projectId: ProjectId) = find(projectId) *> projectRepo.totalTime(projectId)
+  def totalTime(projectId: ProjectId) =
+    find(projectId) *> projectRepo.totalTime(projectId)
 
   def list: F[List[Project]] = projectRepo.list
 
@@ -38,7 +39,9 @@ final class ProjectService[F[_]: Sync](
         projectRepo
           .find(projectId)
           .ensure(NotFound(projectId.value.toString()))(_.isDefined)
-          .ensure(NotAuthor(userId.value))(_.filter(_.author == userId).isDefined)
+          .ensure(NotAuthor(userId.value))(
+            _.filter(_.author == userId).isDefined
+          )
       project <-
         projectRepo
           .update(projectId, newProject)

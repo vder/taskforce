@@ -20,7 +20,7 @@ object Main extends IOApp {
 
   val resources: Resource[IO, (HikariTransactor[IO], HostConfig)] =
     for {
-      //be <- Resource.unit[IO]
+      // be <- Resource.unit[IO]
       dbConfig <- Resource.eval(
         ConfigSource.default.at("database").loadF[IO, DatabaseConfig]()
       )
@@ -41,8 +41,11 @@ object Main extends IOApp {
     resources
       .use { case (xa, hostConfig) =>
         for {
-          db             <- Db.make[IO](xa)
-          authMiddleware <- TaskForceAuthMiddleware(db.userRepo, hostConfig.secret.value).pure[IO]
+          db <- Db.make[IO](xa)
+          authMiddleware <- TaskForceAuthMiddleware(
+            db.userRepo,
+            hostConfig.secret.value
+          ).pure[IO]
           server <- Server.make[IO](
             hostConfig.port.value,
             authMiddleware,

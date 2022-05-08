@@ -10,7 +10,8 @@ import taskforce.filter._
 
 trait Http4s {
 
-  object SortByMatcher extends OptionalQueryParamDecoderMatcher[SortBy]("sortBy")
+  object SortByMatcher
+      extends OptionalQueryParamDecoderMatcher[SortBy]("sortBy")
 
   implicit val sortByParamDecoder: QueryParamDecoder[SortBy] =
     QueryParamDecoder[String].map(s =>
@@ -24,13 +25,18 @@ trait Http4s {
       }
     )
 
-  object PageSizeMatcher extends OptionalQueryParamDecoderMatcher[PageSize]("size")
+  object PageSizeMatcher
+      extends OptionalQueryParamDecoderMatcher[PageSize]("size")
 
   implicit val pageSizeParamDecoder: QueryParamDecoder[PageSize] =
-    QueryParamDecoder[Int].emap(i => refineV[Positive](i).leftMap(s => ParseFailure(s, "")).map(PageSize.apply))
+    QueryParamDecoder[Int].emap(i =>
+      refineV[Positive](i).leftMap(s => ParseFailure(s, "")).map(PageSize.apply)
+    )
 
   object PageNoMatcher extends OptionalQueryParamDecoderMatcher[PageNo]("page")
   implicit val pageNoParamDecoder: QueryParamDecoder[PageNo] =
-    QueryParamDecoder[Int].emap(i => refineV[Positive](i).leftMap(s => ParseFailure(s, "")).map(PageNo.apply))
+    QueryParamDecoder[Int].emap(i =>
+      refineV[Positive](i).leftMap(s => ParseFailure(s, "")).map(PageNo.apply)
+    )
 
 }

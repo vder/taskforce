@@ -23,11 +23,14 @@ final class ProjectRoutes[F[_]: Sync: JsonDecoder](
   val prepareFailedResponse: PartialFunction[ProjectError, F[Response[F]]] = {
     case DuplicateProjectNameError(newProject) =>
       Conflict(
-        ErrorMessage("PROJECT-001", s"name given in request: ${newProject.value} already exists")
+        ErrorMessage(
+          "PROJECT-001",
+          s"name given in request: ${newProject.value} already exists"
+        )
       )
   }
 
-  def newProjectFromReq(authReq: AuthedRequest[F, UserId]):F[ProjectName] =
+  def newProjectFromReq(authReq: AuthedRequest[F, UserId]): F[ProjectName] =
     authReq.req
       .asJsonDecode[ProjectName]
       .adaptError(_ => commonErrors.BadRequest)
@@ -49,7 +52,7 @@ final class ProjectRoutes[F[_]: Sync: JsonDecoder](
 
       case authReq @ POST -> Root as userId =>
         for {
-          newProject    <- newProjectFromReq(authReq)
+          newProject <- newProjectFromReq(authReq)
           projectResult <- projectService.create(newProject, userId)
           response <- projectResult match {
             case Left(err)      => prepareFailedResponse(err)
@@ -59,8 +62,12 @@ final class ProjectRoutes[F[_]: Sync: JsonDecoder](
 
       case authReq @ PUT -> Root / LongVar(projectId) as userId =>
         for {
-          newProject    <- newProjectFromReq(authReq)
-          updatedResult <- projectService.update(ProjectId(projectId), newProject, userId)
+          newProject <- newProjectFromReq(authReq)
+          updatedResult <- projectService.update(
+            ProjectId(projectId),
+            newProject,
+            userId
+          )
           response <- updatedResult match {
             case Left(err)      => prepareFailedResponse(err)
             case Right(project) => Ok(project)

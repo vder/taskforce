@@ -1,6 +1,5 @@
 package taskforce.project.instances
 
-
 trait Doobie {
 
   def fakeNumeric[T] = new Numeric[T] {

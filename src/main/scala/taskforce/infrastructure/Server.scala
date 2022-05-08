@@ -24,15 +24,15 @@ final class Server[F[_]: Logger: Async] private (
 
   def run /*(implicit T: Temporal[F])*/ =
     for {
-      basicRoutes    <- BasicRoutes.make(authMiddleware)
+      basicRoutes <- BasicRoutes.make(authMiddleware)
       projectService <- ProjectService.make(db.projectRepo)
-      taskService    <- TaskService.make(db.taskRepo)
-      statsService   <- StatsService.make(db.statsRepo)
-      filterService  <- FilterService.make(db.filterRepo)
-      projectRoutes  <- ProjectRoutes.make(authMiddleware, projectService)
-      filterRoutes   <- FilterRoutes.make(authMiddleware, filterService)
-      statsRoutes    <- StatsRoutes.make(authMiddleware, statsService)
-      taskRoutes     <- TaskRoutes.make(authMiddleware, taskService)
+      taskService <- TaskService.make(db.taskRepo)
+      statsService <- StatsService.make(db.statsRepo)
+      filterService <- FilterService.make(db.filterRepo)
+      projectRoutes <- ProjectRoutes.make(authMiddleware, projectService)
+      filterRoutes <- FilterRoutes.make(authMiddleware, filterService)
+      statsRoutes <- StatsRoutes.make(authMiddleware, statsService)
+      taskRoutes <- TaskRoutes.make(authMiddleware, taskService)
       errHandler = LiveHttpErrorHandler[F]
       routes =
         basicRoutes.routes <+> projectRoutes.routes(errHandler) <+>
@@ -40,9 +40,11 @@ final class Server[F[_]: Logger: Async] private (
           statsRoutes.routes(errHandler)
       middlewares =
         LoggerMiddleware
-          .httpRoutes[F](logHeaders = true, logBody = true) _ andThen AutoSlash.httpRoutes[F]
+          .httpRoutes[F](logHeaders = true, logBody = true) _ andThen AutoSlash
+          .httpRoutes[F]
       _ <-
-        BlazeServerBuilder[F].withExecutionContext(global)
+        BlazeServerBuilder[F]
+          .withExecutionContext(global)
           .bindHttp(port, "0.0.0.0")
           .withHttpApp(middlewares(routes).orNotFound)
           .serve

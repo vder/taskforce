@@ -11,7 +11,8 @@ trait ErrorHandler[F[_], E <: Throwable] {
       otherHandler: PartialFunction[Throwable, F[Response[F]]]
   )(routes: HttpRoutes[F]): HttpRoutes[F]
 
-  def basicHandle(routes: HttpRoutes[F]): HttpRoutes[F] = handle(PartialFunction.empty)(routes)
+  def basicHandle(routes: HttpRoutes[F]): HttpRoutes[F] =
+    handle(PartialFunction.empty)(routes)
 }
 
 object LiveHttpErrorHandler {
@@ -45,7 +46,9 @@ object LiveHttpErrorHandler {
         Kleisli { req =>
           val finalHandler = handler orElse otherHandler
           OptionT {
-            A.handleErrorWith(routes.run(req).value)(e => A.map(finalHandler(e))(Option(_)))
+            A.handleErrorWith(routes.run(req).value)(e =>
+              A.map(finalHandler(e))(Option(_))
+            )
           }
         }
 

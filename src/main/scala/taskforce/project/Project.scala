@@ -6,8 +6,6 @@ import io.circe.refined._
 import taskforce.common.CreationDate
 import taskforce.common.DeletionDate
 
-
-
 @JsonCodec final case class Project(
     id: ProjectId,
     name: ProjectName,
@@ -15,4 +13,3 @@ import taskforce.common.DeletionDate
     created: CreationDate,
     deleted: Option[DeletionDate]
 )
-

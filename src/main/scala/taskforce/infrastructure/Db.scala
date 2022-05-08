@@ -21,10 +21,10 @@ final case class Db[F[_]](
 object Db {
   def make[F[_]: Sync: Logger](xa: Transactor[F]) =
     for {
-      filterDb  <- LiveFilterRepository.make[F](xa)
+      filterDb <- LiveFilterRepository.make[F](xa)
       projectDb <- LiveProjectRepository.make[F](xa)
-      statsDb   <- LiveStatsRepository.make[F](xa)
-      taskDb    <- LiveTaskRepository.make[F](xa)
-      userdDb   <- LiveUserRepository.make[F](xa)
+      statsDb <- LiveStatsRepository.make[F](xa)
+      taskDb <- LiveTaskRepository.make[F](xa)
+      userdDb <- LiveUserRepository.make[F](xa)
     } yield Db(filterDb, projectDb, statsDb, taskDb, userdDb)
 }

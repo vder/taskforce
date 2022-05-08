@@ -9,7 +9,7 @@ import taskforce.common.NewTypeQuillInstances
 trait Doobie
     extends taskforce.project.instances.Doobie
     with NewTypeQuillInstances {
-      
+
   implicit val taskDurationMeta: Meta[TaskDuration] =
     Meta[Long].imap(x => TaskDuration(Duration.ofMinutes(x)))(x =>
       x.value.toMinutes()

@@ -15,7 +15,7 @@ final class FilterService[F[_]: Sync](
         Filter(FilterId(UUID.randomUUID()), newFilter.conditions)
       )
 
-  def getAll                  = filterRepo.list
+  def getAll = filterRepo.list
   def get(filterId: FilterId) = filterRepo.find(filterId)
   def getData(filterId: FilterId, pagination: Page, sortBy: Option[SortBy]) =
     for {
