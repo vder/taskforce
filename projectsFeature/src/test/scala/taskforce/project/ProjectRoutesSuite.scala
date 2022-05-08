@@ -1,5 +1,6 @@
 package taskforce.project
 
+
 import cats.data.Kleisli
 import cats.effect.IO
 import cats.implicits._
@@ -13,13 +14,14 @@ import org.http4s.client.dsl.io._
 import org.http4s.implicits._
 import org.http4s.server.AuthMiddleware
 import org.scalacheck.effect.PropF
-import suite.HttpTestSuite
-import taskforce.arbitraries._
+import taskforce.HttpTestSuite
 import taskforce.authentication.UserId
 import taskforce.common.{ErrorMessage, LiveHttpErrorHandler}
 import taskforce.project.ProjectName
 
 class ProjectRoutesSuite extends HttpTestSuite  {
+
+  import arbitraries._
 
   implicit def decodeNewProduct: EntityDecoder[IO, ProjectName] = jsonOf
   implicit def encodeNewProduct: EntityEncoder[IO, ProjectName] = jsonEncoderOf

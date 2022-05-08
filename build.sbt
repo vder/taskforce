@@ -41,12 +41,12 @@ lazy val root = (project in file("."))
       circeExtras,
       circeFs2,
       circeParser,
-      circeRefined,
+    //  circeRefined,
       //   doobie,
       doobieHikari,
       doobiePostgres,
       doobieRefined,
-      doobieQuill,
+  //    doobieQuill,
       flyway,
       //   http4sCirce,
       http4sClient,
@@ -54,7 +54,6 @@ lazy val root = (project in file("."))
       http4sServer,
       jwtCirce,
       logback,
-      mUnit,
       mUnitCE,
       mUnitScalacheck,
       pureConfig,
@@ -82,10 +81,12 @@ lazy val root = (project in file("."))
       "-Ymacro-annotations"
     )
   )
-  .dependsOn(authentication)
+  .dependsOn(projects,common % "test->test")
+  .aggregate(projects)
 
 lazy val common = (project in file("common"))
   .settings(
+    Defaults.itSettings,
     libraryDependencies ++= Seq(
       cats,
       circe,
@@ -95,14 +96,22 @@ lazy val common = (project in file("common"))
       http4sDsl,
       monixNewType,
       monixNewTypeCirce,
-      simulacrum
+      mUnit,
+      mUnitCE,
+      mUnitScalacheck,
+      simulacrum,
+      scalaCheckEffect,
+      scalaCheckEffectMunit
     ).map(_.exclude("org.slf4j", "*")),
+    
     addCompilerPlugin(kindProjector),
+    
     scalacOptions ++= Seq("-Ymacro-annotations")
-  )
+  ).configs(IntegrationTest.extend(Test))
 
 lazy val authentication = (project in file("auth"))
   .settings(
+      Defaults.itSettings,
     libraryDependencies ++= Seq(
       circeParser,
       doobiePostgres,
@@ -111,5 +120,25 @@ lazy val authentication = (project in file("auth"))
     ).map(_.exclude("org.slf4j", "*")),
     addCompilerPlugin(kindProjector),
     scalacOptions ++= Seq("-Ymacro-annotations")
-  )
+  ).configs(IntegrationTest.extend(Test))
   .dependsOn(common)
+
+lazy val projects = (project in file("projectsFeature"))
+  .settings(
+    libraryDependencies ++= Seq(
+      circeDerivation,
+      circeExtras,
+      circeFs2,
+      circeParser,
+      circeRefined,
+      doobieHikari,
+      doobiePostgres,
+      doobieRefined,
+      http4sClient,
+      http4sCirce,
+      refined,
+      refinedCats).map(_.exclude("org.slf4j", "*")),
+      addCompilerPlugin(kindProjector),
+    scalacOptions ++= Seq("-Ymacro-annotations")
+    )
+  .dependsOn(authentication % "compile->compile;test->test",common % "test->test")

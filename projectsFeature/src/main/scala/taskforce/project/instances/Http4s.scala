@@ -4,6 +4,10 @@ import org.http4s.EntityEncoder
 import org.http4s.circe._
 import taskforce.project.{Project, TotalTime}
 
+
+
+
+
 trait Http4s[F[_]]  {
 
   implicit val totalTimeEntityEncoder: EntityEncoder[F, TotalTime]            = jsonEncoderOf[F, TotalTime]

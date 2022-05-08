@@ -12,7 +12,7 @@ import org.http4s.client.dsl.io._
 import org.http4s.implicits._
 import org.http4s.server.AuthMiddleware
 import org.scalacheck.effect.PropF
-import suite.HttpTestSuite
+import taskforce.HttpTestSuite
 import taskforce.arbitraries._
 import taskforce.authentication.UserId
 import taskforce.common.{ErrorMessage, LiveHttpErrorHandler}
@@ -31,7 +31,7 @@ class FilterRoutesSuite extends HttpTestSuite with instances.Circe {
   implicit def unsafeLogger = Slf4jLogger.getLogger[IO]
 
   def authMiddleware: AuthMiddleware[IO, UserId] =
-    AuthMiddleware(Kleisli.pure(UserId(UUID.randomUUID())))
+    AuthMiddleware(Kleisli.pure(UserId(UUID.randomUUID()))) 
 
   def authMiddleware(userId: UserId): AuthMiddleware[IO, UserId] =
     AuthMiddleware(Kleisli.pure(userId))

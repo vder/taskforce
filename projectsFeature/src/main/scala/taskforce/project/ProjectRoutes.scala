@@ -2,13 +2,13 @@ package taskforce.project
 
 import cats.effect.Sync
 import cats.implicits._
-import io.circe.refined._
 import org.http4s.{AuthedRequest, AuthedRoutes, Response}
 import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.{AuthMiddleware, Router}
 import taskforce.authentication.UserId
 import taskforce.common.{ErrorMessage, ErrorHandler, errors => commonErrors}
+import io.circe.refined._
 
 final class ProjectRoutes[F[_]: Sync: JsonDecoder](
     authMiddleware: AuthMiddleware[F, UserId],

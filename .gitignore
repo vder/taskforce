@@ -4,6 +4,8 @@ target/
 .history/
 project/target/
 .bsp/sbt.json
-**/metals.sbt
+metals.sbt
 *.worksheet.sc
 .idea
+*/metals.sbt
+**/metals.sbt

@@ -12,7 +12,7 @@ import org.http4s.client.dsl.io._
 import org.http4s.implicits._
 import org.http4s.server.AuthMiddleware
 import org.scalacheck.effect.PropF
-import suite.HttpTestSuite
+import taskforce.HttpTestSuite
 import taskforce.arbitraries._
 import taskforce.authentication.UserId
 import taskforce.common.{ErrorMessage, LiveHttpErrorHandler}

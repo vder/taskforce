@@ -2,10 +2,11 @@ package taskforce
 
 import monix.newtypes.integrations.DerivedCirceCodec
 import monix.newtypes.NewtypeWrapped
-import eu.timepit.refined.types.string.NonEmptyString
 import java.time.Duration
 import taskforce.common.NewTypeDoobieMeta
 import taskforce.common.NewTypeQuillInstances
+import eu.timepit.refined.types.string.NonEmptyString
+
 
 
 
