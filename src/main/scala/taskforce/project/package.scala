@@ -7,9 +7,6 @@ import java.time.Duration
 import taskforce.common.NewTypeDoobieMeta
 import taskforce.common.NewTypeQuillInstances
 
-
-
-
 package object project {
   type ProjectId = ProjectId.Type
   object ProjectId
@@ -24,7 +21,6 @@ package object project {
       with DerivedCirceCodec
       with NewTypeDoobieMeta
       with NewTypeQuillInstances
-
 
   type TotalTime = TotalTime.Type
   object TotalTime

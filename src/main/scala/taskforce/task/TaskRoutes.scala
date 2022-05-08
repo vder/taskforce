@@ -16,7 +16,7 @@ import org.http4s.Response
 final class TaskRoutes[F[_]: Sync: JsonDecoder](
     authMiddleware: AuthMiddleware[F, UserId],
     taskService: TaskService[F]
-)  {
+) {
 
   private[this] val prefixPath = "/api/v1/projects"
 
@@ -48,7 +48,8 @@ final class TaskRoutes[F[_]: Sync: JsonDecoder](
 
     AuthedRoutes.of {
       case GET -> Root / LongVar(projectId) / "tasks" as _ =>
-        val taskStream = taskService.list(ProjectId(projectId)).map(x => x.asJson)
+        val taskStream =
+          taskService.list(ProjectId(projectId)).map(x => x.asJson)
         Ok(taskStream)
       case GET -> Root / LongVar(projectId) / "tasks" / UUIDVar(taskId)
           as _ =>
@@ -56,7 +57,7 @@ final class TaskRoutes[F[_]: Sync: JsonDecoder](
 
       case authReq @ POST -> Root / LongVar(projectId) / "tasks" as userId =>
         for {
-          task   <- getTaskFromAuthReq(authReq, userId, ProjectId(projectId))
+          task <- getTaskFromAuthReq(authReq, userId, ProjectId(projectId))
           result <- taskService.create(task)
           response <- result match {
             case Left(err)   => prepareFailedResponse(err)
@@ -68,7 +69,7 @@ final class TaskRoutes[F[_]: Sync: JsonDecoder](
             projectId
           ) / "tasks" / UUIDVar(taskId) as userId =>
         for {
-          task   <- getTaskFromAuthReq(authReq, userId, ProjectId(projectId))
+          task <- getTaskFromAuthReq(authReq, userId, ProjectId(projectId))
           result <- taskService.update(TaskId(taskId), task, userId)
           response <- result match {
             case Left(err)   => prepareFailedResponse(err)

@@ -7,9 +7,9 @@ import java.time.format.DateTimeFormatter
 import taskforce.authentication.UserId
 import taskforce.stats.{StatsResponse, StatsQuery}
 
-trait Circe   {
+trait Circe {
 
-  private val toDateFmt   = DateTimeFormatter.ofPattern("yyyy.MM.dd")
+  private val toDateFmt = DateTimeFormatter.ofPattern("yyyy.MM.dd")
   private val fromDateFmt = DateTimeFormatter.ofPattern("yyyy.MM")
 
   implicit val circeStatsResponseDecoder: Decoder[StatsResponse] =
@@ -18,17 +18,26 @@ trait Circe   {
     deriveEncoder[StatsResponse]
 
   implicit val circeStatsQueryDecoder: Decoder[StatsQuery] =
-    Decoder.forProduct3[StatsQuery, List[UserId], Option[String], Option[String]]("users", "from", "to")((u, f, t) =>
-      StatsQuery(
-        u,
-        f.map(x => LocalDate.parse(s"$x.01", toDateFmt)),
-        t.map(x => LocalDate.parse(s"$x.01", toDateFmt))
+    Decoder
+      .forProduct3[StatsQuery, List[UserId], Option[String], Option[String]](
+        "users",
+        "from",
+        "to"
+      )((u, f, t) =>
+        StatsQuery(
+          u,
+          f.map(x => LocalDate.parse(s"$x.01", toDateFmt)),
+          t.map(x => LocalDate.parse(s"$x.01", toDateFmt))
+        )
       )
-    )
 
   implicit val circeStatsQueryEncoder: Encoder[StatsQuery] =
     Encoder.forProduct3("users", "from", "to")(x =>
-      (x.users, x.from.map(_.format(fromDateFmt)), x.to.map(_.format(fromDateFmt)))
+      (
+        x.users,
+        x.from.map(_.format(fromDateFmt)),
+        x.to.map(_.format(fromDateFmt))
+      )
     )
 
 }

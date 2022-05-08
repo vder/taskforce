@@ -24,7 +24,10 @@ class FilterRepositorySuite extends BasicRepositorySuite {
     PropF.forAllF { (f: FilterId, pageSize: PageSize) =>
       for {
         fRepo <- filterRepo
-        filter = Filter(f, List(In(List(Refined.unsafeApply[String, NonEmpty]("project 1")))))
+        filter = Filter(
+          f,
+          List(In(List(Refined.unsafeApply[String, NonEmpty]("project 1"))))
+        )
         rows <-
           fRepo
             .execute(
@@ -37,7 +40,10 @@ class FilterRepositorySuite extends BasicRepositorySuite {
             )
             .compile
             .toList
-      } yield assertEquals(rows.filter(_.projectName == "project 1").size, pageSize.value.value.min(6))
+      } yield assertEquals(
+        rows.filter(_.projectName == "project 1").size,
+        pageSize.value.value.min(6)
+      )
     }
   }
 
@@ -45,7 +51,10 @@ class FilterRepositorySuite extends BasicRepositorySuite {
     PropF.forAllF { (f: FilterId) =>
       for {
         fRepo <- filterRepo
-        filter = Filter(f, List(In(List(Refined.unsafeApply[String, NonEmpty]("project 1")))))
+        filter = Filter(
+          f,
+          List(In(List(Refined.unsafeApply[String, NonEmpty]("project 1"))))
+        )
         page = Page(
           PageNo(Refined.unsafeApply[Int, Positive](1)),
           PageSize(Refined.unsafeApply[Int, Positive](40))
@@ -100,7 +109,10 @@ class FilterRepositorySuite extends BasicRepositorySuite {
             )
             .compile
             .toList
-      } yield assertEquals(rowsSorted, rowsUnsorted.sortBy(_.taskCreated).reverse)
+      } yield assertEquals(
+        rowsSorted,
+        rowsUnsorted.sortBy(_.taskCreated).reverse
+      )
 
     }
   }
@@ -171,9 +183,9 @@ class FilterRepositorySuite extends BasicRepositorySuite {
     PropF.forAllF { (f: FilterId) =>
       for {
         fRepo <- filterRepo
-        filter   = Filter(f, List(State(All)))
+        filter = Filter(f, List(State(All)))
         fromDate = LocalDateTime.parse("0004-12-03T10:15:30")
-        toDate   = LocalDateTime.parse("0004-12-03T10:15:30")
+        toDate = LocalDateTime.parse("0004-12-03T10:15:30")
         page = Page(
           PageNo(Refined.unsafeApply[Int, Positive](1)),
           PageSize(Refined.unsafeApply[Int, Positive](40))
@@ -190,7 +202,10 @@ class FilterRepositorySuite extends BasicRepositorySuite {
         rowsDeleted <-
           fRepo
             .execute(
-              Filter(f, List(TaskCreatedDate(Gt, fromDate), TaskCreatedDate(Lt, toDate))),
+              Filter(
+                f,
+                List(TaskCreatedDate(Gt, fromDate), TaskCreatedDate(Lt, toDate))
+              ),
               SortBy(CreatedDate, Desc).some,
               page
             )
@@ -198,7 +213,11 @@ class FilterRepositorySuite extends BasicRepositorySuite {
             .toList
       } yield assertEquals(
         rowsDeleted,
-        allRows.filter(_.taskCreated.map(t => t.isAfter(fromDate) && t.isBefore(toDate)).getOrElse(false))
+        allRows.filter(
+          _.taskCreated
+            .map(t => t.isAfter(fromDate) && t.isBefore(toDate))
+            .getOrElse(false)
+        )
       )
     }
   }

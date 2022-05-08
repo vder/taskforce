@@ -19,7 +19,7 @@ import taskforce.authentication.UserId
 import taskforce.common.{ErrorMessage, LiveHttpErrorHandler}
 import taskforce.project.ProjectName
 
-class ProjectRoutesSuite extends HttpTestSuite  {
+class ProjectRoutesSuite extends HttpTestSuite {
 
   implicit def decodeNewProduct: EntityDecoder[IO, ProjectName] = jsonOf
   implicit def encodeNewProduct: EntityEncoder[IO, ProjectName] = jsonEncoderOf
@@ -43,13 +43,21 @@ class ProjectRoutesSuite extends HttpTestSuite  {
           DuplicateProjectNameError(newProject).asLeft[Project].pure[IO]
       }
       val routes =
-        new ProjectRoutes[IO](authMiddleware(p1.author), new ProjectService[IO](projectRepo)).routes(errHandler)
-      PUT(p2.name, Uri.unsafeFromString(s"api/v1/projects/${p1.id.value}")).pure[IO].flatMap { req =>
-        assertHttp(routes, req)(
-          Status.Conflict,
-          ErrorMessage("PROJECT-001", s"name given in request: ${p2.name.value} already exists")
-        )
-      }
+        new ProjectRoutes[IO](
+          authMiddleware(p1.author),
+          new ProjectService[IO](projectRepo)
+        ).routes(errHandler)
+      PUT(p2.name, Uri.unsafeFromString(s"api/v1/projects/${p1.id.value}"))
+        .pure[IO]
+        .flatMap { req =>
+          assertHttp(routes, req)(
+            Status.Conflict,
+            ErrorMessage(
+              "PROJECT-001",
+              s"name given in request: ${p2.name.value} already exists"
+            )
+          )
+        }
     }
   }
 
@@ -63,11 +71,17 @@ class ProjectRoutesSuite extends HttpTestSuite  {
           DuplicateProjectNameError(newProject).asLeft[Project].pure[IO]
       }
 
-      val routes = new ProjectRoutes[IO](authMiddleware(u), new ProjectService[IO](projectRepo)).routes(errHandler)
+      val routes = new ProjectRoutes[IO](
+        authMiddleware(u),
+        new ProjectService[IO](projectRepo)
+      ).routes(errHandler)
       POST(p1.name, uri).pure[IO].flatMap { req =>
         assertHttp(routes, req)(
           Status.Conflict,
-          ErrorMessage("PROJECT-001", s"name given in request: ${p1.name.value} already exists")
+          ErrorMessage(
+            "PROJECT-001",
+            s"name given in request: ${p1.name.value} already exists"
+          )
         )
       }
     }
@@ -76,38 +90,56 @@ class ProjectRoutesSuite extends HttpTestSuite  {
   test("returns project with given ID") {
     PropF.forAllF { (p: Project, list: List[Project]) =>
       val projectRepo = new TestProjectRepository(p :: list, currentTime)
-      val routes      = new ProjectRoutes[IO](authMiddleware, new ProjectService[IO](projectRepo)).routes(errHandler)
+      val routes = new ProjectRoutes[IO](
+        authMiddleware,
+        new ProjectService[IO](projectRepo)
+      ).routes(errHandler)
 
-      GET(Uri.unsafeFromString(s"api/v1/projects/${p.id.value}")).pure[IO].flatMap { req =>
-        assertHttp(routes, req)(Status.Ok, p)
-      }
+      GET(Uri.unsafeFromString(s"api/v1/projects/${p.id.value}"))
+        .pure[IO]
+        .flatMap { req =>
+          assertHttp(routes, req)(Status.Ok, p)
+        }
     }
   }
 
   test("cannot delete others project") {
     PropF.forAllF { (p: Project, u: UserId) =>
       val projectRepo = new TestProjectRepository(List(p), currentTime)
-      val routes      = new ProjectRoutes[IO](authMiddleware(u), new ProjectService[IO](projectRepo)).routes(errHandler)
+      val routes = new ProjectRoutes[IO](
+        authMiddleware(u),
+        new ProjectService[IO](projectRepo)
+      ).routes(errHandler)
 
-      DELETE(Uri.unsafeFromString(s"api/v1/projects/${p.id.value}")).pure[IO].flatMap { req =>
-        assertHttp(routes, req)(Status.Forbidden, ErrorMessage("BASIC-003", "User is not an owner of the resource"))
-      }
+      DELETE(Uri.unsafeFromString(s"api/v1/projects/${p.id.value}"))
+        .pure[IO]
+        .flatMap { req =>
+          assertHttp(routes, req)(
+            Status.Forbidden,
+            ErrorMessage("BASIC-003", "User is not an owner of the resource")
+          )
+        }
     }
   }
   test("provide valid response where project is not found") {
     PropF.forAllF { (p: ProjectId, u: UserId) =>
       val projectRepo = new TestProjectRepository(List(), currentTime)
-      val routes      = new ProjectRoutes[IO](authMiddleware(u), new ProjectService[IO](projectRepo)).routes(errHandler)
+      val routes = new ProjectRoutes[IO](
+        authMiddleware(u),
+        new ProjectService[IO](projectRepo)
+      ).routes(errHandler)
 
-      DELETE(Uri.unsafeFromString(s"api/v1/projects/${p.value}")).pure[IO].flatMap { req =>
-        assertHttp(routes, req)(
-          Status.NotFound,
-          ErrorMessage(
-            "BASIC-001",
-            s"resource with given id ${p.value} does not exist"
+      DELETE(Uri.unsafeFromString(s"api/v1/projects/${p.value}"))
+        .pure[IO]
+        .flatMap { req =>
+          assertHttp(routes, req)(
+            Status.NotFound,
+            ErrorMessage(
+              "BASIC-001",
+              s"resource with given id ${p.value} does not exist"
+            )
           )
-        )
-      }
+        }
     }
   }
 }

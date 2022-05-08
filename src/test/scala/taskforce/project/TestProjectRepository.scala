@@ -8,11 +8,19 @@ import taskforce.authentication.UserId
 import taskforce.common.CreationDate
 import java.time.LocalDateTime
 
-case class TestProjectRepository(projects: List[Project], currentTime: LocalDateTime) extends ProjectRepository[IO] {
+case class TestProjectRepository(
+    projects: List[Project],
+    currentTime: LocalDateTime
+) extends ProjectRepository[IO] {
 
-  override def totalTime(projectId: ProjectId): IO[TotalTime] = TotalTime(Duration.ZERO).pure[IO]
+  override def totalTime(projectId: ProjectId): IO[TotalTime] = TotalTime(
+    Duration.ZERO
+  ).pure[IO]
 
-  override def create(newProject: ProjectName, userId: UserId): IO[Either[DuplicateProjectNameError, Project]] =
+  override def create(
+      newProject: ProjectName,
+      userId: UserId
+  ): IO[Either[DuplicateProjectNameError, Project]] =
     Project(
       author = userId,
       deleted = None,
@@ -37,7 +45,8 @@ case class TestProjectRepository(projects: List[Project], currentTime: LocalDate
     ).asRight[DuplicateProjectNameError]
       .pure[IO]
 
-  override def find(id: ProjectId): IO[Option[Project]] = projects.find(_.id == id).pure[IO]
+  override def find(id: ProjectId): IO[Option[Project]] =
+    projects.find(_.id == id).pure[IO]
 
   override def list: IO[List[Project]] = projects.toList.pure[IO]
 

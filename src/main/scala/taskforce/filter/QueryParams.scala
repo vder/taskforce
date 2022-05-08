@@ -9,7 +9,7 @@ final case object CreatedDate extends Field
 final case object UpdatedDate extends Field
 
 sealed trait Order
-final case object Asc  extends Order
+final case object Asc extends Order
 final case object Desc extends Order
 
 final case class SortBy(field: Field, order: Order)

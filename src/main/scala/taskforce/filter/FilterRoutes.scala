@@ -32,7 +32,7 @@ final class FilterRoutes[
             authReq.req
               .asJsonDecode[NewFilter]
               .adaptError(_ => commonErrors.BadRequest)
-          filter   <- filterService.create(newFilter)
+          filter <- filterService.create(newFilter)
           response <- Created(filter.asJson)
         } yield response
 
@@ -52,8 +52,9 @@ final class FilterRoutes[
           ) / "data" :? SortByMatcher(sortBy)
           :? PageNoMatcher(no)
           :? PageSizeMatcher(size) as _ =>
-        val id         = FilterId(filterId)
-        val rowsStream = filterService.getData(id, Page.fromParamsOrDefault(no, size), sortBy)
+        val id = FilterId(filterId)
+        val rowsStream =
+          filterService.getData(id, Page.fromParamsOrDefault(no, size), sortBy)
         Ok(rowsStream.map(_.asJson))
     }
   }

@@ -22,7 +22,10 @@ import java.time.temporal.ChronoUnit
 import taskforce.common._
 
 trait ProjectRepository[F[_]] {
-  def create(newProject: ProjectName, userId: UserId): F[Either[DuplicateProjectNameError, Project]]
+  def create(
+      newProject: ProjectName,
+      userId: UserId
+  ): F[Either[DuplicateProjectNameError, Project]]
   def delete(id: ProjectId): F[Int]
   def update(
       id: ProjectId,
@@ -40,7 +43,8 @@ final class LiveProjectRepository[F[_]: MonadCancel[*[_], Throwable]](
     with DoobieTaskInstances
     with NewTypeQuillInstances {
 
-  val ctx = new DoobieContext.Postgres(NamingStrategy(PluralizedTableNames, SnakeCase))
+  val ctx =
+    new DoobieContext.Postgres(NamingStrategy(PluralizedTableNames, SnakeCase))
   import ctx._
 
   val projectQuery = quote {
@@ -53,11 +57,15 @@ final class LiveProjectRepository[F[_]: MonadCancel[*[_], Throwable]](
 
   val newProjectId = ProjectId(0L)
 
-  implicit val decodeNonEmptyString = MappedEncoding[String, string.NonEmptyString](Refined.unsafeApply(_))
-  implicit val encodeNonEmptyString = MappedEncoding[string.NonEmptyString, String](_.value)
-  implicit val taskDurationNumeric  = fakeNumeric[TaskDuration]
+  implicit val decodeNonEmptyString =
+    MappedEncoding[String, string.NonEmptyString](Refined.unsafeApply(_))
+  implicit val encodeNonEmptyString =
+    MappedEncoding[string.NonEmptyString, String](_.value)
+  implicit val taskDurationNumeric = fakeNumeric[TaskDuration]
 
-  def mapDatabaseErr(newProject: ProjectName): PartialFunction[Throwable, Either[DuplicateProjectNameError, Project]] = {
+  def mapDatabaseErr(
+      newProject: ProjectName
+  ): PartialFunction[Throwable, Either[DuplicateProjectNameError, Project]] = {
     case x: PSQLException
         if x.getMessage.contains(
           "unique constraint"
@@ -66,7 +74,12 @@ final class LiveProjectRepository[F[_]: MonadCancel[*[_], Throwable]](
   }
 
   override def totalTime(projectId: ProjectId): F[TotalTime] =
-    run(taskQuery.filter(t => t.projectId == lift(projectId) && t.deleted.isEmpty).map(_.duration).sum)
+    run(
+      taskQuery
+        .filter(t => t.projectId == lift(projectId) && t.deleted.isEmpty)
+        .map(_.duration)
+        .sum
+    )
       .transact(xa)
       .map(t => TotalTime(t.getOrElse(TaskDuration(Duration.ZERO)).value))
 
@@ -81,7 +94,9 @@ final class LiveProjectRepository[F[_]: MonadCancel[*[_], Throwable]](
       newProject: ProjectName,
       author: UserId
   ): F[Either[DuplicateProjectNameError, Project]] = {
-    val created = CreationDate(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS))
+    val created = CreationDate(
+      LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
+    )
     run(
       projectQuery
         .insert(lift(Project(newProjectId, newProject, author, created, None)))
@@ -98,8 +113,16 @@ final class LiveProjectRepository[F[_]: MonadCancel[*[_], Throwable]](
   override def delete(id: ProjectId): F[Int] = {
     val deleted = DeletionDate(LocalDateTime.now()).some
     val result = for {
-      x <- run(projectQuery.filter(p => p.id == lift(id) && p.deleted.isEmpty).update(_.deleted -> lift(deleted)))
-      y <- run(taskQuery.filter(t => t.projectId == lift(id) && t.deleted.isEmpty).update(_.deleted -> lift(deleted)))
+      x <- run(
+        projectQuery
+          .filter(p => p.id == lift(id) && p.deleted.isEmpty)
+          .update(_.deleted -> lift(deleted))
+      )
+      y <- run(
+        taskQuery
+          .filter(t => t.projectId == lift(id) && t.deleted.isEmpty)
+          .update(_.deleted -> lift(deleted))
+      )
     } yield (x + y)
 
     result.transact(xa).map(_.toInt)
