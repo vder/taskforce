@@ -8,7 +8,7 @@ import eu.timepit.refined.collection._
 import eu.timepit.refined.numeric.Positive
 import java.time.LocalDateTime
 import org.scalacheck.effect.PropF
-import taskforce.arbitraries._
+import arbitraries._
 import taskforce.BasicRepositorySuite
 
 class FilterRepositorySuite extends BasicRepositorySuite {

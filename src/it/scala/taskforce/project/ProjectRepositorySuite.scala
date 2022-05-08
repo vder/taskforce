@@ -3,7 +3,7 @@ package taskforce.project
 import cats.effect.IO
 import cats.implicits._
 import org.scalacheck.effect.PropF
-import taskforce.arbitraries._
+import taskforce.project.arbitraries._
 import taskforce.BasicRepositorySuite
 
 class ProjectRepositorySuite extends BasicRepositorySuite {

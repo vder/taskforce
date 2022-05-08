@@ -1,23 +1,23 @@
 package taskforce.filter
 
+import arbitraries._
 import cats.data.Kleisli
 import cats.effect.IO
 import cats.implicits._
 import fs2.Stream
 import java.util.UUID
-import org.http4s.Method._
 import org.http4s._
 import org.http4s.circe._
 import org.http4s.client.dsl.io._
 import org.http4s.implicits._
+import org.http4s.Method._
 import org.http4s.server.AuthMiddleware
 import org.scalacheck.effect.PropF
-import taskforce.HttpTestSuite
-import taskforce.arbitraries._
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 import taskforce.authentication.UserId
 import taskforce.common.{ErrorMessage, LiveHttpErrorHandler}
 import taskforce.common.errors._
-import org.typelevel.log4cats.slf4j.Slf4jLogger
+import taskforce.HttpTestSuite
 
 class FilterRoutesSuite extends HttpTestSuite with instances.Circe {
 

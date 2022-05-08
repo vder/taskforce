@@ -1,4 +1,4 @@
-package taskforce
+package taskforce.filter
 
 
 import eu.timepit.refined.api.Refined
@@ -6,14 +6,11 @@ import eu.timepit.refined.numeric.Positive
 import eu.timepit.refined.types.string.NonEmptyString
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, LocalDateTime}
+
 import org.scalacheck.Gen
-import taskforce.authentication.UserId
-import taskforce.filter._
-import taskforce.project._
 import taskforce.task.generators._
 import taskforce.project.generators._
-import taskforce.common.CreationDate
-import taskforce.common.DeletionDate
+
 object generators {
 
   val nonEmptyStringGen: Gen[String] =
@@ -23,21 +20,6 @@ object generators {
         Gen.buildableOfN[String, Char](n, Gen.alphaChar)
       }
 
-
-  val userIdGen: Gen[UserId] =
-    Gen.uuid.map(UserId.apply)
-
-  val newProjectGen: Gen[ProjectName] =
-    nonEmptyStringGen
-      .map[NonEmptyString](Refined.unsafeApply)
-      .map(ProjectName.apply)
-
-  def creationDateTimeGen: Gen[CreationDate] =
-    localDateTimeGen.map(CreationDate.apply)
-
-  def deletionDateTimeGen: Gen[DeletionDate] =
-    localDateTimeGen.map(DeletionDate.apply)
-
   def localDateTimeGen: Gen[LocalDateTime] =
     for {
       minutes <- Gen.chooseNum(0, 1000000000)
@@ -45,7 +27,6 @@ object generators {
       .parse("2000.01.01", DateTimeFormatter.ofPattern("yyyy.MM.dd"))
       .atStartOfDay()
       .plusMinutes(minutes.toLong)
-
   val operatorGen: Gen[Operator] = Gen.oneOf(List(Eq, Gt, Gteq, Lteq, Lt))
 
   val statusGen: Gen[Status] = Gen.oneOf(List(Active, Deactive, All))

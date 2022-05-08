@@ -1,18 +1,15 @@
-package taskforce
+package taskforce.filter
 
 import org.scalacheck.Arbitrary
-import taskforce.generators._
+import generators._
 
 object arbitraries {
 
   implicit def arbNonEmptyStringGen = Arbitrary(nonEmptyStringGen)
-  implicit def arbUserIdGen         = Arbitrary(userIdGen)
-  implicit def arbNewProjectGen     = Arbitrary(newProjectGen)
   implicit def arbLocalDateTimeGen  = Arbitrary(localDateTimeGen)
   implicit def arbOperatorGen       = Arbitrary(operatorGen)
   implicit def arbStatusGen         = Arbitrary(statusGen)
   implicit def arbInGen             = Arbitrary(inGen)
-  implicit def arbTaskCreatedGen    = Arbitrary(taskCreatedGen)
   implicit def arbStateGen          = Arbitrary(stateGen)
   implicit def arbConditionsGen     = Arbitrary(conditionsGen)
   implicit def arbFilterIdGen       = Arbitrary(filterIdGen)

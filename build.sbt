@@ -34,38 +34,12 @@ lazy val root = (project in file("."))
     semanticdbEnabled  := true,                        // enable SemanticDB
     semanticdbVersion  := scalafixSemanticdb.revision, // only required for Scala 2.x
     libraryDependencies ++= Seq(
-      //  catsEffect,
-      circe,
-      circeDerivation,
-      circeExtras,
-      circeFs2,
-      circeParser,
-      //  circeRefined,
-      //   doobie,
-      doobieHikari,
-      doobiePostgres,
-      doobieRefined,
-      //    doobieQuill,
       flyway,
-      //   http4sCirce,
-      http4sClient,
-      //  http4sDsl,
-      http4sServer,
-      jwtCirce,
       logback,
-      mUnitCE,
-      mUnitScalacheck,
       pureConfig,
       pureConfigCE,
       pureConfigRefined,
-      refined,
-      refinedCats,
-      // quill,
-      scalaCheckEffect,
-      scalaCheckEffectMunit,
-      //  simulacrum,
-      slf4j,
-      log4cats
+      
     ).map(_.exclude("org.slf4j", "*")),
     addCompilerPlugin(kindProjector),
     addCompilerPlugin(betterMonadicFor),
@@ -81,11 +55,11 @@ lazy val root = (project in file("."))
     )
   )
   .dependsOn(
-    common   % "test->test",
-    projects % "compile->compile;test->test",
-    tasks    % "compile->compile;test->test"
+    common % "test->test",
+    filters % "compile->compile;test->test"
   )
   .aggregate(
+    filters,
     projects,
     tasks
   )
@@ -171,4 +145,18 @@ lazy val tasks = (project in file("tasksFeature"))
   .dependsOn(
     authentication % "compile->compile;test->test",
     common         % "test->test"
+  )
+
+lazy val filters = (project in file("filtersFeature"))
+  .settings(
+    libraryDependencies ++= Seq(
+      log4cats,
+      slf4j
+    ).map(_.exclude("org.slf4j", "*")),
+    addCompilerPlugin(kindProjector),
+    scalacOptions ++= Seq("-Ymacro-annotations")
+  )
+  .dependsOn(
+    tasks    % "compile->compile;test->test",
+    projects % "compile->compile;test->test"
   )
