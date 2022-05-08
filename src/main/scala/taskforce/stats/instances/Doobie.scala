@@ -6,8 +6,9 @@ import doobie.implicits._
 import doobie.postgres.implicits._
 import taskforce.common.Sqlizer
 import taskforce.stats.StatsQuery
+import taskforce.common.NewTypeDoobieMeta
 
-trait Doobie extends taskforce.task.instances.Doobie {
+trait Doobie extends taskforce.task.instances.Doobie with NewTypeDoobieMeta {
 
   implicit val statsQuerySqlizer: Sqlizer[StatsQuery] = new Sqlizer[StatsQuery] {
     def toFragment(sq: StatsQuery) =

@@ -1,6 +1,5 @@
 package taskforce.authentication
 
-import java.util.UUID
+import io.circe.generic.JsonCodec
 
-final case class UserId(value: UUID) extends AnyVal
-final case class User(id: UserId)
+@JsonCodec final case class User(id: UserId)

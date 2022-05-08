@@ -5,6 +5,7 @@ import cats.implicits._
 import taskforce.common.{errors => commonErrors}
 import taskforce.authentication.UserId
 import taskforce.project.ProjectId
+import java.time.LocalDateTime
 
 final class TaskService[F[_]: Sync](
     taskRepo: TaskRepository[F]
@@ -14,14 +15,15 @@ final class TaskService[F[_]: Sync](
       newTask: Task,
       userTasks: fs2.Stream[F, Task]
   ): F[Boolean] = {
-    val taskEnd   = newTask.created.plus(newTask.duration.value)
-    val taskStart = newTask.created
+    val taskEnd: LocalDateTime =
+      newTask.created.value.plus(newTask.duration.value)
+    val taskStart: LocalDateTime = newTask.created.value
     for {
       isValid <-
         userTasks
           .collect {
             case t if t.deleted.isEmpty =>
-              (t.created, t.created.plus(t.duration.value))
+              (t.created.value, t.created.value.plus(t.duration.value))
           }
           .forall { case (start, end) =>
             (start.isAfter(taskEnd) || taskStart.isAfter(end))
@@ -32,7 +34,11 @@ final class TaskService[F[_]: Sync](
     } yield isValid.head
   }
 
-  private def getTaskIfAuthor(projectId: ProjectId, taskId: TaskId, userId: UserId) =
+  private def getTaskIfAuthor(
+      projectId: ProjectId,
+      taskId: TaskId,
+      userId: UserId
+  ) =
     for {
       taskOption <- taskRepo.find(projectId, taskId)
       task <-
@@ -41,33 +47,43 @@ final class TaskService[F[_]: Sync](
             taskOption,
             commonErrors.NotFound(taskId.value.toString())
           )
-          .ensure(commonErrors.NotAuthor(userId))(_.author == userId)
+          .ensure(commonErrors.NotAuthor(userId.value))(_.author == userId)
     } yield task
 
   def list(projectId: ProjectId) = taskRepo.list(projectId)
 
   def find(projectId: ProjectId, taskId: TaskId) =
-    taskRepo.find(projectId, taskId).ensure(commonErrors.NotFound(taskId.value.toString))(_.isDefined)
+    taskRepo
+      .find(projectId, taskId)
+      .ensure(commonErrors.NotFound(taskId.value.toString))(_.isDefined)
 
   def create(task: Task): F[Either[TaskError, Task]] =
     (for {
       allUserTasks <- Sync[F].delay(taskRepo.listByUser(task.author))
-      _            <- taskPeriodIsValid(task, allUserTasks)
-      result       <- taskRepo.create(task)
-    } yield result.leftWiden[TaskError]).recover { case WrongPeriodError => WrongPeriodError.asLeft[Task] }
+      _ <- taskPeriodIsValid(task, allUserTasks)
+      result <- taskRepo.create(task)
+    } yield result.leftWiden[TaskError]).recover { case WrongPeriodError =>
+      WrongPeriodError.asLeft[Task]
+    }
 
-  def update(taskId: TaskId, task: Task, caller: UserId): F[Either[TaskError, Task]] =
+  def update(
+      taskId: TaskId,
+      task: Task,
+      caller: UserId
+  ): F[Either[TaskError, Task]] =
     (for {
-      oldTask      <- getTaskIfAuthor(task.projectId, taskId, caller)
+      oldTask <- getTaskIfAuthor(task.projectId, taskId, caller)
       allUserTasks <- Sync[F].delay(taskRepo.listByUser(task.author))
       allUserTasksWithoutOld = allUserTasks.filterNot(_.id == oldTask.id)
-      _           <- taskPeriodIsValid(task, allUserTasksWithoutOld)
+      _ <- taskPeriodIsValid(task, allUserTasksWithoutOld)
       updatedTask <- taskRepo.update(oldTask.id, task)
-    } yield updatedTask.leftWiden[TaskError]).recover { case WrongPeriodError => WrongPeriodError.asLeft[Task] }
+    } yield updatedTask.leftWiden[TaskError]).recover { case WrongPeriodError =>
+      WrongPeriodError.asLeft[Task]
+    }
 
   def delete(projectId: ProjectId, taskId: TaskId, caller: UserId) =
     for {
-      task   <- getTaskIfAuthor(projectId, taskId, caller)
+      task <- getTaskIfAuthor(projectId, taskId, caller)
       result <- taskRepo.delete(task.id)
     } yield result
 

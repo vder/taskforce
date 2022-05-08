@@ -2,8 +2,8 @@ package taskforce
 
 import cats.syntax.option._
 import eu.timepit.refined._
-import eu.timepit.refined.api.Refined
 import eu.timepit.refined.collection._
+import eu.timepit.refined.api.Refined
 import eu.timepit.refined.numeric.Positive
 import eu.timepit.refined.types.string.NonEmptyString
 import java.time.format.DateTimeFormatter
@@ -13,6 +13,8 @@ import taskforce.authentication.UserId
 import taskforce.filter._
 import taskforce.project._
 import taskforce.task._
+import taskforce.common.CreationDate
+import taskforce.common.DeletionDate
 object generators {
 
   val nonEmptyStringGen: Gen[String] =
@@ -34,10 +36,16 @@ object generators {
   val taskDurationGen: Gen[TaskDuration] =
     Gen.chooseNum[Long](10, 1000).map(x => TaskDuration(Duration.ofMinutes(x)))
 
-  val newProjectGen: Gen[NewProject] =
+  val newProjectGen: Gen[ProjectName] =
     nonEmptyStringGen
       .map[NonEmptyString](Refined.unsafeApply)
-      .map(NewProject.apply)
+      .map(ProjectName.apply)
+
+  def creationDateTimeGen: Gen[CreationDate] =
+    localDateTimeGen.map(CreationDate.apply)
+
+  def deletionDateTimeGen: Gen[DeletionDate] =
+    localDateTimeGen.map(DeletionDate.apply)
 
   def localDateTimeGen: Gen[LocalDateTime] =
     for {
@@ -50,41 +58,61 @@ object generators {
   val projectGen: Gen[Project] =
     for {
       projectId <- projectIdGen
-      name <-
-        nonEmptyStringGen
-          .map[NonEmptyString](Refined.unsafeApply)
-      userId  <- userIdGen
+      name <- newProjectGen
+      userId <- userIdGen
       created <- localDateTimeGen
-    } yield Project(projectId, name, userId, created, None)
+    } yield Project(projectId, name, userId, CreationDate(created), None)
+
+  val taskVolumeGen: Gen[TaskVolume] =
+    Gen
+      .posNum[Int]
+      .map(Refined.unsafeApply[Int, Positive])
+      .map(TaskVolume.apply)
+
+  val taskCommentGen: Gen[Option[TaskComment]] =
+    Gen.alphaStr
+      .map(refineV[NonEmpty](_).toOption)
+      .map(_.map(TaskComment.apply))
 
   val taskGen: Gen[Task] =
     for {
-      id        <- taskIdGen
+      id <- taskIdGen
       projectId <- projectIdGen
-      author    <- userIdGen
-      created   <- localDateTimeGen
-      duration  <- taskDurationGen
-      volume    <- Gen.posNum[Int].map(Refined.unsafeApply[Int, Positive])
-      comment   <- Gen.alphaStr
-    } yield Task(id, projectId, author, created, duration, volume.some, None, refineV[NonEmpty](comment).toOption)
+      author <- userIdGen
+      created <- localDateTimeGen
+      duration <- taskDurationGen
+      volume <- taskVolumeGen
+      comment <- taskCommentGen
+    } yield Task(
+      id,
+      projectId,
+      author,
+      CreationDate(created),
+      duration,
+      volume.some,
+      None,
+      comment
+    )
 
   val newTaskGen: Gen[NewTask] =
     for {
-      created  <- localDateTimeGen
+      created <- creationDateTimeGen
       duration <- taskDurationGen
-      volume   <- Gen.posNum[Int].map(Refined.unsafeApply[Int, Positive])
-      comment  <- Gen.alphaStr
-    } yield NewTask(created.some, duration, volume.some, refineV[NonEmpty](comment).toOption)
+      volume <- taskVolumeGen
+      comment <- taskCommentGen
+    } yield NewTask(created.some, duration, volume.some, comment)
 
   val operatorGen: Gen[Operator] = Gen.oneOf(List(Eq, Gt, Gteq, Lteq, Lt))
 
   val statusGen: Gen[Status] = Gen.oneOf(List(Active, Deactive, All))
 
   val inGen: Gen[In] =
-    Gen.listOf(nonEmptyStringGen.map[NonEmptyString](Refined.unsafeApply)).map(In.apply)
+    Gen
+      .listOf(nonEmptyStringGen.map[NonEmptyString](Refined.unsafeApply))
+      .map(In.apply)
 
   val taskCreatedGen: Gen[TaskCreatedDate] = for {
-    op   <- operatorGen
+    op <- operatorGen
     date <- localDateTimeGen
   } yield TaskCreatedDate(op, date)
 
@@ -102,7 +130,7 @@ object generators {
   val newFilterGen = conditionsGen.map(NewFilter.apply)
 
   val filterGen = for {
-    c  <- conditionsGen
+    c <- conditionsGen
     id <- filterIdGen
   } yield Filter(id, c)
 
@@ -116,7 +144,7 @@ object generators {
 
   val pageGen = for {
     size <- pageSizeGen
-    no   <- pageNoGen
+    no <- pageNoGen
   } yield Page(no, size)
 
   val sortByGen = for {
