@@ -3,6 +3,7 @@ package taskforce.project
 import cats.data.Kleisli
 import cats.effect.IO
 import cats.implicits._
+import io.circe.refined._
 import java.time.LocalDateTime
 import java.util.UUID
 import org.http4s.Method._
@@ -16,11 +17,12 @@ import suite.HttpTestSuite
 import taskforce.arbitraries._
 import taskforce.authentication.UserId
 import taskforce.common.{ErrorMessage, LiveHttpErrorHandler}
+import taskforce.project.ProjectName
 
-class ProjectRoutesSuite extends HttpTestSuite with instances.Circe {
+class ProjectRoutesSuite extends HttpTestSuite  {
 
-  implicit def decodeNewProduct: EntityDecoder[IO, NewProject] = jsonOf
-  implicit def encodeNewProduct: EntityEncoder[IO, NewProject] = jsonEncoderOf
+  implicit def decodeNewProduct: EntityDecoder[IO, ProjectName] = jsonOf
+  implicit def encodeNewProduct: EntityEncoder[IO, ProjectName] = jsonEncoderOf
 
   val errHandler = LiveHttpErrorHandler[IO]
 
@@ -37,12 +39,12 @@ class ProjectRoutesSuite extends HttpTestSuite with instances.Circe {
   test("Cannot rename project to existing same name") {
     PropF.forAllF { (p1: Project, p2: Project) =>
       val projectRepo = new TestProjectRepository(List(p1, p2), currentTime) {
-        override def update(id: ProjectId, newProject: NewProject) =
+        override def update(id: ProjectId, newProject: ProjectName) =
           DuplicateProjectNameError(newProject).asLeft[Project].pure[IO]
       }
       val routes =
         new ProjectRoutes[IO](authMiddleware(p1.author), new ProjectService[IO](projectRepo)).routes(errHandler)
-      PUT(NewProject(p2.name), Uri.unsafeFromString(s"api/v1/projects/${p1.id.value}")).pure[IO].flatMap { req =>
+      PUT(p2.name, Uri.unsafeFromString(s"api/v1/projects/${p1.id.value}")).pure[IO].flatMap { req =>
         assertHttp(routes, req)(
           Status.Conflict,
           ErrorMessage("PROJECT-001", s"name given in request: ${p2.name.value} already exists")
@@ -55,14 +57,14 @@ class ProjectRoutesSuite extends HttpTestSuite with instances.Circe {
     PropF.forAllF { (p1: Project, u: UserId) =>
       val projectRepo = new TestProjectRepository(List(), currentTime) {
         override def create(
-            newProject: NewProject,
+            newProject: ProjectName,
             userId: UserId
         ): IO[Either[DuplicateProjectNameError, Project]] =
           DuplicateProjectNameError(newProject).asLeft[Project].pure[IO]
       }
 
       val routes = new ProjectRoutes[IO](authMiddleware(u), new ProjectService[IO](projectRepo)).routes(errHandler)
-      POST(NewProject(p1.name), uri).pure[IO].flatMap { req =>
+      POST(p1.name, uri).pure[IO].flatMap { req =>
         assertHttp(routes, req)(
           Status.Conflict,
           ErrorMessage("PROJECT-001", s"name given in request: ${p1.name.value} already exists")

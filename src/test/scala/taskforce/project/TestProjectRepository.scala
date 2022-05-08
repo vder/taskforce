@@ -2,21 +2,23 @@ package taskforce.project
 
 import cats.effect.IO
 import cats.implicits._
-import java.time.{Duration, LocalDateTime}
+import java.time.Duration
 import java.util.UUID
 import taskforce.authentication.UserId
+import taskforce.common.CreationDate
+import java.time.LocalDateTime
 
 case class TestProjectRepository(projects: List[Project], currentTime: LocalDateTime) extends ProjectRepository[IO] {
 
   override def totalTime(projectId: ProjectId): IO[TotalTime] = TotalTime(Duration.ZERO).pure[IO]
 
-  override def create(newProject: NewProject, userId: UserId): IO[Either[DuplicateProjectNameError, Project]] =
+  override def create(newProject: ProjectName, userId: UserId): IO[Either[DuplicateProjectNameError, Project]] =
     Project(
       author = userId,
       deleted = None,
-      name = newProject.name,
+      name = newProject,
       id = ProjectId(1),
-      created = currentTime
+      created = CreationDate(currentTime)
     ).asRight[DuplicateProjectNameError]
       .pure[IO]
 
@@ -24,14 +26,14 @@ case class TestProjectRepository(projects: List[Project], currentTime: LocalDate
 
   override def update(
       id: ProjectId,
-      newProject: NewProject
+      newProject: ProjectName
   ): IO[Either[DuplicateProjectNameError, Project]] =
     Project(
       author = UserId(UUID.randomUUID()),
       deleted = None,
-      name = newProject.name,
+      name = newProject,
       id = id,
-      created = currentTime
+      created = CreationDate(currentTime)
     ).asRight[DuplicateProjectNameError]
       .pure[IO]
 

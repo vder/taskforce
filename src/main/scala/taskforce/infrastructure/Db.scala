@@ -8,6 +8,7 @@ import taskforce.filter.{FilterRepository, LiveFilterRepository}
 import taskforce.project.{ProjectRepository, LiveProjectRepository}
 import taskforce.stats.{StatsRepository, LiveStatsRepository}
 import taskforce.task.{TaskRepository, LiveTaskRepository}
+import org.typelevel.log4cats.Logger
 
 final case class Db[F[_]](
     filterRepo: FilterRepository[F],
@@ -18,7 +19,7 @@ final case class Db[F[_]](
 )
 
 object Db {
-  def make[F[_]: Sync](xa: Transactor[F]) =
+  def make[F[_]: Sync: Logger](xa: Transactor[F]) =
     for {
       filterDb  <- LiveFilterRepository.make[F](xa)
       projectDb <- LiveProjectRepository.make[F](xa)
