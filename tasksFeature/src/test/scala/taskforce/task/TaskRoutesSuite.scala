@@ -13,10 +13,9 @@ import org.http4s.implicits._
 import org.http4s.server.AuthMiddleware
 import org.scalacheck.effect.PropF
 import taskforce.HttpTestSuite
-import taskforce.arbitraries._
+import arbitraries._
 import taskforce.authentication.UserId
 import taskforce.common.{ErrorMessage, LiveHttpErrorHandler}
-import taskforce.project.ProjectId
 import taskforce.common.CreationDate
 
 class TasksRoutesSuite extends HttpTestSuite {

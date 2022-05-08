@@ -2,8 +2,8 @@ package taskforce.task
 
 import cats.effect.IO
 import org.scalacheck.effect.PropF
-import taskforce.arbitraries._
-import taskforce.project.ProjectId
+import taskforce.task.arbitraries._
+import taskforce.task.ProjectId
 import taskforce.BasicRepositorySuite
 
 class TaskRepositorySuite extends BasicRepositorySuite {

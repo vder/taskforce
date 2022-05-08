@@ -8,7 +8,6 @@ import org.polyvariant.doobiequill.DoobieContext
 import doobie.util.transactor.Transactor
 import org.postgresql.util.PSQLException
 import taskforce.authentication.UserId
-import taskforce.project.ProjectId
 import fs2.Stream
 import eu.timepit.refined.numeric
 import eu.timepit.refined.api.Refined

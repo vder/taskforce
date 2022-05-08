@@ -5,8 +5,7 @@ ThisBuild / githubWorkflowPublishTargetBranches := Seq()
 ThisBuild / organization                        := "com.pfl"
 ThisBuild / organizationName                    := "pfl"
 ThisBuild / scalaVersion                        := "2.13.8"
-ThisBuild / version       := "0.1.0-SNAPSHOT"
-ThisBuild / versionScheme := Some("early-semver")
+ThisBuild / version                             := "0.1.0-SNAPSHOT"
 
 IntegrationTest / parallelExecution := false
 
@@ -41,12 +40,12 @@ lazy val root = (project in file("."))
       circeExtras,
       circeFs2,
       circeParser,
-    //  circeRefined,
+      //  circeRefined,
       //   doobie,
       doobieHikari,
       doobiePostgres,
       doobieRefined,
-  //    doobieQuill,
+      //    doobieQuill,
       flyway,
       //   http4sCirce,
       http4sClient,
@@ -81,12 +80,18 @@ lazy val root = (project in file("."))
       "-Ymacro-annotations"
     )
   )
-  .dependsOn(projects,common % "test->test")
-  .aggregate(projects)
+  .dependsOn(
+    common   % "test->test",
+    projects % "compile->compile;test->test",
+    tasks    % "compile->compile;test->test"
+  )
+  .aggregate(
+    projects,
+    tasks
+  )
 
 lazy val common = (project in file("common"))
   .settings(
-    Defaults.itSettings,
     libraryDependencies ++= Seq(
       cats,
       circe,
@@ -103,15 +108,12 @@ lazy val common = (project in file("common"))
       scalaCheckEffect,
       scalaCheckEffectMunit
     ).map(_.exclude("org.slf4j", "*")),
-    
     addCompilerPlugin(kindProjector),
-    
     scalacOptions ++= Seq("-Ymacro-annotations")
-  ).configs(IntegrationTest.extend(Test))
+  )
 
 lazy val authentication = (project in file("auth"))
   .settings(
-      Defaults.itSettings,
     libraryDependencies ++= Seq(
       circeParser,
       doobiePostgres,
@@ -120,7 +122,7 @@ lazy val authentication = (project in file("auth"))
     ).map(_.exclude("org.slf4j", "*")),
     addCompilerPlugin(kindProjector),
     scalacOptions ++= Seq("-Ymacro-annotations")
-  ).configs(IntegrationTest.extend(Test))
+  )
   .dependsOn(common)
 
 lazy val projects = (project in file("projectsFeature"))
@@ -137,8 +139,36 @@ lazy val projects = (project in file("projectsFeature"))
       http4sClient,
       http4sCirce,
       refined,
-      refinedCats).map(_.exclude("org.slf4j", "*")),
-      addCompilerPlugin(kindProjector),
+      refinedCats
+    ).map(_.exclude("org.slf4j", "*")),
+    addCompilerPlugin(kindProjector),
     scalacOptions ++= Seq("-Ymacro-annotations")
-    )
-  .dependsOn(authentication % "compile->compile;test->test",common % "test->test")
+  )
+  .dependsOn(
+    authentication % "compile->compile;test->test",
+    common         % "test->test"
+  )
+
+lazy val tasks = (project in file("tasksFeature"))
+  .settings(
+    libraryDependencies ++= Seq(
+      circeDerivation,
+      circeExtras,
+      circeFs2,
+      circeParser,
+      circeRefined,
+      doobieHikari,
+      doobiePostgres,
+      doobieRefined,
+      http4sClient,
+      http4sCirce,
+      refined,
+      refinedCats
+    ).map(_.exclude("org.slf4j", "*")),
+    addCompilerPlugin(kindProjector),
+    scalacOptions ++= Seq("-Ymacro-annotations")
+  )
+  .dependsOn(
+    authentication % "compile->compile;test->test",
+    common         % "test->test"
+  )

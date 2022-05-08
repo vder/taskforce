@@ -4,7 +4,6 @@ import cats.effect.Sync
 import cats.implicits._
 import taskforce.common.{errors => commonErrors}
 import taskforce.authentication.UserId
-import taskforce.project.ProjectId
 import java.time.LocalDateTime
 
 final class TaskService[F[_]: Sync](

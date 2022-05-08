@@ -10,7 +10,6 @@ import org.http4s.server.{AuthMiddleware, Router}
 import org.http4s.{AuthedRequest, AuthedRoutes}
 import taskforce.common.{ErrorMessage, ErrorHandler, errors => commonErrors}
 import taskforce.authentication.UserId
-import taskforce.project.ProjectId
 import org.http4s.Response
 
 final class TaskRoutes[F[_]: Sync: JsonDecoder](

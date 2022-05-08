@@ -1,18 +1,17 @@
 package taskforce
 
-import cats.syntax.option._
-import eu.timepit.refined._
-import eu.timepit.refined.collection._
+
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.numeric.Positive
 import eu.timepit.refined.types.string.NonEmptyString
 import java.time.format.DateTimeFormatter
-import java.time.{Duration, LocalDate, LocalDateTime}
+import java.time.{LocalDate, LocalDateTime}
 import org.scalacheck.Gen
 import taskforce.authentication.UserId
 import taskforce.filter._
 import taskforce.project._
-import taskforce.task._
+import taskforce.task.generators._
+import taskforce.project.generators._
 import taskforce.common.CreationDate
 import taskforce.common.DeletionDate
 object generators {
@@ -24,17 +23,9 @@ object generators {
         Gen.buildableOfN[String, Char](n, Gen.alphaChar)
       }
 
-  val projectIdGen: Gen[ProjectId] =
-    Gen.chooseNum[Long](0, 10000).map(ProjectId.apply)
 
   val userIdGen: Gen[UserId] =
     Gen.uuid.map(UserId.apply)
-
-  val taskIdGen: Gen[TaskId] =
-    Gen.uuid.map(TaskId.apply)
-
-  val taskDurationGen: Gen[TaskDuration] =
-    Gen.chooseNum[Long](10, 1000).map(x => TaskDuration(Duration.ofMinutes(x)))
 
   val newProjectGen: Gen[ProjectName] =
     nonEmptyStringGen
@@ -54,53 +45,6 @@ object generators {
       .parse("2000.01.01", DateTimeFormatter.ofPattern("yyyy.MM.dd"))
       .atStartOfDay()
       .plusMinutes(minutes.toLong)
-
-  val projectGen: Gen[Project] =
-    for {
-      projectId <- projectIdGen
-      name <- newProjectGen
-      userId <- userIdGen
-      created <- localDateTimeGen
-    } yield Project(projectId, name, userId, CreationDate(created), None)
-
-  val taskVolumeGen: Gen[TaskVolume] =
-    Gen
-      .posNum[Int]
-      .map(Refined.unsafeApply[Int, Positive])
-      .map(TaskVolume.apply)
-
-  val taskCommentGen: Gen[Option[TaskComment]] =
-    Gen.alphaStr
-      .map(refineV[NonEmpty](_).toOption)
-      .map(_.map(TaskComment.apply))
-
-  val taskGen: Gen[Task] =
-    for {
-      id <- taskIdGen
-      projectId <- projectIdGen
-      author <- userIdGen
-      created <- localDateTimeGen
-      duration <- taskDurationGen
-      volume <- taskVolumeGen
-      comment <- taskCommentGen
-    } yield Task(
-      id,
-      projectId,
-      author,
-      CreationDate(created),
-      duration,
-      volume.some,
-      None,
-      comment
-    )
-
-  val newTaskGen: Gen[NewTask] =
-    for {
-      created <- creationDateTimeGen
-      duration <- taskDurationGen
-      volume <- taskVolumeGen
-      comment <- taskCommentGen
-    } yield NewTask(created.some, duration, volume.some, comment)
 
   val operatorGen: Gen[Operator] = Gen.oneOf(List(Eq, Gt, Gteq, Lteq, Lt))
 

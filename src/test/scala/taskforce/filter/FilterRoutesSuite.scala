@@ -31,7 +31,7 @@ class FilterRoutesSuite extends HttpTestSuite with instances.Circe {
   implicit def unsafeLogger = Slf4jLogger.getLogger[IO]
 
   def authMiddleware: AuthMiddleware[IO, UserId] =
-    AuthMiddleware(Kleisli.pure(UserId(UUID.randomUUID()))) 
+    AuthMiddleware(Kleisli.pure(UserId(UUID.randomUUID())))
 
   def authMiddleware(userId: UserId): AuthMiddleware[IO, UserId] =
     AuthMiddleware(Kleisli.pure(userId))

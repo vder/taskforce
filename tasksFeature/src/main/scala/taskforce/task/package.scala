@@ -11,6 +11,14 @@ import io.circe.{Encoder => JsonEncoder,Decoder => JsonDecoder}
 import eu.timepit.refined.types.string.NonEmptyString
 
 package object task {
+
+  type ProjectId = ProjectId.Type
+  object ProjectId
+      extends NewtypeWrapped[Long]
+      with DerivedCirceCodec
+      with NewTypeDoobieMeta
+      with NewTypeQuillInstances
+
   type TaskId = TaskId.Type
   object TaskId
       extends NewtypeWrapped[UUID]

@@ -2,7 +2,6 @@ package taskforce.task
 
 import java.time.LocalDateTime
 import java.util.UUID
-import taskforce.project.ProjectId
 import taskforce.authentication.UserId
 import taskforce.common._
 import io.circe.refined._
