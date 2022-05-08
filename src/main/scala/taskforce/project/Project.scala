@@ -1,20 +1,18 @@
 package taskforce.project
 
-import eu.timepit.refined.types.string.NonEmptyString
-import java.time.Duration
-import java.time.LocalDateTime
 import taskforce.authentication.UserId
+import io.circe.generic.JsonCodec
+import io.circe.refined._
+import taskforce.common.CreationDate
+import taskforce.common.DeletionDate
 
 
-final case class NewProject(name: NonEmptyString)
 
-final case class ProjectId(value: Long) extends AnyVal
-final case class Project(
+@JsonCodec final case class Project(
     id: ProjectId,
-    name: NonEmptyString,
+    name: ProjectName,
     author: UserId,
-    created: LocalDateTime,
-    deleted: Option[LocalDateTime]
+    created: CreationDate,
+    deleted: Option[DeletionDate]
 )
 
-final case class TotalTime(value: Duration) extends AnyVal

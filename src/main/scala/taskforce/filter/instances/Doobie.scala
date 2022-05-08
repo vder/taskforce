@@ -16,8 +16,11 @@ import eu.timepit.refined.types.string.NonEmptyString
 import taskforce.common.Sqlizer
 import taskforce.common.Sqlizer.ops._
 import taskforce.filter._
+import taskforce.common.NewTypeDoobieMeta
 
-trait Doobie extends taskforce.task.instances.Doobie {
+
+
+trait Doobie extends taskforce.task.instances.Doobie with NewTypeDoobieMeta {
 
   implicit val putNonEmptyList: Put[List[NonEmptyString]] =
     Put[List[String]].contramap(_.map(_.value))
@@ -59,10 +62,11 @@ trait Doobie extends taskforce.task.instances.Doobie {
       })
   }
 
-  implicit val taskCreatedDateSqlizer: Sqlizer[TaskCreatedDate] = new Sqlizer[TaskCreatedDate] {
-    def toFragment(t: TaskCreatedDate) =
-      Fragment.const(s" t.started ") ++ t.op.toFragment ++ fr"${t.date}"
-  }
+  implicit val taskCreatedDateSqlizer: Sqlizer[TaskCreatedDate] =
+    new Sqlizer[TaskCreatedDate] {
+      def toFragment(t: TaskCreatedDate) =
+        Fragment.const(s" t.started ") ++ t.op.toFragment ++ fr"${t.date}"
+    }
 
   implicit lazy val criteriaSqlizer: Sqlizer[Criteria] =
     new Sqlizer[Criteria] {
@@ -89,7 +93,8 @@ trait Doobie extends taskforce.task.instances.Doobie {
       def toFragment(s: SortBy) =
         Fragment.const(s.field match {
           case CreatedDate => s"order by t.started ${s.order}"
-          case UpdatedDate => s"order by coalesce(t.started,p.created) ${s.order}"
+          case UpdatedDate =>
+            s"order by coalesce(t.started,p.created) ${s.order}"
         })
     }
 }

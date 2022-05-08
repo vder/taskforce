@@ -7,7 +7,7 @@ import java.time.format.DateTimeFormatter
 import taskforce.authentication.UserId
 import taskforce.stats.{StatsResponse, StatsQuery}
 
-trait Circe extends taskforce.authentication.instances.Circe {
+trait Circe   {
 
   private val toDateFmt   = DateTimeFormatter.ofPattern("yyyy.MM.dd")
   private val fromDateFmt = DateTimeFormatter.ofPattern("yyyy.MM")
