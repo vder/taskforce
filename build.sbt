@@ -56,11 +56,13 @@ lazy val root = (project in file("."))
   )
   .dependsOn(
     common % "test->test",
-    filters % "compile->compile;test->test"
+    filters % "compile->compile;test->test",
+    stats % "compile->compile;test->test"
   )
   .aggregate(
     filters,
     projects,
+    stats,
     tasks
   )
 
@@ -159,4 +161,30 @@ lazy val filters = (project in file("filtersFeature"))
   .dependsOn(
     tasks    % "compile->compile;test->test",
     projects % "compile->compile;test->test"
+  )
+
+
+  lazy val stats = (project in file("statsFeature"))
+  .settings(
+    libraryDependencies ++= Seq(
+      circeDerivation,
+      circeExtras,
+      circeFs2,
+      circeParser,
+      circeRefined,
+      doobieHikari,
+      doobiePostgres,
+      doobieRefined,
+      http4sClient,
+      http4sCirce,
+      refined,
+      refinedCats,
+      log4cats
+    ).map(_.exclude("org.slf4j", "*")),
+    addCompilerPlugin(kindProjector),
+    scalacOptions ++= Seq("-Ymacro-annotations")
+  )
+  .dependsOn(
+    authentication % "compile->compile;test->test",
+    common         % "test->test"
   )

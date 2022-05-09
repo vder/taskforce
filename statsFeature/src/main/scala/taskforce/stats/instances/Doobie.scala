@@ -8,7 +8,7 @@ import taskforce.common.Sqlizer
 import taskforce.stats.StatsQuery
 import taskforce.common.NewTypeDoobieMeta
 
-trait Doobie extends taskforce.task.instances.Doobie with NewTypeDoobieMeta {
+trait Doobie extends NewTypeDoobieMeta {
 
   implicit val statsQuerySqlizer: Sqlizer[StatsQuery] = new Sqlizer[StatsQuery] {
     def toFragment(sq: StatsQuery) =
