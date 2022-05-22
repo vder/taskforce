@@ -5,10 +5,12 @@ import cats.implicits._
 import org.scalacheck.effect.PropF
 import taskforce.project.arbitraries._
 import taskforce.BasicRepositorySuite
+import taskforce.authentication.UserId
 
 class ProjectRepositorySuite extends BasicRepositorySuite {
 
   var projectRepo: IO[ProjectRepository[IO]] = null
+  val userID = UserId(userIdUUID)
 
   override def beforeAll(): Unit = {
     super.beforeAll()

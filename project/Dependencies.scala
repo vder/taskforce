@@ -28,9 +28,9 @@ object Dependencies {
     def circeLib(artifact: String): ModuleID                    = "io.circe"      %% artifact % V.circe
     def doobieLib(artifact: String): ModuleID                   = "org.tpolecat"  %% artifact % V.doobie
     def http4sLib(artifact: String): ModuleID                   = "org.http4s"    %% artifact % V.http4s
-    def mUnitLib(artifact: String): ModuleID                    = "org.scalameta" %% artifact % V.munit % Test
+    def mUnitLib(artifact: String): ModuleID                    = "org.scalameta" %% artifact % V.munit 
     def refinedLib(artifact: String): ModuleID                  = "eu.timepit"    %% artifact % V.refined
-    def typeLevelLibTest(artifact: String, v: String): ModuleID = "org.typelevel" %% artifact % v       % Test
+    def typeLevelLibTest(artifact: String, v: String): ModuleID = "org.typelevel" %% artifact % v       
 
     val cats                  = "org.typelevel"         %% "cats-core" % V.cats
     val catsEffect      = "org.typelevel"        %% "cats-effect"      % V.catsEff

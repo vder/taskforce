@@ -2,13 +2,16 @@ package taskforce.task
 
 import cats.effect.IO
 import org.scalacheck.effect.PropF
-import taskforce.task.arbitraries._
 import taskforce.task.ProjectId
 import taskforce.BasicRepositorySuite
+import taskforce.authentication.UserId
+import taskforce.task.arbitraries._
 
 class TaskRepositorySuite extends BasicRepositorySuite {
 
   var taskRepo: IO[TaskRepository[IO]] = null
+
+  val userID = UserId(userIdUUID)
 
   override def beforeAll(): Unit = {
     super.beforeAll()
@@ -16,6 +19,7 @@ class TaskRepositorySuite extends BasicRepositorySuite {
 
   }
 
+  
   test("task creation") {
     PropF.forAllF { (t: Task) =>
       for {
