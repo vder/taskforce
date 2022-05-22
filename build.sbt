@@ -34,10 +34,6 @@ lazy val root = (project in file("."))
     dockerUpdateLatest := true,
     semanticdbEnabled  := true,                        // enable SemanticDB
     semanticdbVersion  := scalafixSemanticdb.revision, // only required for Scala 2.x
-    libraryDependencies ++= Seq(
-      flyway,
-      logback,  
-    ).map(_.exclude("org.slf4j", "*")),
     addCompilerPlugin(kindProjector),
     addCompilerPlugin(betterMonadicFor),
     scalacOptions ++= Seq(
@@ -52,9 +48,9 @@ lazy val root = (project in file("."))
     )
   )
   .dependsOn(
-    common % "test->test",
+    common  % "test->test",
     filters % "compile->compile;test->test",
-    stats % "compile->compile;test->test"
+    stats   % "compile->compile;test->test"
   )
   .aggregate(
     filters,
@@ -63,7 +59,7 @@ lazy val root = (project in file("."))
     tasks
   )
 
-lazy val common = (project in file("common"))
+lazy val common = (project in file("modules/common"))
   .disablePlugins(RevolverPlugin)
   .configs(IntegrationTest extend Test)
   .settings(
@@ -71,13 +67,12 @@ lazy val common = (project in file("common"))
     libraryDependencies ++= Seq(
       cats,
       circe,
-      doobie,
       doobieQuill,
       flyway,
       http4sCirce,
       http4sDsl,
       log4cats,
-      logback,  
+      logback,
       monixNewType,
       monixNewTypeCirce,
       mUnit,
@@ -86,17 +81,16 @@ lazy val common = (project in file("common"))
       pureConfig,
       pureConfigCE,
       pureConfigRefined,
-      simulacrum,
       scalaCheckEffect,
       scalaCheckEffectMunit,
+      simulacrum,
       slf4j
     ).map(_.exclude("org.slf4j", "*")),
     addCompilerPlugin(kindProjector),
-
     scalacOptions ++= Seq("-Ymacro-annotations")
   )
 
-lazy val authentication = (project in file("auth"))
+lazy val authentication = (project in file("modules/auth"))
   .disablePlugins(RevolverPlugin)
   .settings(
     libraryDependencies ++= Seq(
@@ -110,73 +104,29 @@ lazy val authentication = (project in file("auth"))
   )
   .dependsOn(common)
 
-lazy val projects = (project in file("projectsFeature"))
+lazy val projects = (project in file("modules/projects"))
   .disablePlugins(RevolverPlugin)
   .configs((IntegrationTest extend Test))
-  .settings(
-    Defaults.itSettings,
-    libraryDependencies ++= Seq(
-      circeDerivation,
-      circeExtras,
-      circeFs2,
-      circeParser,
-      circeRefined,
-      doobieHikari,
-      doobiePostgres,
-      doobieRefined,
-      http4sClient,
-      http4sCirce,
-      refined,
-      refinedCats
-    ).map(_.exclude("org.slf4j", "*")),
-    addCompilerPlugin(kindProjector),
-    scalacOptions ++= Seq("-Ymacro-annotations")
-  )
+  .settings(Defaults.itSettings,sharedSettings)
   .dependsOn(
     authentication % "compile->compile;test->test",
     common         % "test->test;it->it;test->it"
   )
 
-
-lazy val tasks = (project in file("tasksFeature"))
+lazy val tasks = (project in file("modules/tasks"))
   .disablePlugins(RevolverPlugin)
   .configs((IntegrationTest extend Test))
-  .settings(
-    Defaults.itSettings,
-    libraryDependencies ++= Seq(
-      circeDerivation,
-      circeExtras,
-      circeFs2,
-      circeParser,
-      circeRefined,
-      doobieHikari,
-      doobiePostgres,
-      doobieRefined,
-      http4sClient,
-      http4sCirce,
-      mUnit,
-      mUnitCE,
-      mUnitScalacheck,
-      refined,
-      refinedCats
-    ).map(_.exclude("org.slf4j", "*")),
-    addCompilerPlugin(kindProjector),
-    scalacOptions ++= Seq("-Ymacro-annotations")
-  )
+  .settings(Defaults.itSettings,sharedSettings)
   .dependsOn(
     authentication % "compile->compile;test->test",
     common         % "test->test;it->it;compile->compile;test->it"
   )
 
-lazy val filters = (project in file("filtersFeature"))
+lazy val filters = (project in file("modules/filters"))
   .disablePlugins(RevolverPlugin)
   .configs((IntegrationTest extend Test))
   .settings(
     Defaults.itSettings,
-    libraryDependencies ++= Seq(
-      log4cats,
-      slf4j
-    ).map(_.exclude("org.slf4j", "*")),
     addCompilerPlugin(kindProjector),
     scalacOptions ++= Seq("-Ymacro-annotations")
   )
@@ -185,29 +135,37 @@ lazy val filters = (project in file("filtersFeature"))
     projects % "compile->compile;test->test"
   )
 
-
-  lazy val stats = (project in file("statsFeature"))
+lazy val stats = (project in file("modules/stats"))
   .disablePlugins(RevolverPlugin)
-  .settings(
-    libraryDependencies ++= Seq(
-      circeDerivation,
-      circeExtras,
-      circeFs2,
-      circeParser,
-      circeRefined,
-      doobieHikari,
-      doobiePostgres,
-      doobieRefined,
-      http4sClient,
-      http4sCirce,
-      refined,
-      refinedCats,
-      log4cats
-    ).map(_.exclude("org.slf4j", "*")),
-    addCompilerPlugin(kindProjector),
-    scalacOptions ++= Seq("-Ymacro-annotations")
-  )
+  .settings(Defaults.itSettings,sharedSettings)
   .dependsOn(
     authentication % "compile->compile;test->test",
     common         % "test->test"
   )
+
+lazy val sharedSettings = Seq(
+  libraryDependencies ++= Seq(
+    circeDerivation,
+    circeExtras,
+    circeFs2,
+    circeParser,
+    circeRefined,
+    doobieHikari,
+    doobiePostgres,
+    doobieRefined,
+    http4sClient,
+    refined,
+    refinedCats
+  ).map(_.exclude("org.slf4j", "*")),
+  addCompilerPlugin(kindProjector),
+  scalacOptions ++= Seq(
+      "-deprecation",
+      "-encoding",
+      "UTF-8",
+      "-language:higherKinds",
+      "-language:postfixOps",
+      "-feature",
+      "-Xlint:unused",
+      "-Ymacro-annotations"
+    )
+)
