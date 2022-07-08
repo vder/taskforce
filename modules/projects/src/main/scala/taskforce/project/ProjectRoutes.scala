@@ -27,7 +27,7 @@ final class ProjectRoutes[F[_]: Sync: JsonDecoder](
       )
   }
 
-  def newProjectFromReq(authReq: AuthedRequest[F, UserId]):F[ProjectName] =
+  def newProjectFromReq(authReq: AuthedRequest[F, UserId]): F[ProjectName] =
     authReq.req
       .asJsonDecode[ProjectName]
       .adaptError(_ => commonErrors.BadRequest)

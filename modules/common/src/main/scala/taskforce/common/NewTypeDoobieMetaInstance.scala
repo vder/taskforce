@@ -8,7 +8,7 @@ import doobie.util.Get
 import cats.Show
 import io.getquill.MappedEncoding
 
-trait NewTypeDoobieMeta extends NewTypeDoobiePut  with NewTypeDoobieGet
+trait NewTypeDoobieMeta extends NewTypeDoobiePut with NewTypeDoobieGet
 
 trait NewTypeDoobiePut {
   implicit def putInstance[T, S](implicit

@@ -85,9 +85,7 @@ final class LiveTaskRepository[F[_]: MonadCancel[*[_], Throwable]](
 
   override def find(projectId: ProjectId, taskId: TaskId): F[Option[Task]] =
     run(
-      taskQuery.filter(t =>
-        t.projectId == lift(projectId) && t.id == lift(taskId)
-      )
+      taskQuery.filter(t => t.projectId == lift(projectId) && t.id == lift(taskId))
     )
       .transact(xa)
       .map(_.headOption)

@@ -7,24 +7,16 @@ import taskforce.common.NewTypeQuillInstances
 import eu.timepit.refined.types.numeric.PosInt
 import java.util.UUID
 import java.time.Duration
-import io.circe.{Encoder => JsonEncoder,Decoder => JsonDecoder}
+import io.circe.{Encoder => JsonEncoder, Decoder => JsonDecoder}
 import eu.timepit.refined.types.string.NonEmptyString
 
 package object task {
 
   type ProjectId = ProjectId.Type
-  object ProjectId
-      extends NewtypeWrapped[Long]
-      with DerivedCirceCodec
-      with NewTypeDoobieMeta
-      with NewTypeQuillInstances
+  object ProjectId extends NewtypeWrapped[Long] with DerivedCirceCodec with NewTypeDoobieMeta with NewTypeQuillInstances
 
   type TaskId = TaskId.Type
-  object TaskId
-      extends NewtypeWrapped[UUID]
-      with DerivedCirceCodec
-      with NewTypeDoobieMeta
-      with NewTypeQuillInstances
+  object TaskId extends NewtypeWrapped[UUID] with DerivedCirceCodec with NewTypeDoobieMeta with NewTypeQuillInstances
 
   type TaskDuration = TaskDuration.Type
   object TaskDuration
@@ -46,7 +38,6 @@ package object task {
       with DerivedCirceCodec
       with NewTypeDoobieMeta
       with NewTypeQuillInstances
-      
 
   implicit val taskDurationEncoder: JsonEncoder[TaskDuration] =
     JsonEncoder[Long].contramap(_.value.toMinutes())

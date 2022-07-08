@@ -10,7 +10,7 @@ import taskforce.authentication.UserId
 class ProjectRepositorySuite extends BasicRepositorySuite {
 
   var projectRepo: IO[ProjectRepository[IO]] = null
-  val userID = UserId(userIdUUID)
+  val userID                                 = UserId(userIdUUID)
 
   override def beforeAll(): Unit = {
     super.beforeAll()
