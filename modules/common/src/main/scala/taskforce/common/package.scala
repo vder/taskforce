@@ -6,14 +6,12 @@ import java.time.LocalDateTime
 
 package object common {
 
-
-
   type CreationDate = CreationDate.Type
   object CreationDate
       extends NewtypeWrapped[LocalDateTime]
       with DerivedCirceCodec
       with NewTypeDoobieMeta
-      with NewTypeQuillInstances 
+      with NewTypeQuillInstances
 
   type DeletionDate = DeletionDate.Type
   object DeletionDate
