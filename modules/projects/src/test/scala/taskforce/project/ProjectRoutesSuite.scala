@@ -1,6 +1,5 @@
 package taskforce.project
 
-
 import cats.data.Kleisli
 import cats.effect.IO
 import cats.implicits._

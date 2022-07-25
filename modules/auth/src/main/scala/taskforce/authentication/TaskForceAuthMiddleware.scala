@@ -13,7 +13,7 @@ import taskforce.authentication.instances.Circe
 
 object TaskForceAuthMiddleware extends Circe {
 
-  def apply[F[_]:  MonadThrow](
+  def apply[F[_]: MonadThrow](
       userRepo: UserRepository[F],
       secret: String
   ): AuthMiddleware[F, UserId] = {
@@ -29,11 +29,11 @@ object TaskForceAuthMiddleware extends Circe {
             encodedString <-
               request.headers
                 .get[Authorization]
-                .fold(s"missing Authorization header: ${request}".asLeft[String]){ 
+                .fold(s"missing Authorization header: ${request}".asLeft[String]) {
                   case Authorization(Credentials.Token(AuthScheme.Bearer, t)) =>
                     t.asRight[String]
                   case header => s"invalid header type $header".asLeft[String]
-                      }
+                }
             jwtClaim <-
               JwtCirce
                 .decode(encodedString, secret, Seq(JwtAlgorithm.HS256))

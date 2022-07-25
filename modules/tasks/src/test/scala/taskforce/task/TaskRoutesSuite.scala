@@ -19,7 +19,7 @@ import taskforce.common.{ErrorMessage, LiveHttpErrorHandler}
 import taskforce.common.CreationDate
 import taskforce.task.instances.Circe
 
-class TasksRoutesSuite extends HttpTestSuite with Circe{
+class TasksRoutesSuite extends HttpTestSuite with Circe {
 
   implicit def encodeNewTask: EntityEncoder[IO, NewTask] = jsonEncoderOf
 

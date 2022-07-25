@@ -10,24 +10,21 @@ import java.time.Duration
 import taskforce.common.NewTypeDoobieMeta
 import taskforce.common.NewTypeQuillInstances
 
-
-trait Doobie extends NewTypeDoobieMeta with NewTypeQuillInstances{
+trait Doobie extends NewTypeDoobieMeta with NewTypeQuillInstances {
 
   implicit val totalTimeMeta: Meta[TotalTime] =
-    Meta[Long].imap(x => TotalTime(Duration.ofMinutes(x)))(x =>
-      x.value.toMinutes
-    )
+    Meta[Long].imap(x => TotalTime(Duration.ofMinutes(x)))(x => x.value.toMinutes)
 
   implicit val decodeTotalTime: MappedEncoding[Long, TotalTime] =
-    MappedEncoding[Long, TotalTime](long =>
-      TotalTime(Duration.ofMinutes(long))
-    )
+    MappedEncoding[Long, TotalTime](long => TotalTime(Duration.ofMinutes(long)))
   implicit val encodeTotalTime: MappedEncoding[TotalTime, Long] =
     MappedEncoding[TotalTime, Long](_.value.toMinutes)
 
-  implicit val decodeNonEmptyString: MappedEncoding[String, string.NonEmptyString] = MappedEncoding[String, string.NonEmptyString](Refined.unsafeApply)
-  implicit val encodeNonEmptyString: MappedEncoding[string.NonEmptyString, String] = MappedEncoding[string.NonEmptyString, String](_.value)
-  implicit val taskDurationNumeric: Numeric[TotalTime]  = fakeNumeric[TotalTime]
+  implicit val decodeNonEmptyString: MappedEncoding[String, string.NonEmptyString] =
+    MappedEncoding[String, string.NonEmptyString](Refined.unsafeApply)
+  implicit val encodeNonEmptyString: MappedEncoding[string.NonEmptyString, String] =
+    MappedEncoding[string.NonEmptyString, String](_.value)
+  implicit val taskDurationNumeric: Numeric[TotalTime] = fakeNumeric[TotalTime]
 
   def fakeNumeric[T]: Numeric[T] = new Numeric[T] {
 
