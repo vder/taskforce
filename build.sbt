@@ -107,7 +107,7 @@ lazy val authentication = (project in file("modules/auth"))
 lazy val projects = (project in file("modules/projects"))
   .disablePlugins(RevolverPlugin)
   .configs((IntegrationTest extend Test))
-  .settings(Defaults.itSettings,sharedSettings)
+  .settings(sharedSettings)
   .dependsOn(
     authentication % "compile->compile;test->test",
     common         % "test->test;it->it;test->it"
@@ -116,7 +116,7 @@ lazy val projects = (project in file("modules/projects"))
 lazy val tasks = (project in file("modules/tasks"))
   .disablePlugins(RevolverPlugin)
   .configs((IntegrationTest extend Test))
-  .settings(Defaults.itSettings,sharedSettings)
+  .settings(sharedSettings)
   .dependsOn(
     authentication % "compile->compile;test->test",
     common         % "test->test;it->it;compile->compile;test->it"
@@ -143,7 +143,7 @@ lazy val stats = (project in file("modules/stats"))
     common         % "test->test"
   )
 
-lazy val sharedSettings = Seq(
+lazy val sharedSettings = Defaults.itSettings ++ Seq(
   libraryDependencies ++= Seq(
     circeDerivation,
     circeExtras,
