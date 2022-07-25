@@ -9,8 +9,9 @@ import org.http4s.server.AuthMiddleware
 import org.http4s.{AuthScheme, AuthedRoutes, Credentials, Request}
 import pdi.jwt.{JwtAlgorithm, JwtCirce}
 import cats.MonadThrow
+import taskforce.authentication.instances.Circe
 
-object TaskForceAuthMiddleware  {
+object TaskForceAuthMiddleware extends Circe {
 
   def apply[F[_]:  MonadThrow](
       userRepo: UserRepository[F],

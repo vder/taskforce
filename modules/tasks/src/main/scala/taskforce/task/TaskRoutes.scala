@@ -15,7 +15,7 @@ import org.http4s.Response
 final class TaskRoutes[F[_]: Sync: JsonDecoder](
     authMiddleware: AuthMiddleware[F, UserId],
     taskService: TaskService[F]
-)  {
+) extends instances.Http4s[F] {
 
   private[this] val prefixPath = "/api/v1/projects"
 
