@@ -7,9 +7,11 @@ import io.getquill.MappedEncoding
 import taskforce.project.TotalTime
 
 import java.time.Duration
+import taskforce.common.NewTypeDoobieMeta
+import taskforce.common.NewTypeQuillInstances
 
 
-trait Doobie {
+trait Doobie extends NewTypeDoobieMeta with NewTypeQuillInstances{
 
   implicit val totalTimeMeta: Meta[TotalTime] =
     Meta[Long].imap(x => TotalTime(Duration.ofMinutes(x)))(x =>
