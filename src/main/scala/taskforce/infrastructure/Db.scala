@@ -3,7 +3,7 @@ package taskforce.infrastructure
 import cats.effect.Sync
 import cats.implicits._
 import doobie.util.transactor.Transactor
-import taskforce.authentication.{UserRepository, LiveUserRepository}
+import taskforce.authentication.UserRepository
 import taskforce.filter.{FilterRepository, LiveFilterRepository}
 import taskforce.project.{ProjectRepository, LiveProjectRepository}
 import taskforce.stats.{StatsRepository, LiveStatsRepository}
@@ -25,6 +25,6 @@ object Db {
       projectDb <- LiveProjectRepository.make[F](xa)
       statsDb   <- LiveStatsRepository.make[F](xa)
       taskDb    <- LiveTaskRepository.make[F](xa)
-      userdDb   <- LiveUserRepository.make[F](xa)
+      userdDb   <- UserRepository.make[F](xa).pure[F]
     } yield Db(filterDb, projectDb, statsDb, taskDb, userdDb)
 }
