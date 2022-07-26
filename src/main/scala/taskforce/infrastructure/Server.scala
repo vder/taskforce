@@ -25,11 +25,11 @@ final class Server[F[_]: Logger: Async] private (
   def run /*(implicit T: Temporal[F])*/ =
     for {
       basicRoutes    <- BasicRoutes.make(authMiddleware)
-      projectService <- ProjectService.make(db.projectRepo)
+      projectService <- ProjectService.make(db.projectRepo).pure[F]
       taskService    <- TaskService.make(db.taskRepo)
       statsService   <- StatsService.make(db.statsRepo)
       filterService  <- FilterService.make(db.filterRepo).pure[F]
-      projectRoutes  <- ProjectRoutes.make(authMiddleware, projectService)
+      projectRoutes  <- ProjectRoutes.make(authMiddleware, projectService).pure[F]
       filterRoutes   <- FilterRoutes.make(authMiddleware, filterService).pure[F]
       statsRoutes    <- StatsRoutes.make(authMiddleware, statsService)
       taskRoutes     <- TaskRoutes.make(authMiddleware, taskService)

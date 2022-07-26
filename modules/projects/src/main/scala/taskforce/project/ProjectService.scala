@@ -6,7 +6,7 @@ import taskforce.authentication.UserId
 import taskforce.common.errors._
 import cats.MonadThrow
 
-final class ProjectService[F[_]: Sync](
+final class ProjectService[F[_]: MonadThrow] private (
     projectRepo: ProjectRepository[F]
 ) {
 
@@ -46,8 +46,6 @@ final class ProjectService[F[_]: Sync](
 }
 
 object ProjectService {
-  def make[F[_]: Sync](projectRepo: ProjectRepository[F]) =
-    Sync[F].delay(
-      new ProjectService[F](projectRepo)
-    )
+  def make[F[_]: Sync](projectRepo: ProjectRepository[F]): ProjectService[F] = new ProjectService[F](projectRepo)
+
 }

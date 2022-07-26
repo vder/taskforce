@@ -1,6 +1,5 @@
 package taskforce.project
 
-import cats.effect.Sync
 import cats.implicits._
 import org.http4s.{AuthedRequest, AuthedRoutes, Response}
 import org.http4s.circe._
@@ -9,8 +8,10 @@ import org.http4s.server.{AuthMiddleware, Router}
 import taskforce.authentication.UserId
 import taskforce.common.{ErrorMessage, ErrorHandler, errors => commonErrors}
 import io.circe.refined._
+import cats.MonadThrow
+import org.http4s.HttpRoutes
 
-final class ProjectRoutes[F[_]: Sync: JsonDecoder](
+final class ProjectRoutes[F[_]: MonadThrow: JsonDecoder] private (
     authMiddleware: AuthMiddleware[F, UserId],
     projectService: ProjectService[F]
 ) extends instances.Http4s[F] {
@@ -70,15 +71,15 @@ final class ProjectRoutes[F[_]: Sync: JsonDecoder](
     }
   }
 
-  def routes(errHandler: ErrorHandler[F, Throwable]) =
+  def routes(errHandler: ErrorHandler[F, Throwable]): HttpRoutes[F] =
     Router(
       prefixPath -> errHandler.basicHandle(authMiddleware(httpRoutes))
     )
 }
 
 object ProjectRoutes {
-  def make[F[_]: Sync: JsonDecoder](
+  def make[F[_]: MonadThrow: JsonDecoder](
       authMiddleware: AuthMiddleware[F, UserId],
       projectService: ProjectService[F]
-  ) = Sync[F].delay { new ProjectRoutes(authMiddleware, projectService) }
+  ): ProjectRoutes[F] = new ProjectRoutes(authMiddleware, projectService)
 }

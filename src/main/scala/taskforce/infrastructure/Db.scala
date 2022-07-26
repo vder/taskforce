@@ -5,7 +5,7 @@ import cats.implicits._
 import doobie.util.transactor.Transactor
 import taskforce.authentication.UserRepository
 import taskforce.filter.FilterRepository
-import taskforce.project.{ProjectRepository, LiveProjectRepository}
+import taskforce.project.ProjectRepository
 import taskforce.stats.{StatsRepository, LiveStatsRepository}
 import taskforce.task.{TaskRepository, LiveTaskRepository}
 import org.typelevel.log4cats.Logger
@@ -22,7 +22,7 @@ object Db {
   def make[F[_]: Sync: Logger](xa: Transactor[F]) =
     for {
       filterDb  <- FilterRepository.make[F](xa).pure[F]
-      projectDb <- LiveProjectRepository.make[F](xa)
+      projectDb <- ProjectRepository.make[F](xa).pure[F]
       statsDb   <- LiveStatsRepository.make[F](xa)
       taskDb    <- LiveTaskRepository.make[F](xa)
       userdDb   <- UserRepository.make[F](xa).pure[F]
