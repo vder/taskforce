@@ -28,9 +28,9 @@ final class Server[F[_]: Logger: Async] private (
       projectService <- ProjectService.make(db.projectRepo)
       taskService    <- TaskService.make(db.taskRepo)
       statsService   <- StatsService.make(db.statsRepo)
-      filterService  <- FilterService.make(db.filterRepo)
+      filterService  <- FilterService.make(db.filterRepo).pure[F]
       projectRoutes  <- ProjectRoutes.make(authMiddleware, projectService)
-      filterRoutes   <- FilterRoutes.make(authMiddleware, filterService)
+      filterRoutes   <- FilterRoutes.make(authMiddleware, filterService).pure[F]
       statsRoutes    <- StatsRoutes.make(authMiddleware, statsService)
       taskRoutes     <- TaskRoutes.make(authMiddleware, taskService)
       errHandler = LiveHttpErrorHandler[F]

@@ -27,7 +27,7 @@ object UserRepository {
       .option
       .transact(xa)
 
-  object sql {
+  private object sql {
     def insert(user: User) = sql"insert into users(id) values(${user.id})"
     def find(userId: UserId) =
       sql"select id from users where id =${userId.value}"
