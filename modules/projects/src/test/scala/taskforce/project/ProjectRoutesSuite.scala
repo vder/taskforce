@@ -45,7 +45,7 @@ class ProjectRoutesSuite extends HttpTestSuite with Circe {
           DuplicateProjectNameError(newProject).asLeft[Project].pure[IO]
       }
       val routes =
-        new ProjectRoutes[IO](authMiddleware(p1.author), new ProjectService[IO](projectRepo)).routes(errHandler)
+         ProjectRoutes.make[IO](authMiddleware(p1.author), ProjectService.make[IO](projectRepo)).routes(errHandler)
       PUT(p2.name, Uri.unsafeFromString(s"api/v1/projects/${p1.id.value}")).pure[IO].flatMap { req =>
         assertHttp(routes, req)(
           Status.Conflict,

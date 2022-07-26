@@ -6,7 +6,7 @@ import doobie.util.transactor.Transactor
 import taskforce.authentication.UserRepository
 import taskforce.filter.FilterRepository
 import taskforce.project.ProjectRepository
-import taskforce.stats.{StatsRepository, LiveStatsRepository}
+import taskforce.stats.StatsRepository
 import taskforce.task.{TaskRepository, LiveTaskRepository}
 import org.typelevel.log4cats.Logger
 
@@ -23,7 +23,7 @@ object Db {
     for {
       filterDb  <- FilterRepository.make[F](xa).pure[F]
       projectDb <- ProjectRepository.make[F](xa).pure[F]
-      statsDb   <- LiveStatsRepository.make[F](xa)
+      statsDb   <- StatsRepository.make[F](xa).pure[F]
       taskDb    <- LiveTaskRepository.make[F](xa)
       userdDb   <- UserRepository.make[F](xa).pure[F]
     } yield Db(filterDb, projectDb, statsDb, taskDb, userdDb)
