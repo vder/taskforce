@@ -3,11 +3,11 @@ package taskforce.infrastructure
 import cats.effect.Sync
 import cats.implicits._
 import doobie.util.transactor.Transactor
-import taskforce.authentication.{UserRepository, LiveUserRepository}
-import taskforce.filter.{FilterRepository, LiveFilterRepository}
-import taskforce.project.{ProjectRepository, LiveProjectRepository}
-import taskforce.stats.{StatsRepository, LiveStatsRepository}
-import taskforce.task.{TaskRepository, LiveTaskRepository}
+import taskforce.authentication.UserRepository
+import taskforce.filter.FilterRepository
+import taskforce.project.ProjectRepository
+import taskforce.stats.StatsRepository
+import taskforce.task.TaskRepository
 import org.typelevel.log4cats.Logger
 
 final case class Db[F[_]](
@@ -21,10 +21,10 @@ final case class Db[F[_]](
 object Db {
   def make[F[_]: Sync: Logger](xa: Transactor[F]) =
     for {
-      filterDb  <- LiveFilterRepository.make[F](xa)
-      projectDb <- LiveProjectRepository.make[F](xa)
-      statsDb   <- LiveStatsRepository.make[F](xa)
-      taskDb    <- LiveTaskRepository.make[F](xa)
-      userdDb   <- LiveUserRepository.make[F](xa)
+      filterDb  <- FilterRepository.make[F](xa).pure[F]
+      projectDb <- ProjectRepository.make[F](xa).pure[F]
+      statsDb   <- StatsRepository.make[F](xa).pure[F]
+      taskDb    <- TaskRepository.make[F](xa).pure[F]
+      userdDb   <- UserRepository.make[F](xa).pure[F]
     } yield Db(filterDb, projectDb, statsDb, taskDb, userdDb)
 }

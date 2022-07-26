@@ -46,7 +46,7 @@ class FilterRoutesSuite extends HttpTestSuite with instances.Circe {
   test("create filter") {
     PropF.forAllF { (f: NewFilter, fId: FilterId) =>
       val filterRepo = new TestFilterRepository(List(Filter(fId, f.conditions)), List())
-      val routes     = new FilterRoutes[IO](authMiddleware, new FilterService(filterRepo)).routes(errHandler)
+      val routes     = FilterRoutes.make[IO](authMiddleware, FilterService.make(filterRepo)).routes(errHandler)
       POST(f, uri).pure[IO].flatMap { _ =>
         assertHttpStatus(routes, POST(f, uri))(
           Status.Created
@@ -57,7 +57,7 @@ class FilterRoutesSuite extends HttpTestSuite with instances.Circe {
   test("get filter that does not exist") {
     PropF.forAllF { (f: NewFilter, fId: FilterId, fId2: FilterId) =>
       val filterRepo = new TestFilterRepository(List(Filter(fId2, f.conditions)), List())
-      val routes     = new FilterRoutes[IO](authMiddleware, new FilterService(filterRepo)).routes(errHandler)
+      val routes     = FilterRoutes.make[IO](authMiddleware, FilterService.make(filterRepo)).routes(errHandler)
       GET(f, Uri.unsafeFromString(s"api/v1/filters/${fId.value}?sortBy=-creaed")).pure[IO].flatMap { req =>
         assertHttp(routes, req)(
           Status.NotFound,
@@ -82,7 +82,7 @@ class FilterRoutesSuite extends HttpTestSuite with instances.Circe {
         }
       }
 
-      val routes = new FilterRoutes[IO](authMiddleware, new FilterService(filterRepo)).routes(errHandler)
+      val routes = FilterRoutes.make[IO](authMiddleware, FilterService.make(filterRepo)).routes(errHandler)
       GET(f, Uri.unsafeFromString(s"api/v1/filters/${fId.value}/data?${queryParams}")).pure[IO].flatMap { req =>
         assertHttp(routes, req)(
           Status.Ok,
