@@ -4,19 +4,17 @@ import java.time.LocalDateTime
 import java.util.UUID
 import taskforce.authentication.UserId
 import taskforce.common._
-import io.circe.refined._
-import io.circe.generic.JsonCodec
 import taskforce.task.TaskVolume
 import taskforce.task.TaskComment
 
-@JsonCodec final case class NewTask(
+final case class NewTask(
     created: Option[CreationDate] = None,
     duration: TaskDuration,
     volume: Option[TaskVolume],
     comment: Option[TaskComment]
 )
 
-@JsonCodec final case class Task(
+final case class Task(
     id: TaskId,
     projectId: ProjectId,
     author: UserId,

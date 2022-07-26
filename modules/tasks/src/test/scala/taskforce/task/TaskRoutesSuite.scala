@@ -17,10 +17,11 @@ import arbitraries._
 import taskforce.authentication.UserId
 import taskforce.common.{ErrorMessage, LiveHttpErrorHandler}
 import taskforce.common.CreationDate
+import taskforce.task.instances.Circe
 
-class TasksRoutesSuite extends HttpTestSuite {
+class TasksRoutesSuite extends HttpTestSuite with Circe {
 
-  implicit def encodeNewProduct: EntityEncoder[IO, NewTask] = jsonEncoderOf
+  implicit def encodeNewTask: EntityEncoder[IO, NewTask] = jsonEncoderOf
 
   def authMiddleware: AuthMiddleware[IO, UserId] =
     AuthMiddleware(Kleisli.pure(UserId(UUID.randomUUID())))

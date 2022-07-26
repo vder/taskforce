@@ -1,6 +1,5 @@
 package taskforce.project
 
-
 import cats.data.Kleisli
 import cats.effect.IO
 import cats.implicits._
@@ -18,8 +17,9 @@ import taskforce.HttpTestSuite
 import taskforce.authentication.UserId
 import taskforce.common.{ErrorMessage, LiveHttpErrorHandler}
 import taskforce.project.ProjectName
+import taskforce.project.instances.Circe
 
-class ProjectRoutesSuite extends HttpTestSuite  {
+class ProjectRoutesSuite extends HttpTestSuite with Circe {
 
   import arbitraries._
 

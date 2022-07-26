@@ -1,57 +1,26 @@
 package taskforce
 
-import monix.newtypes.integrations.DerivedCirceCodec
 import monix.newtypes.NewtypeWrapped
-import taskforce.common.NewTypeDoobieMeta
-import taskforce.common.NewTypeQuillInstances
 import eu.timepit.refined.types.numeric.PosInt
 import java.util.UUID
 import java.time.Duration
-import io.circe.{Encoder => JsonEncoder,Decoder => JsonDecoder}
 import eu.timepit.refined.types.string.NonEmptyString
 
 package object task {
 
   type ProjectId = ProjectId.Type
-  object ProjectId
-      extends NewtypeWrapped[Long]
-      with DerivedCirceCodec
-      with NewTypeDoobieMeta
-      with NewTypeQuillInstances
+  object ProjectId extends NewtypeWrapped[Long]
 
   type TaskId = TaskId.Type
-  object TaskId
-      extends NewtypeWrapped[UUID]
-      with DerivedCirceCodec
-      with NewTypeDoobieMeta
-      with NewTypeQuillInstances
+  object TaskId extends NewtypeWrapped[UUID]
 
   type TaskDuration = TaskDuration.Type
-  object TaskDuration
-      extends NewtypeWrapped[Duration]
-      with DerivedCirceCodec
-      with NewTypeDoobieMeta
-      with NewTypeQuillInstances
+  object TaskDuration extends NewtypeWrapped[Duration]
 
   type TaskVolume = TaskVolume.Type
-  object TaskVolume
-      extends NewtypeWrapped[PosInt]
-      with DerivedCirceCodec
-      with NewTypeDoobieMeta
-      with NewTypeQuillInstances
+  object TaskVolume extends NewtypeWrapped[PosInt]
 
   type TaskComment = TaskComment.Type
-  object TaskComment
-      extends NewtypeWrapped[NonEmptyString]
-      with DerivedCirceCodec
-      with NewTypeDoobieMeta
-      with NewTypeQuillInstances
-      
-
-  implicit val taskDurationEncoder: JsonEncoder[TaskDuration] =
-    JsonEncoder[Long].contramap(_.value.toMinutes())
-
-  implicit val taskDurationDecoder: JsonDecoder[TaskDuration] =
-    JsonDecoder[Long].map(x => TaskDuration(Duration.ofMinutes(x)))
+  object TaskComment extends NewtypeWrapped[NonEmptyString]
 
 }
