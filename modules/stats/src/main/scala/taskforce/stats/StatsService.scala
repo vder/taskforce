@@ -1,16 +1,12 @@
 package taskforce.stats
 
-import cats.effect.Sync
 
-final class StatsService[F[_]](
-    statsRepo: StatsRepository[F]
-) {
+final class StatsService[F[_]] private (statsRepo: StatsRepository[F]) {
   def getStats(query: StatsQuery) = statsRepo.get(query)
 }
 
 object StatsService {
-  def make[F[_]: Sync](statsRepo: StatsRepository[F]) =
-    Sync[F].delay(
-      new StatsService[F](statsRepo)
-    )
+  def make[F[_]](statsRepo: StatsRepository[F]) =
+    new StatsService[F](statsRepo)
+
 }

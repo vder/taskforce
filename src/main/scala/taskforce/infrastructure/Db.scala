@@ -7,7 +7,7 @@ import taskforce.authentication.UserRepository
 import taskforce.filter.FilterRepository
 import taskforce.project.ProjectRepository
 import taskforce.stats.StatsRepository
-import taskforce.task.{TaskRepository, LiveTaskRepository}
+import taskforce.task.TaskRepository
 import org.typelevel.log4cats.Logger
 
 final case class Db[F[_]](
@@ -24,7 +24,7 @@ object Db {
       filterDb  <- FilterRepository.make[F](xa).pure[F]
       projectDb <- ProjectRepository.make[F](xa).pure[F]
       statsDb   <- StatsRepository.make[F](xa).pure[F]
-      taskDb    <- LiveTaskRepository.make[F](xa)
+      taskDb    <- TaskRepository.make[F](xa).pure[F]
       userdDb   <- UserRepository.make[F](xa).pure[F]
     } yield Db(filterDb, projectDb, statsDb, taskDb, userdDb)
 }

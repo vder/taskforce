@@ -1,6 +1,5 @@
 package taskforce.task
 
-import cats.effect.Sync
 import cats.implicits._
 import io.circe.syntax._
 import org.http4s.circe.CirceEntityEncoder._
@@ -11,8 +10,9 @@ import org.http4s.{AuthedRequest, AuthedRoutes}
 import taskforce.common.{ErrorMessage, ErrorHandler, errors => commonErrors}
 import taskforce.authentication.UserId
 import org.http4s.Response
+import cats.MonadThrow
 
-final class TaskRoutes[F[_]: Sync: JsonDecoder](
+final class TaskRoutes[F[_]: MonadThrow: JsonDecoder] private (
     authMiddleware: AuthMiddleware[F, UserId],
     taskService: TaskService[F]
 ) extends instances.Http4s[F] {
@@ -89,8 +89,8 @@ final class TaskRoutes[F[_]: Sync: JsonDecoder](
 }
 
 object TaskRoutes {
-  def make[F[_]: Sync: JsonDecoder](
+  def make[F[_]: MonadThrow: JsonDecoder](
       authMiddleware: AuthMiddleware[F, UserId],
       taskService: TaskService[F]
-  ) = Sync[F].delay { new TaskRoutes(authMiddleware, taskService) }
+  ) = new TaskRoutes(authMiddleware, taskService)
 }

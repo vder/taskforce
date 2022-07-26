@@ -5,9 +5,7 @@ import fs2.Stream
 import java.util.UUID
 import taskforce.common.{errors => commonErrors}
 import cats.MonadThrow
-final class FilterService[F[_]: MonadThrow](
-    filterRepo: FilterRepository[F]
-) {
+final class FilterService[F[_]: MonadThrow] private (filterRepo: FilterRepository[F]) {
 
   def create(newFilter: NewFilter) =
     filterRepo
@@ -31,6 +29,6 @@ final class FilterService[F[_]: MonadThrow](
 
 object FilterService {
   def make[F[_]: MonadThrow](filterRepo: FilterRepository[F]) =
-      new FilterService[F](filterRepo)
-    
+    new FilterService[F](filterRepo)
+
 }

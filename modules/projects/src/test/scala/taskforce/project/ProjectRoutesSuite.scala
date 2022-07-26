@@ -65,7 +65,7 @@ class ProjectRoutesSuite extends HttpTestSuite with Circe {
           DuplicateProjectNameError(newProject).asLeft[Project].pure[IO]
       }
 
-      val routes = new ProjectRoutes[IO](authMiddleware(u), new ProjectService[IO](projectRepo)).routes(errHandler)
+      val routes = ProjectRoutes.make[IO](authMiddleware(u), ProjectService.make[IO](projectRepo)).routes(errHandler)
       POST(p1.name, uri).pure[IO].flatMap { req =>
         assertHttp(routes, req)(
           Status.Conflict,
@@ -78,7 +78,7 @@ class ProjectRoutesSuite extends HttpTestSuite with Circe {
   test("returns project with given ID") {
     PropF.forAllF { (p: Project, list: List[Project]) =>
       val projectRepo = new TestProjectRepository(p :: list, currentTime)
-      val routes      = new ProjectRoutes[IO](authMiddleware, new ProjectService[IO](projectRepo)).routes(errHandler)
+      val routes      = ProjectRoutes.make[IO](authMiddleware, ProjectService.make[IO](projectRepo)).routes(errHandler)
 
       GET(Uri.unsafeFromString(s"api/v1/projects/${p.id.value}")).pure[IO].flatMap { req =>
         assertHttp(routes, req)(Status.Ok, p)
@@ -89,7 +89,7 @@ class ProjectRoutesSuite extends HttpTestSuite with Circe {
   test("cannot delete others project") {
     PropF.forAllF { (p: Project, u: UserId) =>
       val projectRepo = new TestProjectRepository(List(p), currentTime)
-      val routes      = new ProjectRoutes[IO](authMiddleware(u), new ProjectService[IO](projectRepo)).routes(errHandler)
+      val routes      = ProjectRoutes.make[IO](authMiddleware(u), ProjectService.make[IO](projectRepo)).routes(errHandler)
 
       DELETE(Uri.unsafeFromString(s"api/v1/projects/${p.id.value}")).pure[IO].flatMap { req =>
         assertHttp(routes, req)(Status.Forbidden, ErrorMessage("BASIC-003", "User is not an owner of the resource"))
@@ -99,7 +99,7 @@ class ProjectRoutesSuite extends HttpTestSuite with Circe {
   test("provide valid response where project is not found") {
     PropF.forAllF { (p: ProjectId, u: UserId) =>
       val projectRepo = new TestProjectRepository(List(), currentTime)
-      val routes      = new ProjectRoutes[IO](authMiddleware(u), new ProjectService[IO](projectRepo)).routes(errHandler)
+      val routes      = ProjectRoutes.make[IO](authMiddleware(u), ProjectService.make[IO](projectRepo)).routes(errHandler)
 
       DELETE(Uri.unsafeFromString(s"api/v1/projects/${p.value}")).pure[IO].flatMap { req =>
         assertHttp(routes, req)(

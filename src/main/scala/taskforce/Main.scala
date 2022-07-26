@@ -47,7 +47,7 @@ object Main extends IOApp {
             hostConfig.port.value,
             authMiddleware,
             db
-          )
+          ).pure[IO]
           exitCode <- server.run
         } yield exitCode
       }

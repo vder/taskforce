@@ -14,7 +14,7 @@ class ProjectRepositorySuite extends BasicRepositorySuite {
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    projectRepo = LiveProjectRepository.make[IO](xa)
+    projectRepo = ProjectRepository.make[IO](xa).pure[IO]
 
   }
 

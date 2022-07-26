@@ -17,7 +17,7 @@ class FilterRepositorySuite extends BasicRepositorySuite {
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    filterRepo = LiveFilterRepository.make[IO](xa)
+    filterRepo = FilterRepository.make[IO](xa).pure[IO]
   }
 
   test("filter by project Name") {

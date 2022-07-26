@@ -21,7 +21,7 @@ object StatsRepository {
           .unique
           .transact(xa)
 
-      object sql {
+      private object sql {
         def getStats(query: StatsQuery) = {
           fr"""select count(*) cnt,
            |      avg(duration) avg_duration,

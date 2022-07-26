@@ -11,9 +11,7 @@ import taskforce.authentication.UserId
 import taskforce.common.{ErrorHandler, errors => commonErrors}
 import cats.MonadThrow
 
-final class FilterRoutes[
-    F[_]: MonadThrow: JsonDecoder
-](
+final class FilterRoutes[F[_]: MonadThrow: JsonDecoder] private (
     authMiddleware: AuthMiddleware[F, UserId],
     filterService: FilterService[F]
 ) extends instances.Circe
@@ -68,5 +66,5 @@ object FilterRoutes {
   def make[F[_]: MonadThrow: JsonDecoder](
       authMiddleware: AuthMiddleware[F, UserId],
       filterService: FilterService[F]
-  ) =  new FilterRoutes(authMiddleware, filterService) 
+  ) = new FilterRoutes(authMiddleware, filterService)
 }
