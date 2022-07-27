@@ -42,8 +42,7 @@ final class Server[F[_]: Logger: Async] private (
         LoggerMiddleware
           .httpRoutes[F](logHeaders = true, logBody = true) _ andThen AutoSlash.httpRoutes[F]
       _ <-
-        BlazeServerBuilder[F]
-          .withExecutionContext(global)
+        BlazeServerBuilder[F].withExecutionContext(global)
           .bindHttp(port, "0.0.0.0")
           .withHttpApp(middlewares(routes).orNotFound)
           .serve

@@ -60,13 +60,13 @@ object generators {
 
   val taskGen: Gen[Task] =
     for {
-      id        <- taskIdGen
+      id <- taskIdGen
       projectId <- projectIdGen
-      author    <- userIdGen
-      created   <- localDateTimeGen
-      duration  <- taskDurationGen
-      volume    <- taskVolumeGen
-      comment   <- taskCommentGen
+      author <- userIdGen
+      created <- localDateTimeGen
+      duration <- taskDurationGen
+      volume <- taskVolumeGen
+      comment <- taskCommentGen
     } yield Task(
       id,
       projectId,
@@ -80,10 +80,10 @@ object generators {
 
   val newTaskGen: Gen[NewTask] =
     for {
-      created  <- creationDateTimeGen
+      created <- creationDateTimeGen
       duration <- taskDurationGen
-      volume   <- taskVolumeGen
-      comment  <- taskCommentGen
+      volume <- taskVolumeGen
+      comment <- taskCommentGen
     } yield NewTask(created.some, duration, volume.some, comment)
 
-}
+  }

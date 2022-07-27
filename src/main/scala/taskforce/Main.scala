@@ -20,7 +20,7 @@ object Main extends IOApp {
 
   val resources: Resource[IO, (HikariTransactor[IO], HostConfig)] =
     for {
-      // be <- Resource.unit[IO]
+      //be <- Resource.unit[IO]
       dbConfig <- Resource.eval(
         ConfigSource.default.at("database").loadF[IO, DatabaseConfig]()
       )

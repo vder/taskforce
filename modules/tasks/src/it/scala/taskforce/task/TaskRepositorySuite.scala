@@ -19,6 +19,7 @@ class TaskRepositorySuite extends BasicRepositorySuite {
 
   }
 
+  
   test("task creation") {
     PropF.forAllF { (t: Task) =>
       for {

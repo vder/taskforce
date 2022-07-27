@@ -3,6 +3,7 @@ package taskforce.project
 import org.scalacheck.Arbitrary
 import generators._
 
+
 object arbitraries {
 
   implicit def arbNonEmptyStringGen = Arbitrary(nonEmptyStringGen)

@@ -1,5 +1,6 @@
 package taskforce.project
 
+
 import cats.data.Kleisli
 import cats.effect.IO
 import cats.implicits._
@@ -18,7 +19,7 @@ import taskforce.authentication.UserId
 import taskforce.common.{ErrorMessage, LiveHttpErrorHandler}
 import taskforce.project.ProjectName
 
-class ProjectRoutesSuite extends HttpTestSuite {
+class ProjectRoutesSuite extends HttpTestSuite  {
 
   import arbitraries._
 

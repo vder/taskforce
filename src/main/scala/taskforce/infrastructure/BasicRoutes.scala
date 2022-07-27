@@ -28,8 +28,9 @@ final class BasicRoutes[F[_]: Sync](
   val basicRoutes = {
     val dsl = new Http4sDsl[F] {}
     import dsl._
-    HttpRoutes.of[F] { case GET -> Root / "test" =>
-      Ok("its alive")
+   HttpRoutes.of[F] {
+      case GET -> Root / "test" =>
+        Ok("its alive")
     }
   }
 

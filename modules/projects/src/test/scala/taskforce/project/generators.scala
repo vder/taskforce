@@ -45,9 +45,10 @@ object generators {
   val projectGen: Gen[Project] =
     for {
       projectId <- projectIdGen
-      name      <- newProjectGen
-      userId    <- userIdGen
-      created   <- localDateTimeGen
+      name <- newProjectGen
+      userId <- userIdGen
+      created <- localDateTimeGen
     } yield Project(projectId, name, userId, CreationDate(created), None)
 
 }
+  

@@ -20,6 +20,7 @@ import eu.timepit.refined.cats._
 import org.typelevel.log4cats.Logger
 import cats.Show
 
+
 trait FilterRepository[F[_]] {
   def create(filter: Filter): F[Filter]
   def delete(id: FilterId): F[Int]
@@ -35,10 +36,11 @@ trait FilterRepository[F[_]] {
 final class LiveFilterRepository[F[_]: MonadCancel[*[_], Throwable]: Logger](
     xa: Transactor[F]
 ) extends FilterRepository[F]
-    with instances.Doobie {
+  with instances.Doobie 
+    {
 
   implicit val showInstance: Show[LocalDateTime] =
-    Show.fromToString[LocalDateTime]
+    Show.fromToString[LocalDateTime]    
 
   private val tuple2Condition: PartialFunction[
     (
@@ -89,14 +91,14 @@ final class LiveFilterRepository[F[_]: MonadCancel[*[_], Throwable]: Logger](
       fragments.whereAnd(filter.conditions.map(_.toFragment): _*)
     val orderClause = sortByOption.fold(Fragment.empty)(_.toFragment)
     val limitClause = page.toFragment
-    val sqlQuery    = sql.getData ++ whereClause ++ orderClause ++ limitClause
+    val sqlQuery = sql.getData ++ whereClause ++ orderClause ++ limitClause
 
     Stream.eval[F, Unit](Logger[F].info("test")) >>
       sqlQuery
         .query[(Project, Option[Task])]
-        // .query[CreationDate]
+        //.query[CreationDate]
         .stream
-        // .as( null : FilterResultRow)
+       // .as( null : FilterResultRow)
         .transact(xa)
         .map(x => FilterResultRow.fromTuple(x))
   }

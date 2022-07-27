@@ -59,8 +59,8 @@ final class TaskService[F[_]: Sync](
   def create(task: Task): F[Either[TaskError, Task]] =
     (for {
       allUserTasks <- Sync[F].delay(taskRepo.listByUser(task.author))
-      _            <- taskPeriodIsValid(task, allUserTasks)
-      result       <- taskRepo.create(task)
+      _ <- taskPeriodIsValid(task, allUserTasks)
+      result <- taskRepo.create(task)
     } yield result.leftWiden[TaskError]).recover { case WrongPeriodError =>
       WrongPeriodError.asLeft[Task]
     }
@@ -71,16 +71,16 @@ final class TaskService[F[_]: Sync](
       caller: UserId
   ): F[Either[TaskError, Task]] =
     (for {
-      oldTask      <- getTaskIfAuthor(task.projectId, taskId, caller)
+      oldTask <- getTaskIfAuthor(task.projectId, taskId, caller)
       allUserTasks <- Sync[F].delay(taskRepo.listByUser(task.author))
       allUserTasksWithoutOld = allUserTasks.filterNot(_.id == oldTask.id)
-      _           <- taskPeriodIsValid(task, allUserTasksWithoutOld)
+      _ <- taskPeriodIsValid(task, allUserTasksWithoutOld)
       updatedTask <- taskRepo.update(oldTask.id, task)
     } yield updatedTask.leftWiden[TaskError]).recover { case WrongPeriodError => WrongPeriodError.asLeft[Task] }
 
   def delete(projectId: ProjectId, taskId: TaskId, caller: UserId) =
     for {
-      task   <- getTaskIfAuthor(projectId, taskId, caller)
+      task <- getTaskIfAuthor(projectId, taskId, caller)
       result <- taskRepo.delete(task.id)
     } yield result
 
