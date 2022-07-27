@@ -1,7 +1,6 @@
 package taskforce.task
 
-import cats.effect.Sync
-import cats.effect.kernel.MonadCancel
+import cats.effect.kernel.MonadCancelThrow
 import cats.syntax.all._
 import doobie.implicits._
 import org.polyvariant.doobiequill.DoobieContext
@@ -27,9 +26,11 @@ trait TaskRepository[F[_]] {
   def update(id: TaskId, task: Task): F[Either[DuplicateTaskNameError, Task]]
 }
 
-final class LiveTaskRepository[F[_]: MonadCancel[*[_], Throwable]](
-    xa: Transactor[F]
-) extends TaskRepository[F]
+
+
+object TaskRepository {
+  def make[F[_]: MonadCancelThrow](xa: Transactor[F]) =
+  new  TaskRepository[F]
     with instances.Doobie {
 
   val ctx =
@@ -85,9 +86,7 @@ final class LiveTaskRepository[F[_]: MonadCancel[*[_], Throwable]](
 
   override def find(projectId: ProjectId, taskId: TaskId): F[Option[Task]] =
     run(
-      taskQuery.filter(t =>
-        t.projectId == lift(projectId) && t.id == lift(taskId)
-      )
+      taskQuery.filter(t => t.projectId == lift(projectId) && t.id == lift(taskId))
     )
       .transact(xa)
       .map(_.headOption)
@@ -112,8 +111,4 @@ final class LiveTaskRepository[F[_]: MonadCancel[*[_], Throwable]](
       .transact(xa)
 
 }
-
-object LiveTaskRepository {
-  def make[F[_]: Sync](xa: Transactor[F]) =
-    Sync[F].delay { new LiveTaskRepository[F](xa) }
 }

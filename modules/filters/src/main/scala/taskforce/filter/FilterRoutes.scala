@@ -1,6 +1,5 @@
 package taskforce.filter
 
-import cats.effect.Sync
 import cats.implicits._
 import io.circe.syntax._
 import org.http4s.AuthedRoutes
@@ -10,10 +9,9 @@ import org.http4s.dsl.Http4sDsl
 import org.http4s.server.{AuthMiddleware, Router}
 import taskforce.authentication.UserId
 import taskforce.common.{ErrorHandler, errors => commonErrors}
+import cats.MonadThrow
 
-final class FilterRoutes[
-    F[_]: Sync: JsonDecoder
-](
+final class FilterRoutes[F[_]: MonadThrow: JsonDecoder] private (
     authMiddleware: AuthMiddleware[F, UserId],
     filterService: FilterService[F]
 ) extends instances.Circe
@@ -65,8 +63,8 @@ final class FilterRoutes[
 }
 
 object FilterRoutes {
-  def make[F[_]: Sync: JsonDecoder](
+  def make[F[_]: MonadThrow: JsonDecoder](
       authMiddleware: AuthMiddleware[F, UserId],
       filterService: FilterService[F]
-  ) = Sync[F].delay { new FilterRoutes(authMiddleware, filterService) }
+  ) = new FilterRoutes(authMiddleware, filterService)
 }

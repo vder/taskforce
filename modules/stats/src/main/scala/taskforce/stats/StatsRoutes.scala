@@ -1,6 +1,5 @@
 package taskforce.stats
 
-import cats.effect.Sync
 import cats.implicits._
 import org.http4s.AuthedRoutes
 import org.http4s.circe.CirceEntityEncoder._
@@ -10,10 +9,9 @@ import org.http4s.server.{AuthMiddleware, Router}
 import org.typelevel.log4cats.Logger
 import taskforce.authentication.UserId
 import taskforce.common.{ErrorHandler, errors => commonErrors}
+import cats.MonadThrow
 
-final class StatsRoutes[
-    F[_]: Sync: JsonDecoder: Logger
-](
+final class StatsRoutes[F[_]: MonadThrow: JsonDecoder: Logger] private (
     authMiddleware: AuthMiddleware[F, UserId],
     statsService: StatsService[F]
 ) extends instances.Circe {
@@ -47,8 +45,8 @@ final class StatsRoutes[
 }
 
 object StatsRoutes {
-  def make[F[_]: Sync: Logger: JsonDecoder](
+  def make[F[_]: MonadThrow: Logger: JsonDecoder](
       authMiddleware: AuthMiddleware[F, UserId],
       statsService: StatsService[F]
-  ) = Sync[F].delay { new StatsRoutes(authMiddleware, statsService) }
+  ) = new StatsRoutes(authMiddleware, statsService)
 }

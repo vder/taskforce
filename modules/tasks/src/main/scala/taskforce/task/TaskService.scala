@@ -6,7 +6,7 @@ import taskforce.common.{errors => commonErrors}
 import taskforce.authentication.UserId
 import java.time.LocalDateTime
 
-final class TaskService[F[_]: Sync](
+final class TaskService[F[_]: Sync] private (
     taskRepo: TaskRepository[F]
 ) {
 
@@ -58,9 +58,9 @@ final class TaskService[F[_]: Sync](
 
   def create(task: Task): F[Either[TaskError, Task]] =
     (for {
-      allUserTasks <- Sync[F].delay(taskRepo.listByUser(task.author))
-      _ <- taskPeriodIsValid(task, allUserTasks)
-      result <- taskRepo.create(task)
+      allUserTasks <- taskRepo.listByUser(task.author).pure[F]
+      _            <- taskPeriodIsValid(task, allUserTasks)
+      result       <- taskRepo.create(task)
     } yield result.leftWiden[TaskError]).recover { case WrongPeriodError =>
       WrongPeriodError.asLeft[Task]
     }
@@ -71,16 +71,16 @@ final class TaskService[F[_]: Sync](
       caller: UserId
   ): F[Either[TaskError, Task]] =
     (for {
-      oldTask <- getTaskIfAuthor(task.projectId, taskId, caller)
-      allUserTasks <- Sync[F].delay(taskRepo.listByUser(task.author))
+      oldTask      <- getTaskIfAuthor(task.projectId, taskId, caller)
+      allUserTasks <- taskRepo.listByUser(task.author).pure[F]
       allUserTasksWithoutOld = allUserTasks.filterNot(_.id == oldTask.id)
-      _ <- taskPeriodIsValid(task, allUserTasksWithoutOld)
+      _           <- taskPeriodIsValid(task, allUserTasksWithoutOld)
       updatedTask <- taskRepo.update(oldTask.id, task)
     } yield updatedTask.leftWiden[TaskError]).recover { case WrongPeriodError => WrongPeriodError.asLeft[Task] }
 
   def delete(projectId: ProjectId, taskId: TaskId, caller: UserId) =
     for {
-      task <- getTaskIfAuthor(projectId, taskId, caller)
+      task   <- getTaskIfAuthor(projectId, taskId, caller)
       result <- taskRepo.delete(task.id)
     } yield result
 
@@ -88,7 +88,6 @@ final class TaskService[F[_]: Sync](
 
 object TaskService {
   def make[F[_]: Sync](taskRepo: TaskRepository[F]) =
-    Sync[F].delay(
-      new TaskService[F](taskRepo)
-    )
+    new TaskService[F](taskRepo)
+
 }

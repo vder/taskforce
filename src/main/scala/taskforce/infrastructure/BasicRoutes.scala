@@ -1,14 +1,14 @@
 package taskforce.infrastructure
 
-import cats.effect.Sync
 import cats.implicits._
 import org.http4s.AuthedRoutes
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.{AuthMiddleware, Router}
 import taskforce.authentication.UserId
 import org.http4s.HttpRoutes
+import cats.effect.kernel.MonadCancelThrow
 
-final class BasicRoutes[F[_]: Sync](
+final class BasicRoutes[F[_]: MonadCancelThrow] private (
     authMiddleware: AuthMiddleware[F, UserId]
 ) {
 
@@ -41,8 +41,8 @@ final class BasicRoutes[F[_]: Sync](
 }
 
 object BasicRoutes {
-  def make[F[_]: Sync](
+  def make[F[_]: MonadCancelThrow](
       authMiddleware: AuthMiddleware[F, UserId]
   ) =
-    Sync[F].delay { new BasicRoutes(authMiddleware) }
+    new BasicRoutes(authMiddleware) 
 }

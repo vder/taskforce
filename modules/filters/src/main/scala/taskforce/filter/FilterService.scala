@@ -1,13 +1,11 @@
 package taskforce.filter
 
-import cats.effect.Sync
 import cats.implicits._
 import fs2.Stream
 import java.util.UUID
 import taskforce.common.{errors => commonErrors}
-final class FilterService[F[_]: Sync](
-    filterRepo: FilterRepository[F]
-) {
+import cats.MonadThrow
+final class FilterService[F[_]: MonadThrow] private (filterRepo: FilterRepository[F]) {
 
   def create(newFilter: NewFilter) =
     filterRepo
@@ -30,8 +28,7 @@ final class FilterService[F[_]: Sync](
 }
 
 object FilterService {
-  def make[F[_]: Sync](filterRepo: FilterRepository[F]) =
-    Sync[F].delay(
-      new FilterService[F](filterRepo)
-    )
+  def make[F[_]: MonadThrow](filterRepo: FilterRepository[F]) =
+    new FilterService[F](filterRepo)
+
 }

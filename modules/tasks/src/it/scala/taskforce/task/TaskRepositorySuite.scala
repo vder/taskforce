@@ -6,6 +6,7 @@ import taskforce.task.ProjectId
 import taskforce.BasicRepositorySuite
 import taskforce.authentication.UserId
 import taskforce.task.arbitraries._
+import cats.implicits._
 
 class TaskRepositorySuite extends BasicRepositorySuite {
 
@@ -15,11 +16,10 @@ class TaskRepositorySuite extends BasicRepositorySuite {
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    taskRepo = LiveTaskRepository.make[IO](xa)
+    taskRepo = TaskRepository.make[IO](xa).pure[IO]
 
   }
 
-  
   test("task creation") {
     PropF.forAllF { (t: Task) =>
       for {

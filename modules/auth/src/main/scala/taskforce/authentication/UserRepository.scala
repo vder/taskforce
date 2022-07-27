@@ -1,21 +1,21 @@
 package taskforce.authentication
 
-import cats.effect.Sync
+
 import doobie.implicits._
 import doobie.postgres.implicits._
 import doobie.util.transactor.Transactor
-import cats.effect.kernel.MonadCancel
 import taskforce.common.NewTypeDoobieMeta
+import cats.effect.kernel.MonadCancelThrow
+
 
 trait UserRepository[F[_]] {
   def find(userId: UserId): F[Option[User]]
   def create(user: User): F[Int]
 }
 
-final class LiveUserRepository[F[_]: MonadCancel[*[_], Throwable]](
-    xa: Transactor[F]
-) extends UserRepository[F]
-    with NewTypeDoobieMeta {
+object UserRepository {
+  def make[F[_] : MonadCancelThrow](xa: Transactor[F]) =
+    new UserRepository[F] with NewTypeDoobieMeta {
 
   override def create(user: User): F[Int] =
     sql.insert(user).update.run.transact(xa)
@@ -27,15 +27,11 @@ final class LiveUserRepository[F[_]: MonadCancel[*[_], Throwable]](
       .option
       .transact(xa)
 
-  object sql {
+  private object sql {
     def insert(user: User) = sql"insert into users(id) values(${user.id})"
     def find(userId: UserId) =
       sql"select id from users where id =${userId.value}"
   }
 
 }
-
-object LiveUserRepository {
-  def make[F[_]: Sync](xa: Transactor[F]) =
-    Sync[F].delay { new LiveUserRepository[F](xa) }
 }

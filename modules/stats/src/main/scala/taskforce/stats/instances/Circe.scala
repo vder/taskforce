@@ -6,8 +6,9 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import taskforce.authentication.UserId
 import taskforce.stats.{StatsResponse, StatsQuery}
+import monix.newtypes.integrations.DerivedCirceCodec
 
-trait Circe   {
+trait Circe extends DerivedCirceCodec {
 
   private val toDateFmt   = DateTimeFormatter.ofPattern("yyyy.MM.dd")
   private val fromDateFmt = DateTimeFormatter.ofPattern("yyyy.MM")

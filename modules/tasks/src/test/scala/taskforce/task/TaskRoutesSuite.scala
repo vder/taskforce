@@ -17,10 +17,11 @@ import arbitraries._
 import taskforce.authentication.UserId
 import taskforce.common.{ErrorMessage, LiveHttpErrorHandler}
 import taskforce.common.CreationDate
+import taskforce.task.instances.Circe
 
-class TasksRoutesSuite extends HttpTestSuite {
+class TasksRoutesSuite extends HttpTestSuite with Circe {
 
-  implicit def encodeNewProduct: EntityEncoder[IO, NewTask] = jsonEncoderOf
+  implicit def encodeNewTask: EntityEncoder[IO, NewTask] = jsonEncoderOf
 
   def authMiddleware: AuthMiddleware[IO, UserId] =
     AuthMiddleware(Kleisli.pure(UserId(UUID.randomUUID())))
@@ -37,9 +38,9 @@ class TasksRoutesSuite extends HttpTestSuite {
   test("cannot delete not other's task") {
     PropF.forAllF { (t: Task, u: UserId) =>
       val taskRepo = new TestTaskRepository(List(t))
-      val routes =
-        new TaskRoutes[IO](authMiddleware(u), new TaskService(taskRepo))
-          .routes(errHandler)
+      val routes = TaskRoutes
+        .make[IO](authMiddleware(u), TaskService.make(taskRepo))
+        .routes(errHandler)
 
       DELETE(
         Uri.unsafeFromString(
@@ -57,9 +58,9 @@ class TasksRoutesSuite extends HttpTestSuite {
   test("cannot add overlapping tasks #1") {
     PropF.forAllF { (t: Task) =>
       val taskRepo = new TestTaskRepository(List(t))
-      val routes =
-        new TaskRoutes[IO](authMiddleware(t.author), new TaskService(taskRepo))
-          .routes(errHandler)
+      val routes = TaskRoutes
+        .make[IO](authMiddleware(t.author), TaskService.make(taskRepo))
+        .routes(errHandler)
       val newTask = NewTask(t.created.some, t.duration, None, None)
 
       POST(
@@ -80,9 +81,9 @@ class TasksRoutesSuite extends HttpTestSuite {
   test("cannot add overlapping tasks #2") {
     PropF.forAllF { (t: Task) =>
       val taskRepo = new TestTaskRepository(List(t))
-      val routes =
-        new TaskRoutes[IO](authMiddleware(t.author), new TaskService(taskRepo))
-          .routes(errHandler)
+      val routes = TaskRoutes
+        .make[IO](authMiddleware(t.author), TaskService.make(taskRepo))
+        .routes(errHandler)
       val newTask =
         NewTask(
           CreationDate(
@@ -111,9 +112,9 @@ class TasksRoutesSuite extends HttpTestSuite {
   test("cannot add overlapping tasks #3") {
     PropF.forAllF { (t: Task) =>
       val taskRepo = new TestTaskRepository(List(t))
-      val routes =
-        new TaskRoutes[IO](authMiddleware(t.author), new TaskService(taskRepo))
-          .routes(errHandler)
+      val routes = TaskRoutes
+        .make[IO](authMiddleware(t.author), TaskService.make(taskRepo))
+        .routes(errHandler)
       val newTask =
         NewTask(
           CreationDate(t.created.value.minus(Duration.ofMinutes(10))).some,
@@ -140,9 +141,9 @@ class TasksRoutesSuite extends HttpTestSuite {
   test("different users can add overlapping tasks") {
     PropF.forAllF { (t: Task, u: UserId) =>
       val taskRepo = new TestTaskRepository(List(t))
-      val routes =
-        new TaskRoutes[IO](authMiddleware(u), new TaskService(taskRepo))
-          .routes(errHandler)
+      val routes = TaskRoutes
+        .make[IO](authMiddleware(u), TaskService.make(taskRepo))
+        .routes(errHandler)
       val newTask = NewTask(t.created.some, t.duration, None, None)
 
       POST(
@@ -157,9 +158,9 @@ class TasksRoutesSuite extends HttpTestSuite {
   test("for unknown ids notFouns err is served") {
     PropF.forAllF { (taskId: TaskId, projectId: ProjectId, u: UserId) =>
       val taskRepo = new TestTaskRepository(List())
-      val routes =
-        new TaskRoutes[IO](authMiddleware(u), new TaskService(taskRepo))
-          .routes(errHandler)
+      val routes = TaskRoutes
+        .make[IO](authMiddleware(u), TaskService.make(taskRepo))
+        .routes(errHandler)
 
       GET(
         Uri.unsafeFromString(
