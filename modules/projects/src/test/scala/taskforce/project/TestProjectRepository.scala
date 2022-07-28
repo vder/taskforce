@@ -6,9 +6,9 @@ import java.time.Duration
 import java.util.UUID
 import taskforce.authentication.UserId
 import taskforce.common.CreationDate
-import java.time.LocalDateTime
+import java.time.Instant
 
-case class TestProjectRepository(projects: List[Project], currentTime: LocalDateTime) extends ProjectRepository[IO] {
+case class TestProjectRepository(projects: List[Project], currentTime: Instant) extends ProjectRepository[IO] {
 
   override def totalTime(projectId: ProjectId): IO[TotalTime] = TotalTime(Duration.ZERO).pure[IO]
 

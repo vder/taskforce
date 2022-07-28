@@ -6,10 +6,10 @@ import eu.timepit.refined.api.Refined
 import eu.timepit.refined.auto._
 import eu.timepit.refined.collection._
 import eu.timepit.refined.numeric.Positive
-import java.time.LocalDateTime
 import org.scalacheck.effect.PropF
 import arbitraries._
 import taskforce.BasicRepositorySuite
+import java.time.Instant
 
 class FilterRepositorySuite extends BasicRepositorySuite {
 
@@ -37,7 +37,7 @@ class FilterRepositorySuite extends BasicRepositorySuite {
             )
             .compile
             .toList
-      } yield assertEquals(rows.filter(_.projectName == "project 1").size, pageSize.value.value.min(6))
+      } yield assertEquals(rows.count(_.projectName == "project 1"), pageSize.value.value.min(6))
     }
   }
 
@@ -172,8 +172,8 @@ class FilterRepositorySuite extends BasicRepositorySuite {
       for {
         fRepo <- filterRepo
         filter   = Filter(f, List(State(All)))
-        fromDate = LocalDateTime.parse("0004-12-03T10:15:30")
-        toDate   = LocalDateTime.parse("0004-12-03T10:15:30")
+        fromDate = Instant.parse("0004-12-03T10:15:30Z")
+        toDate   = Instant.parse("0004-12-03T10:15:30Z")
         page = Page(
           PageNo(Refined.unsafeApply[Int, Positive](1)),
           PageSize(Refined.unsafeApply[Int, Positive](40))

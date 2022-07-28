@@ -4,7 +4,7 @@ create table if not exists filters(
     criteria_type varchar(20),
     field varchar(20),
     operator varchar(20),
-    date_value timestamp without time zone,
+    date_value timestamp with time zone,
     status_value varchar(20),
     list_value text []
 );

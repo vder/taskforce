@@ -20,7 +20,7 @@ import taskforce.common.NewTypeDoobieMeta
 
 
 
-trait Doobie extends taskforce.task.instances.Doobie with NewTypeDoobieMeta {
+trait Doobie extends taskforce.task.instances.Doobie with NewTypeDoobieMeta with doobie.util.meta.LegacyInstantMetaInstance {
 
   implicit val putNonEmptyList: Put[List[NonEmptyString]] =
     Put[List[String]].contramap(_.map(_.value))

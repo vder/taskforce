@@ -3,7 +3,7 @@ package taskforce.task
 import cats.data.Kleisli
 import cats.effect.IO
 import cats.implicits._
-import java.time.{Duration, LocalDateTime}
+import java.time.{Duration}
 import java.util.UUID
 import org.http4s.Method._
 import org.http4s._
@@ -18,6 +18,7 @@ import taskforce.authentication.UserId
 import taskforce.common.{ErrorMessage, LiveHttpErrorHandler}
 import taskforce.common.CreationDate
 import taskforce.task.instances.Circe
+import java.time.Instant
 
 class TasksRoutesSuite extends HttpTestSuite with Circe {
 
@@ -31,7 +32,7 @@ class TasksRoutesSuite extends HttpTestSuite with Circe {
 
   val errHandler = LiveHttpErrorHandler[IO]
 
-  val currentTime = LocalDateTime.now()
+  val currentTime = Instant.now()
 
   val uri = uri"api/v1/projects/"
 

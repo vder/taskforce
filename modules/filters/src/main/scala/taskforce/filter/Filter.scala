@@ -1,10 +1,10 @@
 package taskforce.filter
 
 import eu.timepit.refined.types.string.NonEmptyString
-import java.time.LocalDateTime
 import java.util.UUID
 import taskforce.project.Project
 import taskforce.task.Task
+import java.time.Instant
 
 sealed trait Operator
 
@@ -22,9 +22,9 @@ final case object All      extends Status
 
 sealed trait Criteria extends Product with Serializable
 
-final case class In(names: List[NonEmptyString])                    extends Criteria
-final case class TaskCreatedDate(op: Operator, date: LocalDateTime) extends Criteria
-final case class State(status: Status)                              extends Criteria
+final case class In(names: List[NonEmptyString])              extends Criteria
+final case class TaskCreatedDate(op: Operator, date: Instant) extends Criteria
+final case class State(status: Status)                        extends Criteria
 
 final case class FilterId(value: UUID)
 final case class NewFilter(conditions: List[Criteria])
@@ -33,12 +33,12 @@ final case class Filter(id: FilterId, conditions: List[Criteria])
 case class FilterResultRow(
     projectId: Long,
     projectName: String,
-    projectCreated: LocalDateTime,
-    projectDeleted: Option[LocalDateTime],
+    projectCreated: Instant,
+    projectDeleted: Option[Instant],
     projectAuthor: UUID,
     taskComment: Option[String],
-    taskCreated: Option[LocalDateTime],
-    taskDeleted: Option[LocalDateTime],
+    taskCreated: Option[Instant],
+    taskDeleted: Option[Instant],
     duration: Option[Long]
 )
 

@@ -7,6 +7,7 @@ import taskforce.BasicRepositorySuite
 import taskforce.authentication.UserId
 import taskforce.task.arbitraries._
 import cats.implicits._
+import org.typelevel.log4cats.Logger
 
 class TaskRepositorySuite extends BasicRepositorySuite {
 
@@ -24,8 +25,10 @@ class TaskRepositorySuite extends BasicRepositorySuite {
     PropF.forAllF { (t: Task) =>
       for {
         repo      <- taskRepo
+        _ <- Logger[IO].info("Before All PFL")
         allBefore <- repo.list(ProjectId(1)).compile.toList
         task = t.copy(projectId = ProjectId(1), author = userID)
+        _ <- Logger[IO].info("Task created")
         taskResult <- repo.create(task)
         allAfter   <- repo.list(ProjectId(1)).compile.toList
       } yield assertEquals(
