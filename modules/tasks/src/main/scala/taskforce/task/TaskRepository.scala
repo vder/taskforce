@@ -11,7 +11,7 @@ import fs2.Stream
 import eu.timepit.refined.numeric
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.types.string
-import java.time.LocalDateTime
+import java.time.Instant
 import io.getquill.NamingStrategy
 import io.getquill.PluralizedTableNames
 import io.getquill.SnakeCase
@@ -69,7 +69,7 @@ object TaskRepository {
       _ <- run(
         taskQuery
           .filter(p => p.id == lift(id) && p.deleted.isEmpty)
-          .update(_.deleted -> lift(DeletionDate(LocalDateTime.now()).some))
+          .update(_.deleted -> lift(DeletionDate(Instant.now()).some))
       )
       _ <- run(taskQuery.insert(lift(task)))
     } yield ()
@@ -101,7 +101,7 @@ object TaskRepository {
     run(
       taskQuery
         .filter(p => p.id == lift(id) && p.deleted.isEmpty)
-        .update(_.deleted -> lift(DeletionDate(LocalDateTime.now()).some))
+        .update(_.deleted -> lift(DeletionDate(Instant.now()).some))
     )
       .transact(xa)
       .map(_.toInt)

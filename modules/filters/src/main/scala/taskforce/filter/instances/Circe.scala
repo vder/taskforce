@@ -4,9 +4,9 @@ import cats.syntax.functor._
 import io.circe.refined._
 import io.circe.syntax._
 import io.circe.{Decoder, Encoder}
-import java.time.LocalDateTime
 import java.util.UUID
 import taskforce.filter._
+import java.time.Instant
 
 trait Circe {
 
@@ -43,7 +43,7 @@ trait Circe {
     }
 
   implicit lazy val decodeTaskCreatedDate: Decoder[TaskCreatedDate] =
-    Decoder.forProduct2[TaskCreatedDate, Operator, LocalDateTime](
+    Decoder.forProduct2[TaskCreatedDate, Operator, Instant](
       "op",
       "date"
     )(TaskCreatedDate.apply)

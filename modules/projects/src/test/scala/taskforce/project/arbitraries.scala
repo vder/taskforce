@@ -9,7 +9,7 @@ object arbitraries {
   implicit def arbProjectIdGen      = Arbitrary(projectIdGen)
   implicit def arbUserIdGen         = Arbitrary(userIdGen)
   implicit def arbNewProjectGen     = Arbitrary(newProjectGen)
-  implicit def arbLocalDateTimeGen  = Arbitrary(localDateTimeGen)
+  implicit def arbInstantGen        = Arbitrary(instantGen)
   implicit def arbProjectGen        = Arbitrary(projectGen)
 
 }

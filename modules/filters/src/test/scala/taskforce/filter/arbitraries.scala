@@ -6,7 +6,7 @@ import generators._
 object arbitraries {
 
   implicit def arbNonEmptyStringGen = Arbitrary(nonEmptyStringGen)
-  implicit def arbLocalDateTimeGen  = Arbitrary(localDateTimeGen)
+  implicit def arbInstantGen        = Arbitrary(instantGen)
   implicit def arbOperatorGen       = Arbitrary(operatorGen)
   implicit def arbStatusGen         = Arbitrary(statusGen)
   implicit def arbInGen             = Arbitrary(inGen)

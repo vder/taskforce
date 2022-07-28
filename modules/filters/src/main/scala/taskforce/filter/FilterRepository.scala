@@ -10,7 +10,6 @@ import doobie.util.fragments
 import doobie.util.transactor.Transactor
 import eu.timepit.refined.types.string._
 import fs2.Stream
-import java.time.LocalDateTime
 import java.util.UUID
 import taskforce.common.Sqlizer.ops._
 import taskforce.project.Project
@@ -19,6 +18,8 @@ import cats.effect.kernel.MonadCancelThrow
 import eu.timepit.refined.cats._
 import org.typelevel.log4cats.Logger
 import cats.Show
+import java.time.Instant
+
 
 trait FilterRepository[F[_]] {
   def create(filter: Filter): F[Filter]
@@ -36,14 +37,14 @@ object FilterRepository {
   def make[F[_]: MonadCancelThrow: Logger](xa: Transactor[F]) =
     new FilterRepository[F] with instances.Doobie {
 
-      implicit val showInstance: Show[LocalDateTime] =
-        Show.fromToString[LocalDateTime]
+      implicit val showInstance: Show[Instant] =
+        Show.fromToString[Instant]
 
       private val tuple2Condition: PartialFunction[
         (
             String,
             Option[Operator],
-            Option[LocalDateTime],
+            Option[Instant],
             Option[Status],
             Option[List[NonEmptyString]]
         ),
@@ -64,7 +65,7 @@ object FilterRepository {
                 (
                     String,
                     Option[Operator],
-                    Option[LocalDateTime],
+                    Option[Instant],
                     Option[Status],
                     Option[List[NonEmptyString]]
                 )
@@ -90,7 +91,7 @@ object FilterRepository {
         val limitClause = page.toFragment
         val sqlQuery    = sql.getData ++ whereClause ++ orderClause ++ limitClause
 
-        Stream.eval[F, Unit](Logger[F].info("test")) >>
+        Stream.eval[F, Unit](Logger[F].info(s"test: $sqlQuery")) >>
           sqlQuery
             .query[(Project, Option[Task])]
             // .query[CreationDate]
@@ -126,7 +127,7 @@ object FilterRepository {
             (
                 String,
                 Option[Operator],
-                Option[LocalDateTime],
+                Option[Instant],
                 Option[Status],
                 Option[List[NonEmptyString]]
             )

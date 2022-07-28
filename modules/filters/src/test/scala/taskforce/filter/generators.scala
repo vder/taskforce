@@ -5,11 +5,13 @@ import eu.timepit.refined.api.Refined
 import eu.timepit.refined.numeric.Positive
 import eu.timepit.refined.types.string.NonEmptyString
 import java.time.format.DateTimeFormatter
-import java.time.{LocalDate, LocalDateTime}
+import java.time.LocalDate
 
 import org.scalacheck.Gen
 import taskforce.task.generators._
 import taskforce.project.generators._
+import java.time.ZoneOffset
+import java.time.Instant
 
 object generators {
 
@@ -20,13 +22,13 @@ object generators {
         Gen.buildableOfN[String, Char](n, Gen.alphaChar)
       }
 
-  def localDateTimeGen: Gen[LocalDateTime] =
+  def instantGen: Gen[Instant] =
     for {
       minutes <- Gen.chooseNum(0, 1000000000)
     } yield LocalDate
       .parse("2000.01.01", DateTimeFormatter.ofPattern("yyyy.MM.dd"))
       .atStartOfDay()
-      .plusMinutes(minutes.toLong)
+      .plusMinutes(minutes.toLong).toInstant(ZoneOffset.UTC)
   val operatorGen: Gen[Operator] = Gen.oneOf(List(Eq, Gt, Gteq, Lteq, Lt))
 
   val statusGen: Gen[Status] = Gen.oneOf(List(Active, Deactive, All))
@@ -38,7 +40,7 @@ object generators {
 
   val taskCreatedGen: Gen[TaskCreatedDate] = for {
     op <- operatorGen
-    date <- localDateTimeGen
+    date <- instantGen
   } yield TaskCreatedDate(op, date)
 
   val stateGen = statusGen.map(State.apply)
