@@ -13,5 +13,6 @@
     ],
     "files.watcherExclude": {
         "**/target": true
-    }
+    },
+    "metals.showInferredType": false
 }

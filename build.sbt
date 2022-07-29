@@ -97,7 +97,8 @@ lazy val authentication = (project in file("modules/auth"))
       circeParser,
       doobiePostgres,
       http4sServer,
-      jwtCirce
+      jwtCirce,
+      tapir
     ).map(_.exclude("org.slf4j", "*")),
     addCompilerPlugin(kindProjector),
     scalacOptions ++= Seq("-Ymacro-annotations")
@@ -155,7 +156,9 @@ lazy val sharedSettings = Seq(
     doobieRefined,
     http4sClient,
     refined,
-    refinedCats
+    refinedCats,
+    tapir,
+    tapirHttp4s
   ).map(_.exclude("org.slf4j", "*")),
   addCompilerPlugin(kindProjector),
   scalacOptions ++= Seq(

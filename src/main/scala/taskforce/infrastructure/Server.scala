@@ -15,16 +15,18 @@ import taskforce.filter.{FilterRoutes, FilterService}
 import taskforce.project.{ProjectRoutes, ProjectService}
 import taskforce.stats.{StatsRoutes, StatsService}
 import taskforce.task.{TaskRoutes, TaskService}
+import taskforce.authentication.TaskForceAuthenticator
 
 final class Server[F[_]: Logger: Async] private (
     port: Int,
     authMiddleware: AuthMiddleware[F, UserId],
+    authenticator: TaskForceAuthenticator[F],
     db: Db[F]
 ) {
 
   def run  =
     for {
-      basicRoutes    <- BasicRoutes.make(authMiddleware).pure[F]
+      basicRoutes    <- BasicRoutes.make(authenticator).pure[F]
       projectService <- ProjectService.make(db.projectRepo).pure[F]
       taskService    <- TaskService.make(db.taskRepo).pure[F]
       statsService   <- StatsService.make(db.statsRepo).pure[F]
@@ -56,7 +58,8 @@ object Server {
   def make[F[_]: Async: Logger](
       port: Int,
       authMiddleware: AuthMiddleware[F, UserId],
+      authenticator: TaskForceAuthenticator[F],
       db: Db[F]
   ): Server[F] =
-    new Server(port, authMiddleware, db)
+    new Server(port, authMiddleware, authenticator, db)
 }
