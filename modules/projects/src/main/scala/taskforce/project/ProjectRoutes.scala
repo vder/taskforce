@@ -23,34 +23,17 @@ final class ProjectRoutes[F[_]: Async] private (
 ) extends instances.Http4s[F]
     with instances.TapirCodecs {
 
-  val baseEndpoint: Endpoint[String, Unit, ResponseError, Unit, Any] =
-    endpoint
-      .securityIn(auth.bearer[String]())
-      .errorOut(
-        oneOf[ResponseError](
-          oneOfVariant[TokenDecoding](
-            statusCode(StatusCode.Unauthorized)
-              .and(jsonBody[TokenDecoding].description("invalid token"))
-          ),
-          oneOfVariant[Forbidden](
-            statusCode(StatusCode.Unauthorized)
-              .and(jsonBody[Forbidden].description("Unknown User"))
-          ),
-          oneOfVariant[NotFound](
-            statusCode(StatusCode.NotFound)
-              .and(jsonBody[NotFound].description("resource not found"))
-          ),
-          oneOfVariant[NotAuthor](
-            statusCode(StatusCode.Forbidden)
-              .and(jsonBody[NotAuthor].description("authorised user is not owner of the resource"))
-          ),
-          oneOfVariant[DuplicateProjectName2](
-            jsonBody[DuplicateProjectName2]
-              .description("project's name is already in use")
-              .and(statusCode(StatusCode.Conflict))
-          )
-        )
+  val dsl = new Http4sDsl[F] {}
+  import dsl._
+
+  private[this] val prefixPath = "/api/v1/projects"
+
+  val prepareFailedResponse: PartialFunction[ProjectError, F[Response[F]]] = {
+    case DuplicateProjectNameError(newProject) =>
+      Conflict(
+        ErrorMessage("PROJECT-001", s"name given in request: ${newProject.value} already exists")
       )
+  }
 
   object endpoints {
 
