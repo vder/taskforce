@@ -8,7 +8,7 @@ import org.http4s.dsl.Http4sDsl
 import org.http4s.server.{AuthMiddleware, Router}
 import org.typelevel.log4cats.Logger
 import taskforce.authentication.UserId
-import taskforce.common.{ErrorHandler, errors => commonErrors}
+import taskforce.common.{ErrorHandler, AppError}
 import cats.MonadThrow
 
 final class StatsRoutes[F[_]: MonadThrow: JsonDecoder: Logger] private (
@@ -27,7 +27,7 @@ final class StatsRoutes[F[_]: MonadThrow: JsonDecoder: Logger] private (
         query <-
           authReq.req
             .asJsonDecode[StatsQuery]
-            .adaptError(_ => commonErrors.BadRequest)
+            .adaptError(_ => AppError.InvalidStatsQueryParam(s"${authReq.req.uri}"))
         _ <- Logger[F].info(query.toString())
         stats <-
           statsService

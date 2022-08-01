@@ -22,7 +22,8 @@ object Dependencies {
     val simulacrum       = "1.0.1"
     val log4cats         = "2.2.0"
     val slf4j            = "1.7.36"
-    val tapir            = "1.0.2"
+    val tapir            = "1.0.3"
+    val sttp3Client      = "3.7.2"
   }
   object Libraries {
 
@@ -33,10 +34,10 @@ object Dependencies {
     def refinedLib(artifact: String): ModuleID                  = "eu.timepit"    %% artifact % V.refined
     def typeLevelLibTest(artifact: String, v: String): ModuleID = "org.typelevel" %% artifact % v
 
-    val cats                  = "org.typelevel"               %% "cats-core"              % V.cats
-    val catsEffect            = "org.typelevel"               %% "cats-effect"            % V.catsEff
+    val cats                  = "org.typelevel"                 %% "cats-core"              % V.cats
+    val catsEffect            = "org.typelevel"                 %% "cats-effect"            % V.catsEff
     val circe                 = circeLib("circe-generic")
-    val circeDerivation       = "io.circe"                    %% "circe-derivation"       % V.circeDerivation
+    val circeDerivation       = "io.circe"                      %% "circe-derivation"       % V.circeDerivation
     val circeExtras           = circeLib("circe-generic-extras")
     val circeFs2              = circeLib("circe-fs2")
     val circeParser           = circeLib("circe-parser")
@@ -45,31 +46,37 @@ object Dependencies {
     val doobieHikari          = doobieLib("doobie-hikari")
     val doobiePostgres        = doobieLib("doobie-postgres")
     val doobieRefined         = doobieLib("doobie-refined")
-    val doobieQuill           = "org.polyvariant"             %% "doobie-quill"           % V.doobieQuill
-    val flyway                = "org.flywaydb"                 % "flyway-core"            % V.flyway
+    val doobieQuill           = "org.polyvariant"               %% "doobie-quill"           % V.doobieQuill
+    val flyway                = "org.flywaydb"                   % "flyway-core"            % V.flyway
     val http4sCirce           = http4sLib("http4s-circe")
     val http4sClient          = http4sLib("http4s-blaze-client")
     val http4sDsl             = http4sLib("http4s-dsl")
     val http4sServer          = http4sLib("http4s-blaze-server")
-    val jwtCirce              = "com.github.jwt-scala"        %% "jwt-circe"              % V.jwtCirce
-    val logback               = "ch.qos.logback"               % "logback-classic"        % V.Logback
+    val jwtCirce              = "com.github.jwt-scala"          %% "jwt-circe"              % V.jwtCirce
+    val logback               = "ch.qos.logback"                 % "logback-classic"        % V.Logback
     val mUnit                 = mUnitLib("munit")
     val mUnitCE               = typeLevelLibTest("munit-cats-effect-3", "1.0.7")
     val mUnitScalacheck       = mUnitLib("munit-scalacheck")
-    val monixNewType          = "io.monix"                    %% "newtypes-core"          % V.monixNewType
-    val monixNewTypeCirce     = "io.monix"                    %% "newtypes-circe-v0-14"   % V.monixNewType
-    val pureConfig            = "com.github.pureconfig"       %% "pureconfig"             % V.pureConfig
-    val pureConfigCE          = "com.github.pureconfig"       %% "pureconfig-cats-effect" % V.pureConfig
+    val monixNewType          = "io.monix"                      %% "newtypes-core"          % V.monixNewType
+    val monixNewTypeCirce     = "io.monix"                      %% "newtypes-circe-v0-14"   % V.monixNewType
+    val pureConfig            = "com.github.pureconfig"         %% "pureconfig"             % V.pureConfig
+    val pureConfigCE          = "com.github.pureconfig"         %% "pureconfig-cats-effect" % V.pureConfig
     val pureConfigRefined     = refinedLib("refined-pureconfig")
     val refined               = refinedLib("refined")
     val refinedCats           = refinedLib("refined-cats")
     val scalaCheckEffect      = typeLevelLibTest("scalacheck-effect", V.scalacheckEffect)
     val scalaCheckEffectMunit = typeLevelLibTest("scalacheck-effect-munit", V.scalacheckEffect)
-    val log4cats              = "org.typelevel"               %% "log4cats-slf4j"         % V.log4cats
-    val slf4j                 = "org.slf4j"                    % "slf4j-api"              % V.slf4j
-    val simulacrum            = "org.typelevel"               %% "simulacrum"             % V.simulacrum
-    val tapir                 = "com.softwaremill.sttp.tapir" %% "tapir-core"             % V.tapir
-    val tapirHttp4s           = "com.softwaremill.sttp.tapir" %% "tapir-http4s-server"    % V.tapir
+    val log4cats              = "org.typelevel"                 %% "log4cats-slf4j"         % V.log4cats
+    val slf4j                 = "org.slf4j"                      % "slf4j-api"              % V.slf4j
+    val simulacrum            = "org.typelevel"                 %% "simulacrum"             % V.simulacrum
+    val tapir                 = "com.softwaremill.sttp.tapir"   %% "tapir-core"             % V.tapir
+    val tapirHttp4s           = "com.softwaremill.sttp.tapir"   %% "tapir-http4s-server"    % V.tapir
+    val tapirCirce            = "com.softwaremill.sttp.tapir"   %% "tapir-json-circe"       % V.tapir
+    val tapirCats             = "com.softwaremill.sttp.tapir"   %% "tapir-cats"             % V.tapir
+    val tapirRefined          = "com.softwaremill.sttp.tapir"   %% "tapir-refined"          % V.tapir
+    val sttp3Client           = "com.softwaremill.sttp.client3" %% "core"                   % V.sttp3Client
+    val sttp3Circe            = "com.softwaremill.sttp.client3" %% "circe"                  % V.sttp3Client
+    val tapirServer           = "com.softwaremill.sttp.tapir"   %% "tapir-sttp-stub-server" % V.tapir
 
     // Compiler plugins
     val betterMonadicFor = "com.olegpy"   %% "better-monadic-for" % V.betterMonadicFor

@@ -7,7 +7,7 @@ import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.{AuthMiddleware, Router}
 import org.http4s.{AuthedRequest, AuthedRoutes}
-import taskforce.common.{ErrorMessage, ErrorHandler, errors => commonErrors}
+import taskforce.common.{ErrorMessage, ErrorHandler,AppError}
 import taskforce.authentication.UserId
 import org.http4s.Response
 import cats.MonadThrow
@@ -40,7 +40,7 @@ final class TaskRoutes[F[_]: MonadThrow: JsonDecoder] private (
   ): F[Task] =
     authReq.req
       .asJsonDecode[NewTask]
-      .adaptError(_ => commonErrors.BadRequest)
+      .adaptError(_ => AppError.InvalidTask(s"Invalid task"))
       .map(t => Task.fromNewTask(t, userId, projectId))
 
   val httpRoutes: AuthedRoutes[UserId, F] = {

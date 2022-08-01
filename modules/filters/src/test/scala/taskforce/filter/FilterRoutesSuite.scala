@@ -16,8 +16,8 @@ import org.scalacheck.effect.PropF
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import taskforce.authentication.UserId
 import taskforce.common.{ErrorMessage, LiveHttpErrorHandler}
-import taskforce.common.errors._
 import taskforce.HttpTestSuite
+import taskforce.common.AppError
 
 class FilterRoutesSuite extends HttpTestSuite with instances.Circe {
 
@@ -78,7 +78,7 @@ class FilterRoutesSuite extends HttpTestSuite with instances.Circe {
           if (page == pg && sortBy.some == sortByOption)
             Stream.emits(rows)
           else
-            Stream.raiseError[IO](InvalidQueryParam(queryParams))
+            Stream.raiseError[IO](AppError.InvalidQueryParam(queryParams))
         }
       }
 

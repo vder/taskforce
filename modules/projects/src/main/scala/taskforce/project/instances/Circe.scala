@@ -8,7 +8,10 @@ import monix.newtypes.integrations.DerivedCirceCodec
 
 trait Circe extends DerivedCirceCodec {
 
-  implicit val projectIdDecoder: Decoder[Project] = deriveDecoder
-  implicit val projectIdEncoder: Encoder[Project] = deriveEncoder
+  implicit val projectDecoder: Decoder[Project] = deriveDecoder
+  implicit val projectEncoder: Encoder[Project] = deriveEncoder
+
+
+
 
 }

@@ -13,7 +13,8 @@ import taskforce.infrastructure.Db
 import taskforce.infrastructure.Server
 import cats.effect.Resource
 import org.typelevel.log4cats.slf4j.Slf4jLogger
-import taskforce.authentication.TaskForceAuthenticator
+import taskforce.authentication.Authenticator
+
 
 object Main extends IOApp {
 
@@ -44,7 +45,7 @@ object Main extends IOApp {
         for {
           db             <- Db.make[IO](xa)
           authMiddleware <- TaskForceAuthMiddleware(db.userRepo, hostConfig.secret.value).pure[IO]
-          authEndpoint <- new TaskForceAuthenticator(db.userRepo, hostConfig.secret.value).pure[IO]
+          authEndpoint <- Authenticator.make[IO](db.userRepo, hostConfig.secret.value).pure[IO]
           server <- Server.make[IO](
             hostConfig.port.value,
             authMiddleware,

@@ -15,36 +15,37 @@ import taskforce.filter.{FilterRoutes, FilterService}
 import taskforce.project.{ProjectRoutes, ProjectService}
 import taskforce.stats.{StatsRoutes, StatsService}
 import taskforce.task.{TaskRoutes, TaskService}
-import taskforce.authentication.TaskForceAuthenticator
+import taskforce.authentication.Authenticator
 
 final class Server[F[_]: Logger: Async] private (
     port: Int,
     authMiddleware: AuthMiddleware[F, UserId],
-    authenticator: TaskForceAuthenticator[F],
+    authenticator: Authenticator[F],
     db: Db[F]
 ) {
 
-  def run  =
+  def run =
     for {
       basicRoutes    <- BasicRoutes.make(authenticator).pure[F]
       projectService <- ProjectService.make(db.projectRepo).pure[F]
       taskService    <- TaskService.make(db.taskRepo).pure[F]
       statsService   <- StatsService.make(db.statsRepo).pure[F]
       filterService  <- FilterService.make(db.filterRepo).pure[F]
-      projectRoutes  <- ProjectRoutes.make(authMiddleware, projectService).pure[F]
+      projectRoutes  <- ProjectRoutes.make(authenticator, projectService).pure[F]
       filterRoutes   <- FilterRoutes.make(authMiddleware, filterService).pure[F]
       statsRoutes    <- StatsRoutes.make(authMiddleware, statsService).pure[F]
       taskRoutes     <- TaskRoutes.make(authMiddleware, taskService).pure[F]
       errHandler = LiveHttpErrorHandler[F]
       routes =
-        basicRoutes.routes <+> projectRoutes.routes(errHandler) <+>
+        basicRoutes.routes <+> projectRoutes.routes <+>
           taskRoutes.routes(errHandler) <+> filterRoutes.routes(errHandler) <+>
           statsRoutes.routes(errHandler)
       middlewares =
         LoggerMiddleware
           .httpRoutes[F](logHeaders = true, logBody = true) _ andThen AutoSlash.httpRoutes[F]
       _ <-
-        BlazeServerBuilder[F].withExecutionContext(global)
+        BlazeServerBuilder[F]
+          .withExecutionContext(global)
           .bindHttp(port, "0.0.0.0")
           .withHttpApp(middlewares(routes).orNotFound)
           .serve
@@ -58,7 +59,7 @@ object Server {
   def make[F[_]: Async: Logger](
       port: Int,
       authMiddleware: AuthMiddleware[F, UserId],
-      authenticator: TaskForceAuthenticator[F],
+      authenticator: Authenticator[F],
       db: Db[F]
   ): Server[F] =
     new Server(port, authMiddleware, authenticator, db)

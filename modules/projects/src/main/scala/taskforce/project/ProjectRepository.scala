@@ -14,12 +14,12 @@ import java.time.temporal.ChronoUnit
 import java.time.Instant
 
 trait ProjectRepository[F[_]] {
-  def create(newProject: ProjectName, userId: UserId): F[Either[DuplicateProjectNameError, Project]]
+  def create(newProject: ProjectName, userId: UserId): F[Either[AppError.DuplicateProjectName, Project]]
   def delete(id: ProjectId): F[Int]
   def update(
       id: ProjectId,
       newProject: ProjectName
-  ): F[Either[DuplicateProjectNameError, Project]]
+  ): F[Either[AppError.DuplicateProjectName, Project]]
   def find(id: ProjectId): F[Option[Project]]
   def list: F[List[Project]]
   def totalTime(projectId: ProjectId): F[TotalTime]
@@ -36,7 +36,7 @@ object ProjectRepository {
         query[Project]
       }
       private val taskQuery = quote {
-        querySchema[TaskTime]("tasks")
+        querySchema[TaskTime]("tasks", _.time -> "duration")
       }
       private val newProjectId = ProjectId(0L)
 
@@ -55,7 +55,7 @@ object ProjectRepository {
       override def create(
           newProject: ProjectName,
           author: UserId
-      ): F[Either[DuplicateProjectNameError, Project]] = {
+      ): F[Either[AppError.DuplicateProjectName, Project]] = {
         val created = CreationDate(Instant.now().truncatedTo(ChronoUnit.SECONDS))
         run(
           projectQuery
@@ -66,7 +66,7 @@ object ProjectRepository {
           .map { id =>
             Project(id, newProject, author, created, None)
           }
-          .map(_.asRight[DuplicateProjectNameError])
+          .map(_.asRight[AppError.DuplicateProjectName])
           .recover(mapDatabaseErr(newProject))
       }
 
@@ -85,7 +85,7 @@ object ProjectRepository {
       override def update(
           id: ProjectId,
           newProject: ProjectName
-      ): F[Either[DuplicateProjectNameError, Project]] = {
+      ): F[Either[AppError.DuplicateProjectName, Project]] = {
         run(
           projectQuery
             .filter(_.id == lift(id))
@@ -93,19 +93,19 @@ object ProjectRepository {
             .returning(p => p)
         )
           .transact(xa)
-          .map(_.asRight[DuplicateProjectNameError])
+          .map(_.asRight[AppError.DuplicateProjectName])
           .recover(mapDatabaseErr(newProject))
 
       }
 
       private def mapDatabaseErr(
           newProject: ProjectName
-      ): PartialFunction[Throwable, Either[DuplicateProjectNameError, Project]] = {
+      ): PartialFunction[Throwable, Either[AppError.DuplicateProjectName, Project]] = {
         case x: PSQLException
             if x.getMessage.contains(
               "unique constraint"
             ) =>
-          DuplicateProjectNameError(newProject).asLeft[Project]
+          AppError.DuplicateProjectName(s"$newProject").asLeft[Project]
       }
 
       case class TaskTime(projectId: ProjectId, time: TotalTime, deleted: Option[DeletionDate])

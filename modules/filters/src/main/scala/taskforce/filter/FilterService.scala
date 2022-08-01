@@ -3,7 +3,7 @@ package taskforce.filter
 import cats.implicits._
 import fs2.Stream
 import java.util.UUID
-import taskforce.common.{errors => commonErrors}
+import taskforce.common.AppError
 import cats.MonadThrow
 final class FilterService[F[_]: MonadThrow] private (filterRepo: FilterRepository[F]) {
 
@@ -20,7 +20,7 @@ final class FilterService[F[_]: MonadThrow] private (filterRepo: FilterRepositor
       filterOption <- Stream.eval(
         filterRepo
           .find(filterId)
-          .ensure(commonErrors.NotFound(filterId.value.toString))(_.isDefined)
+          .ensure(AppError.NotFound(filterId.value.toString))(_.isDefined)
       )
       rows <- filterRepo.execute(filterOption.get, sortBy, pagination)
     } yield rows

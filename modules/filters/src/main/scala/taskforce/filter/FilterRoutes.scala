@@ -8,7 +8,7 @@ import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.{AuthMiddleware, Router}
 import taskforce.authentication.UserId
-import taskforce.common.{ErrorHandler, errors => commonErrors}
+import taskforce.common.{ErrorHandler, AppError}
 import cats.MonadThrow
 
 final class FilterRoutes[F[_]: MonadThrow: JsonDecoder] private (
@@ -29,7 +29,7 @@ final class FilterRoutes[F[_]: MonadThrow: JsonDecoder] private (
           newFilter <-
             authReq.req
               .asJsonDecode[NewFilter]
-              .adaptError(_ => commonErrors.BadRequest)
+              .adaptError(_ => AppError.InvalidNewFilter)
           filter   <- filterService.create(newFilter)
           response <- Created(filter.asJson)
         } yield response
@@ -43,7 +43,7 @@ final class FilterRoutes[F[_]: MonadThrow: JsonDecoder] private (
         val id = FilterId(filterId)
         val filter = filterService
           .get(id)
-          .ensure(commonErrors.NotFound(id.toString()))(!_.isEmpty)
+          .ensure(AppError.NotFound(id.toString()))(!_.isEmpty)
         Ok(filter)
       case GET -> Root / UUIDVar(
             filterId

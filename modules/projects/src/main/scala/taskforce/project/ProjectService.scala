@@ -3,7 +3,7 @@ package taskforce.project
 import cats.effect.Sync
 import cats.implicits._
 import taskforce.authentication.UserId
-import taskforce.common.errors._
+import taskforce.common.AppError
 import cats.MonadThrow
 
 final class ProjectService[F[_]: MonadThrow] private (
@@ -19,17 +19,17 @@ final class ProjectService[F[_]: MonadThrow] private (
       projectOption <- projectRepo.find(projectId)
       _ <-
         MonadThrow[F]
-          .fromOption(projectOption, NotFound(projectId.value.toString()))
-          .ensure(NotAuthor(actionBy.value))(_.author == actionBy)
+          .fromOption(projectOption, AppError.NotFound(projectId.value.toString()))
+          .ensure(AppError.NotAuthor(actionBy.value))(_.author == actionBy)
       rowsCount <- projectRepo.delete(projectId)
     } yield rowsCount
 
   def find(projectId: ProjectId) =
     projectRepo
       .find(projectId)
-      .ensure(NotFound(projectId.value.toString()))(_.isDefined)
 
-  def create(newProject: ProjectName, userId: UserId) =
+
+  def create(newProject: ProjectName, userId: UserId): F[Either[AppError.DuplicateProjectName, Project]] =
     projectRepo.create(newProject, userId)
 
   def update(projectId: ProjectId, newProject: ProjectName, userId: UserId) =
@@ -37,8 +37,8 @@ final class ProjectService[F[_]: MonadThrow] private (
       _ <-
         projectRepo
           .find(projectId)
-          .ensure(NotFound(projectId.value.toString()))(_.isDefined)
-          .ensure(NotAuthor(userId.value))(_.filter(_.author == userId).isDefined)
+          .ensure(AppError.NotFound(projectId.value.toString()))(_.isDefined)
+          .ensure(AppError.NotAuthor(userId.value))(_.filter(_.author == userId).isDefined)
       project <-
         projectRepo
           .update(projectId, newProject)

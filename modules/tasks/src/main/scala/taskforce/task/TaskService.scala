@@ -2,7 +2,7 @@ package taskforce.task
 
 import cats.effect.Sync
 import cats.implicits._
-import taskforce.common.{errors => commonErrors}
+import taskforce.common.AppError
 import taskforce.authentication.UserId
 import java.time.Instant
 
@@ -44,9 +44,9 @@ final class TaskService[F[_]: Sync] private (
         Sync[F]
           .fromOption(
             taskOption,
-            commonErrors.NotFound(taskId.value.toString())
+            AppError.NotFound(taskId.value.toString())
           )
-          .ensure(commonErrors.NotAuthor(userId.value))(_.author == userId)
+          .ensure(AppError.NotAuthor(userId.value))(_.author == userId)
     } yield task
 
   def list(projectId: ProjectId) = taskRepo.list(projectId)
@@ -54,7 +54,7 @@ final class TaskService[F[_]: Sync] private (
   def find(projectId: ProjectId, taskId: TaskId) =
     taskRepo
       .find(projectId, taskId)
-      .ensure(commonErrors.NotFound(taskId.value.toString))(_.isDefined)
+      .ensure(AppError.NotFound(taskId.value.toString))(_.isDefined)
 
   def create(task: Task): F[Either[TaskError, Task]] =
     (for {
