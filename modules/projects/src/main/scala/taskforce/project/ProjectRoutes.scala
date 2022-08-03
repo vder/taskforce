@@ -35,6 +35,35 @@ final class ProjectRoutes[F[_]: Async] private (
       )
   }
 
+  val baseEndpoint: Endpoint[String, Unit, ResponseError, Unit, Any] =
+    endpoint
+      .securityIn(auth.bearer[String]())
+      .errorOut(
+        oneOf[ResponseError](
+          oneOfVariant[TokenDecoding](
+            statusCode(StatusCode.Unauthorized)
+              .and(jsonBody[TokenDecoding].description("invalid token"))
+          ),
+          oneOfVariant[Forbidden](
+            statusCode(StatusCode.Unauthorized)
+              .and(jsonBody[Forbidden].description("Unknown User"))
+          ),
+          oneOfVariant[NotFound](
+            statusCode(StatusCode.NotFound)
+              .and(jsonBody[NotFound].description("resource not found"))
+          ),
+          oneOfVariant[NotAuthor](
+            statusCode(StatusCode.Forbidden)
+              .and(jsonBody[NotAuthor].description("authorised user is not owner of the resource"))
+          ),
+          oneOfVariant[DuplicateProjectName2](
+            jsonBody[DuplicateProjectName2]
+              .description("project's name is already in use")
+              .and(statusCode(StatusCode.Conflict))
+          )
+        )
+      )
+
   object endpoints {
 
     val list =

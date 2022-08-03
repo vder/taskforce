@@ -69,7 +69,7 @@ class ProjectRoutesSuite extends HttpTestSuite with Circe with Http4s[IO] {
     }
   }
 
- /* test("Cannot create project with the same name") {
+  test("Cannot create project with the same name") {
     PropF.forAllF { (p1: Project, u: UserId) =>
       val projectRepo = new TestProjectRepository(List(), currentTime) {
         override def create(
