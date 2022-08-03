@@ -26,9 +26,9 @@ sealed trait ResponseError extends Product with Serializable {
 object ResponseError {
 
   def fromAppError: PartialFunction[Throwable, ResponseError] = {
-    case AppError.NotAuthor(userId)             => NotAuthor(s"user $userId isnot an Author")
+    case AppError.NotAuthor(userId)             => NotAuthor(s"user $userId is not an Author")
     case AppError.NotFound(resourceId)          => NotFound(s"resource $resourceId is not Found");
-    case AppError.DuplicateProjectName(projectName) => DuplicateProjectName2(s"project2 name '$projectName' already exists")
+    case AppError.DuplicateProjectName(projectName) => DuplicateProjectName2(s"project name '$projectName' already exists")
     case AppError.InvalidQueryParam(s)          => BadRequest(s)
     case AppError.InvalidStatsQueryParam(s)     => BadRequest(s)
     case AppError.InvalidTask(s)                => BadRequest(s)
