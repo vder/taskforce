@@ -18,7 +18,7 @@ trait ErrorHandler[F[_]] {
 object ErrorHandler {
 
   def apply[F[_]: MonadError[*[_], Throwable]]: ErrorHandler[F] =
-    new ErrorHandler[F] {
+    new ErrorHandler[F] with instances.Circe{
       val dsl = new Http4sDsl[F] {}
       import dsl._
 

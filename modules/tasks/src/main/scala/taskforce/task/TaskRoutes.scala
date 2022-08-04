@@ -15,7 +15,7 @@ import cats.MonadThrow
 final class TaskRoutes[F[_]: MonadThrow: JsonDecoder] private (
     authMiddleware: AuthMiddleware[F, UserId],
     taskService: TaskService[F]
-) extends instances.Http4s[F] {
+) extends instances.Http4s[F] with CommonInstancesHttp4s[F]{
 
   private[this] val prefixPath = "/api/v1/projects"
 

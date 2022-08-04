@@ -13,6 +13,7 @@ import taskforce.authentication.UserId
 import taskforce.common.{ErrorMessage, ErrorHandler}
 import taskforce.project.ProjectName
 import taskforce.project.instances.Circe
+import taskforce.common.instances.Http4s
 import java.time.Instant
 import taskforce.common.AppError
 import taskforce.authentication.Authenticator
@@ -24,7 +25,7 @@ import sttp.tapir.server.PartialServerEndpoint
 import io.circe.generic.auto._
 
 
-class ProjectRoutesSuite extends HttpTestSuite with Circe {
+class ProjectRoutesSuite extends HttpTestSuite with Circe with Http4s[IO] {
 
   import arbitraries._
 
