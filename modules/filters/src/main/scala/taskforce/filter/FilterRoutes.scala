@@ -56,7 +56,7 @@ final class FilterRoutes[F[_]: MonadThrow: JsonDecoder] private (
     }
   }
 
-  def routes(handler: ErrorHandler[F, Throwable]) =
+  def routes(handler: ErrorHandler[F]) =
     Router(
       prefixPath -> handler.basicHandle(authMiddleware(httpRoutes))
     )

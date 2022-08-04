@@ -15,7 +15,8 @@ import org.http4s.server.AuthMiddleware
 import org.scalacheck.effect.PropF
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import taskforce.authentication.UserId
-import taskforce.common.{ErrorMessage, LiveHttpErrorHandler}
+import taskforce.common.{ErrorMessage, ErrorHandler}
+import taskforce.common.errors._
 import taskforce.HttpTestSuite
 import taskforce.common.AppError
 
@@ -26,7 +27,7 @@ class FilterRoutesSuite extends HttpTestSuite with instances.Circe {
   implicit def decodeRow: EntityDecoder[IO, FilterResultRow]       = jsonOf
   implicit def encodeRow: EntityEncoder[IO, FilterResultRow]       = jsonEncoderOf
 
-  val errHandler = LiveHttpErrorHandler[IO]
+  val errHandler = ErrorHandler[IO]
 
   implicit def unsafeLogger = Slf4jLogger.getLogger[IO]
 

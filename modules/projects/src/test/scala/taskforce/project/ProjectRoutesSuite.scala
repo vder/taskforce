@@ -10,7 +10,7 @@ import org.http4s.implicits._
 import org.scalacheck.effect.PropF
 import taskforce.HttpTestSuite
 import taskforce.authentication.UserId
-import taskforce.common.LiveHttpErrorHandler
+import taskforce.common.{ErrorMessage, ErrorHandler}
 import taskforce.project.ProjectName
 import taskforce.project.instances.Circe
 import java.time.Instant
@@ -31,7 +31,7 @@ class ProjectRoutesSuite extends HttpTestSuite with Circe {
   implicit def decodeNewProduct: EntityDecoder[IO, ProjectName] = jsonOf
   implicit def encodeNewProduct: EntityEncoder[IO, ProjectName] = jsonEncoderOf
 
-  val errHandler = LiveHttpErrorHandler[IO]
+  val errHandler = ErrorHandler[IO]
 
   def testAuthenticator(userId: UserId) = new Authenticator[IO] {
     def secureEndpoints[SECURITY_INPUT, INPUT, OUTPUT](

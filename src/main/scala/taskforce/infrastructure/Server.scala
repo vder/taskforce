@@ -35,7 +35,7 @@ final class Server[F[_]: Logger: Async] private (
       filterRoutes   <- FilterRoutes.make(authMiddleware, filterService).pure[F]
       statsRoutes    <- StatsRoutes.make(authMiddleware, statsService).pure[F]
       taskRoutes     <- TaskRoutes.make(authMiddleware, taskService).pure[F]
-      errHandler = LiveHttpErrorHandler[F]
+      errHandler     <- ErrorHandler[F].pure[F]
       routes =
         basicRoutes.routes <+> projectRoutes.routes <+>
           taskRoutes.routes(errHandler) <+> filterRoutes.routes(errHandler) <+>

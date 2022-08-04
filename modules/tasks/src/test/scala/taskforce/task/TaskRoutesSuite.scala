@@ -15,7 +15,7 @@ import org.scalacheck.effect.PropF
 import taskforce.HttpTestSuite
 import arbitraries._
 import taskforce.authentication.UserId
-import taskforce.common.{ErrorMessage, LiveHttpErrorHandler}
+import taskforce.common.{ErrorMessage, ErrorHandler}
 import taskforce.common.CreationDate
 import taskforce.task.instances.Circe
 import java.time.Instant
@@ -30,7 +30,7 @@ class TasksRoutesSuite extends HttpTestSuite with Circe {
   def authMiddleware(userId: UserId): AuthMiddleware[IO, UserId] =
     AuthMiddleware(Kleisli.pure(userId))
 
-  val errHandler = LiveHttpErrorHandler[IO]
+  val errHandler = ErrorHandler[IO]
 
   val currentTime = Instant.now()
 

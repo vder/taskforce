@@ -82,7 +82,7 @@ final class TaskRoutes[F[_]: MonadThrow: JsonDecoder] private (
     }
   }
 
-  def routes(errHandler: ErrorHandler[F, Throwable]) =
+  def routes(errHandler: ErrorHandler[F]) =
     Router(
       prefixPath -> errHandler.basicHandle(authMiddleware(httpRoutes))
     )
