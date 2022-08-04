@@ -29,10 +29,10 @@ object TaskForceAuthMiddleware extends Circe {
             encodedString <-
               request.headers
                 .get[Authorization]
-                .fold(s"missing Authorization header: ${request}".asLeft[String]) {
+                .fold("Authorisation header is missing".asLeft[String]) {
                   case Authorization(Credentials.Token(AuthScheme.Bearer, t)) =>
                     t.asRight[String]
-                  case header => s"invalid header type $header".asLeft[String]
+                  case header => s"Unsupported Authorisation type: ${header.credentials.authScheme}".asLeft[String]
                 }
             jwtClaim <-
               JwtCirce
