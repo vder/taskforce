@@ -28,9 +28,8 @@ final class BasicRoutes[F[_]: MonadCancelThrow] private (
   val basicRoutes = {
     val dsl = new Http4sDsl[F] {}
     import dsl._
-   HttpRoutes.of[F] {
-      case GET -> Root / "test" =>
-        Ok("its alive")
+    HttpRoutes.of[F] { case GET -> Root / "test" =>
+      Ok("its alive")
     }
   }
 
@@ -44,5 +43,5 @@ object BasicRoutes {
   def make[F[_]: MonadCancelThrow](
       authMiddleware: AuthMiddleware[F, UserId]
   ) =
-    new BasicRoutes(authMiddleware) 
+    new BasicRoutes(authMiddleware)
 }
