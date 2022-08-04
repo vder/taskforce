@@ -22,7 +22,7 @@ final class Server[F[_]: Logger: Async] private (
     db: Db[F]
 ) {
 
-  def run =
+  def run  =
     for {
       basicRoutes    <- BasicRoutes.make(authMiddleware).pure[F]
       projectService <- ProjectService.make(db.projectRepo).pure[F]
@@ -42,8 +42,7 @@ final class Server[F[_]: Logger: Async] private (
         LoggerMiddleware
           .httpRoutes[F](logHeaders = true, logBody = true) _ andThen AutoSlash.httpRoutes[F]
       _ <-
-        BlazeServerBuilder[F]
-          .withExecutionContext(global)
+        BlazeServerBuilder[F].withExecutionContext(global)
           .bindHttp(port, "0.0.0.0")
           .withHttpApp(middlewares(routes).orNotFound)
           .serve

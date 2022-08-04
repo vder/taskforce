@@ -1,5 +1,6 @@
 package taskforce.stats
 
+
 final class StatsService[F[_]] private (statsRepo: StatsRepository[F]) {
   def getStats(query: StatsQuery) = statsRepo.get(query)
 }

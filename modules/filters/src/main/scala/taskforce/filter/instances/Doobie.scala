@@ -18,6 +18,8 @@ import taskforce.common.Sqlizer.ops._
 import taskforce.filter._
 import taskforce.common.NewTypeDoobieMeta
 
+
+
 trait Doobie extends taskforce.task.instances.Doobie with NewTypeDoobieMeta {
 
   implicit val putNonEmptyList: Put[List[NonEmptyString]] =
