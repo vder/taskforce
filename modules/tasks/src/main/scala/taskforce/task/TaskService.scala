@@ -4,7 +4,7 @@ import cats.effect.Sync
 import cats.implicits._
 import taskforce.common.{errors => commonErrors}
 import taskforce.authentication.UserId
-import java.time.LocalDateTime
+import java.time.Instant
 
 final class TaskService[F[_]: Sync] private (
     taskRepo: TaskRepository[F]
@@ -14,9 +14,9 @@ final class TaskService[F[_]: Sync] private (
       newTask: Task,
       userTasks: fs2.Stream[F, Task]
   ): F[Boolean] = {
-    val taskEnd: LocalDateTime =
+    val taskEnd: Instant =
       newTask.created.value.plus(newTask.duration.value)
-    val taskStart: LocalDateTime = newTask.created.value
+    val taskStart: Instant = newTask.created.value
     for {
       isValid <-
         userTasks

@@ -10,7 +10,7 @@ object arbitraries {
   implicit def arbUserIdGen         = Arbitrary(userIdGen)
   implicit def arbTaskIdGen         = Arbitrary(taskIdGen)
   implicit def arbTaskDurationGen   = Arbitrary(taskDurationGen)
-  implicit def arbLocalDateTimeGen  = Arbitrary(localDateTimeGen)
+  implicit def arbInstantGen        = Arbitrary(instantGen)
   implicit def arbTaskGen           = Arbitrary(taskGen)
   implicit def arbNewTaskGen        = Arbitrary(newTaskGen)
 

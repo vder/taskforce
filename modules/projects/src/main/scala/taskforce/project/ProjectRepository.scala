@@ -9,8 +9,9 @@ import org.polyvariant.doobiequill._
 import org.postgresql.util.PSQLException
 import taskforce.authentication.UserId
 import taskforce.common._
-import java.time.{Duration, LocalDateTime}
+import java.time.Duration
 import java.time.temporal.ChronoUnit
+import java.time.Instant
 
 trait ProjectRepository[F[_]] {
   def create(newProject: ProjectName, userId: UserId): F[Either[DuplicateProjectNameError, Project]]
@@ -55,7 +56,7 @@ object ProjectRepository {
           newProject: ProjectName,
           author: UserId
       ): F[Either[DuplicateProjectNameError, Project]] = {
-        val created = CreationDate(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS))
+        val created = CreationDate(Instant.now().truncatedTo(ChronoUnit.SECONDS))
         run(
           projectQuery
             .insertValue(lift(Project(newProjectId, newProject, author, created, None)))
@@ -70,7 +71,7 @@ object ProjectRepository {
       }
 
       override def delete(id: ProjectId): F[Int] = {
-        val deleted = DeletionDate(LocalDateTime.now()).some
+        val deleted = DeletionDate(Instant.now()).some
         val result = for {
           x <- run(projectQuery.filter(p => p.id == lift(id) && p.deleted.isEmpty).update(_.deleted -> lift(deleted)))
           y <- run(

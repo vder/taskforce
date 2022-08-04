@@ -6,11 +6,13 @@ import eu.timepit.refined.collection._
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.numeric.Positive
 import java.time.format.DateTimeFormatter
-import java.time.{Duration, LocalDate, LocalDateTime}
+import java.time.{Duration, LocalDate}
 import org.scalacheck.Gen
 import taskforce.authentication.UserId
 import taskforce.common.CreationDate
 import taskforce.common.DeletionDate
+import java.time.Instant
+import java.time.ZoneOffset
 
 object generators {
 
@@ -34,18 +36,18 @@ object generators {
     Gen.chooseNum[Long](10, 1000).map(x => TaskDuration(Duration.ofMinutes(x)))
 
   def creationDateTimeGen: Gen[CreationDate] =
-    localDateTimeGen.map(CreationDate.apply)
+    instantGen.map(CreationDate.apply)
 
   def deletionDateTimeGen: Gen[DeletionDate] =
-    localDateTimeGen.map(DeletionDate.apply)
+    instantGen.map(DeletionDate.apply)
 
-  def localDateTimeGen: Gen[LocalDateTime] =
+  def instantGen: Gen[Instant] =
     for {
       minutes <- Gen.chooseNum(0, 1000000000)
     } yield LocalDate
       .parse("2000.01.01", DateTimeFormatter.ofPattern("yyyy.MM.dd"))
       .atStartOfDay()
-      .plusMinutes(minutes.toLong)
+      .plusMinutes(minutes.toLong).toInstant(ZoneOffset.UTC)
 
   val taskVolumeGen: Gen[TaskVolume] =
     Gen
@@ -63,7 +65,7 @@ object generators {
       id        <- taskIdGen
       projectId <- projectIdGen
       author    <- userIdGen
-      created   <- localDateTimeGen
+      created   <- creationDateTimeGen
       duration  <- taskDurationGen
       volume    <- taskVolumeGen
       comment   <- taskCommentGen
@@ -71,7 +73,7 @@ object generators {
       id,
       projectId,
       author,
-      CreationDate(created),
+      created,
       duration,
       volume.some,
       None,

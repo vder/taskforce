@@ -1,11 +1,12 @@
 package taskforce.task
 
-import java.time.LocalDateTime
+
 import java.util.UUID
 import taskforce.authentication.UserId
 import taskforce.common._
 import taskforce.task.TaskVolume
 import taskforce.task.TaskComment
+import java.time.Instant
 
 final case class NewTask(
     created: Option[CreationDate] = None,
@@ -36,7 +37,7 @@ object Task {
       TaskId(UUID.randomUUID()),
       projectId,
       userId,
-      newTask.created.fold(CreationDate(LocalDateTime.now()))(identity),
+      newTask.created.fold(CreationDate(Instant.now()))(identity),
       newTask.duration,
       newTask.volume,
       None,

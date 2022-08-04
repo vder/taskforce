@@ -4,7 +4,6 @@ import cats.data.Kleisli
 import cats.effect.IO
 import cats.implicits._
 import io.circe.refined._
-import java.time.LocalDateTime
 import java.util.UUID
 import org.http4s.Method._
 import org.http4s._
@@ -18,6 +17,7 @@ import taskforce.authentication.UserId
 import taskforce.common.{ErrorMessage, LiveHttpErrorHandler}
 import taskforce.project.ProjectName
 import taskforce.project.instances.Circe
+import java.time.Instant
 
 class ProjectRoutesSuite extends HttpTestSuite with Circe {
 
@@ -34,7 +34,7 @@ class ProjectRoutesSuite extends HttpTestSuite with Circe {
   def authMiddleware(userId: UserId): AuthMiddleware[IO, UserId] =
     AuthMiddleware(Kleisli.pure(userId))
 
-  val currentTime = LocalDateTime.now()
+  val currentTime = Instant.now()
 
   val uri = uri"api/v1/projects"
 
