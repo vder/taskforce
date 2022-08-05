@@ -10,7 +10,7 @@ import org.http4s.implicits._
 import org.scalacheck.effect.PropF
 import taskforce.HttpTestSuite
 import taskforce.authentication.UserId
-import taskforce.common.{ErrorMessage, ErrorHandler}
+import taskforce.common.ErrorHandler
 import taskforce.project.ProjectName
 import taskforce.project.instances.Circe
 import taskforce.common.instances.Http4s

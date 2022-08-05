@@ -7,10 +7,13 @@ import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.{AuthMiddleware, Router}
 import org.http4s.{AuthedRequest, AuthedRoutes}
-import taskforce.common.{ErrorMessage, ErrorHandler,AppError}
+import taskforce.common.ErrorHandler
+import taskforce.common.instances.{Http4s => CommonInstancesHttp4s}
 import taskforce.authentication.UserId
 import org.http4s.Response
 import cats.MonadThrow
+import taskforce.common.AppError
+import taskforce.common.ErrorMessage
 
 final class TaskRoutes[F[_]: MonadThrow: JsonDecoder] private (
     authMiddleware: AuthMiddleware[F, UserId],

@@ -13,6 +13,7 @@ import java.time.Duration
 import java.time.temporal.ChronoUnit
 import java.time.Instant
 import taskforce.common.{CreationDate, DeletionDate}
+import taskforce.common.AppError
 
 trait ProjectRepository[F[_]] {
   def create(newProject: ProjectName, userId: UserId): F[Either[AppError.DuplicateProjectName, Project]]

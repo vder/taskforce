@@ -1,6 +1,7 @@
 package taskforce.project
 
 import cats.implicits._
+import taskforce.common.instances.{Http4s => CommonInstancesHttp4s}
 import io.circe.refined._
 import org.http4s.HttpRoutes
 import sttp.tapir.server.http4s.Http4sServerInterpreter
@@ -17,23 +18,11 @@ import taskforce.project.TotalTime
 import taskforce.project.ProjectName
 import org.http4s.server.Router
 
+
 final class ProjectRoutes[F[_]: Async] private (
     authenticator: Authenticator[F],
     projectService: ProjectService[F]
-) extends instances.Http4s[F]
-    with instances.TapirCodecs {
-
-  val dsl = new Http4sDsl[F] {}
-  import dsl._
-
-  private[this] val prefixPath = "/api/v1/projects"
-
-  val prepareFailedResponse: PartialFunction[ProjectError, F[Response[F]]] = {
-    case DuplicateProjectNameError(newProject) =>
-      Conflict(
-        ErrorMessage("PROJECT-001", s"name given in request: ${newProject.value} already exists")
-      )
-  }
+) extends instances.Http4s[F] with CommonInstancesHttp4s[F] with instances.TapirCodecs{
 
   val baseEndpoint: Endpoint[String, Unit, ResponseError, Unit, Any] =
     endpoint
