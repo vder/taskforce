@@ -4,7 +4,7 @@ import taskforce.filter._
 
 object helpers {
 
-  val operatorFromString: PartialFunction[String, Operator] = {
+  val operatorFromString: String => Operator = {
     case "eq"   => Eq
     case "lt"   => Lt
     case "gt"   => Gt
@@ -12,7 +12,7 @@ object helpers {
     case "gteq" => Gteq
   }
 
-  val operatorToString: PartialFunction[Operator, String] = {
+  val operatorToString: Operator => String = {
     case Eq   => "eq"
     case Gt   => "gt"
     case Gteq => "gteq"
@@ -20,13 +20,13 @@ object helpers {
     case Lteq => "lteq"
   }
 
-  val statusFromString: PartialFunction[String, Status] = {
+  val statusFromString: String => Status = {
     case "active"   => Active
     case "deactive" => Deactive
     case "all"      => All
   }
 
-  val statusToString: PartialFunction[Status, String] = {
+  val statusToString: Status => String = {
     case Active   => "active"
     case Deactive => "deactive"
     case All      => "all"

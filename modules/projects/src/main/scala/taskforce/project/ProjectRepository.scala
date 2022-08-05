@@ -8,10 +8,11 @@ import io.getquill.{NamingStrategy, PluralizedTableNames, SnakeCase}
 import org.polyvariant.doobiequill._
 import org.postgresql.util.PSQLException
 import taskforce.authentication.UserId
-import taskforce.common._
+import taskforce.common.NewTypeQuillInstances
 import java.time.Duration
 import java.time.temporal.ChronoUnit
 import java.time.Instant
+import taskforce.common.{CreationDate, DeletionDate}
 
 trait ProjectRepository[F[_]] {
   def create(newProject: ProjectName, userId: UserId): F[Either[AppError.DuplicateProjectName, Project]]
@@ -26,7 +27,7 @@ trait ProjectRepository[F[_]] {
 }
 
 object ProjectRepository {
-  def make[F[_]: MonadCancelThrow](xa: Transactor[F]): ProjectRepository[F] =
+  def make[F[_]: MonadCancelThrow](xa: Transactor[F]) =
     new ProjectRepository[F] with instances.Doobie with NewTypeQuillInstances {
 
       private val ctx = new DoobieContext.Postgres(NamingStrategy(PluralizedTableNames, SnakeCase))

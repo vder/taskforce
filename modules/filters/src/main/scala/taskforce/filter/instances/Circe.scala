@@ -1,12 +1,13 @@
 package taskforce.filter.instances
 
+import cats.syntax.either._
 import cats.syntax.functor._
 import io.circe.refined._
 import io.circe.syntax._
 import io.circe.{Decoder, Encoder}
 import java.util.UUID
 import taskforce.filter._
-import java.time.Instant
+import io.circe.generic.semiauto._
 
 trait Circe {
 
@@ -28,87 +29,35 @@ trait Circe {
 
   implicit lazy val decodeOperator: Decoder[Operator] =
     Decoder.decodeString.emap { x =>
-      helpers.operatorFromString
-        .lift(x)
-        .toRight(s"invalid operator: $x")
+      helpers.operatorFromString(x).asRight
     }
   implicit lazy val encodeStatus: Encoder[Status] =
     Encoder.encodeString.contramap(helpers.statusToString)
 
   implicit lazy val decodeStatus: Decoder[Status] =
     Decoder.decodeString.emap { x =>
-      helpers.statusFromString
-        .lift(x)
-        .toRight(s"invalid status: $x")
+      helpers.statusFromString(x).asRight
     }
 
-  implicit lazy val decodeTaskCreatedDate: Decoder[TaskCreatedDate] =
-    Decoder.forProduct2[TaskCreatedDate, Operator, Instant](
-      "op",
-      "date"
-    )(TaskCreatedDate.apply)
-  implicit lazy val encodeTaskCreatedDate: Encoder[TaskCreatedDate] =
-    Encoder.forProduct2(
-      "op",
-      "date"
-    )(x => (x.op, x.date))
+  implicit lazy val decodeTaskCreatedDate: Decoder[TaskCreatedDate] = deriveDecoder
+  implicit lazy val encodeTaskCreatedDate: Encoder[TaskCreatedDate] = deriveEncoder
 
-  implicit lazy val decodeState: Decoder[State] =
-    Decoder.forProduct1("state")(State.apply)
-  implicit lazy val encodeState: Encoder[State] =
-    Encoder.forProduct1("state")(_.status)
+  implicit lazy val decodeState: Decoder[State] = deriveDecoder
+  implicit lazy val encodeState: Encoder[State] = deriveEncoder
 
   implicit lazy val decodeFilterId: Decoder[FilterId] =
     Decoder[UUID].map(FilterId.apply)
   implicit lazy val encodeFilterId: Encoder[FilterId] =
     Encoder[UUID].contramap(_.value)
 
-  implicit lazy val decodeFilter: Decoder[Filter] =
-    Decoder.forProduct2("id", "conditions")(Filter.apply)
-  implicit lazy val encodeFilter: Encoder[Filter] =
-    Encoder.forProduct2("id", "conditions")(x => (x.id, x.conditions))
+  implicit lazy val decodeFilter: Decoder[Filter] = deriveDecoder
+  implicit lazy val encodeFilter: Encoder[Filter] = deriveEncoder
 
-  implicit lazy val decodeNewFilter: Decoder[NewFilter] =
-    Decoder.forProduct1("conditions")(NewFilter.apply)
-  implicit lazy val encodeNewFilter: Encoder[NewFilter] =
-    Encoder.forProduct1("conditions")(_.conditions)
+  implicit lazy val decodeNewFilter: Decoder[NewFilter] = deriveDecoder
+  implicit lazy val encodeNewFilter: Encoder[NewFilter] = deriveEncoder
 
-  implicit lazy val circeRowDecoder: Decoder[FilterResultRow] =
-    Decoder.forProduct9(
-      "projectId",
-      "projectName",
-      "projectCreated",
-      "projectDeleted",
-      "projectAuthor",
-      "taskComment",
-      "taskCreated",
-      "taskDeleted",
-      "duration"
-    )(FilterResultRow.apply)
-  implicit lazy val circeRowEncoder: Encoder[FilterResultRow] =
-    Encoder.forProduct9(
-      "projectId",
-      "projectName",
-      "projectCreated",
-      "projectDeleted",
-      "projectAuthor",
-      "taskComment",
-      "taskCreated",
-      "taskDeleted",
-      "duration"
-    )(x =>
-      (
-        x.projectId,
-        x.projectName,
-        x.projectCreated,
-        x.projectDeleted,
-        x.projectAuthor,
-        x.taskComment,
-        x.taskCreated,
-        x.taskDeleted,
-        x.duration
-      )
-    )
+  implicit lazy val circeRowDecoder: Decoder[FilterResultRow] = deriveDecoder
+  implicit lazy val circeRowEncoder: Encoder[FilterResultRow] = deriveEncoder
 
   implicit lazy val decodeIn: Decoder[In] =
     Decoder.forProduct1("in")(In.apply)
