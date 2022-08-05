@@ -84,7 +84,9 @@ lazy val common = (project in file("modules/common"))
       scalaCheckEffect,
       scalaCheckEffectMunit,
       simulacrum,
-      slf4j
+      slf4j,
+      tapir,
+      tapirCirce,
     ).map(_.exclude("org.slf4j", "*")),
     addCompilerPlugin(kindProjector),
     scalacOptions ++= Seq("-Ymacro-annotations")
