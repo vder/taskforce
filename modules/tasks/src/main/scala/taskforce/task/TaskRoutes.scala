@@ -13,7 +13,7 @@ import taskforce.common.ResponseError
 import taskforce.common.ResponseError._
 import taskforce.common.instances.{Http4s => CommonInstancesHttp4s}
 
-import java.util.UUID
+import taskforce.task.ProjectId
 import taskforce.common.DefaultEndpointInterpreter
 
 final class TaskRoutes[F[_]: Async] private (
@@ -31,25 +31,25 @@ final class TaskRoutes[F[_]: Async] private (
       authenticator
         .secureEndpoints(base)
         .get
-        .in(path[Long].description("project ID"))
+        .in(path[ProjectId].description("project ID"))
         .in("tasks")
         .out(jsonBody[List[Task]].description("tasks in given project"))
         .description("Lists all task in a given project")
-        .serverLogicSuccess(_ => projectId => taskService.list(ProjectId(projectId)).compile.toList)
+        .serverLogicSuccess(_ => projectId => taskService.list(projectId).compile.toList)
 
     val find =
       authenticator
         .secureEndpoints(base)
         .get
-        .in(path[Long].description("project ID"))
+        .in(path[ProjectId].description("project ID"))
         .in("tasks")
-        .in(path[UUID].description("task ID"))
+        .in(path[TaskId].description("task ID"))
         .out(jsonBody[Task].description("returns task with given ID"))
         .description("Returns task with a given Id")
         .serverLogic { _ =>
           { case (projectId, taskId) =>
             taskService
-              .find(ProjectId(projectId), TaskId(taskId))
+              .find(projectId, taskId)
               .map(Either.fromOption(_, ResponseError.NotFound(s"resource $taskId is not found")))
           }
         }
@@ -58,7 +58,7 @@ final class TaskRoutes[F[_]: Async] private (
       authenticator
         .secureEndpoints(base)
         .post
-        .in(path[Long].description("project ID"))
+        .in(path[ProjectId].description("project ID"))
         .in("tasks")
         .in(jsonBody[NewTask].description("specifies a new task"))
         .out(jsonBody[Task].and(statusCode(StatusCode.Created)))
@@ -66,7 +66,7 @@ final class TaskRoutes[F[_]: Async] private (
         .serverLogic { userId =>
           { case (projectId, newTask) =>
             taskService
-              .create(Task.fromNewTask(newTask, userId, ProjectId(projectId)))
+              .create(Task.fromNewTask(newTask, userId, projectId))
               .map(_.leftMap(ResponseError.fromAppError))
               .extractFromEffectandMerge
           }
@@ -76,15 +76,15 @@ final class TaskRoutes[F[_]: Async] private (
       authenticator
         .secureEndpoints(base)
         .delete
-        .in(path[Long].description("project ID"))
+        .in(path[ProjectId].description("project ID"))
         .in("tasks")
-        .in(path[UUID].description("task ID"))
+        .in(path[TaskId].description("task ID"))
         .out(statusCode(StatusCode.Ok))
         .description("Deletes a task in a project")
         .serverLogic { userId =>
           { case (projectId, taskId) =>
             taskService
-              .delete(ProjectId(projectId), TaskId(taskId), userId)
+              .delete(projectId, taskId, userId)
               .void
               .extractFromEffect
           }
@@ -94,17 +94,17 @@ final class TaskRoutes[F[_]: Async] private (
       authenticator
         .secureEndpoints(base)
         .put
-        .in(path[Long].description("project ID"))
+        .in(path[ProjectId].description("project ID"))
         .in("tasks")
-        .in(path[UUID].description("task ID"))
+        .in(path[TaskId].description("task ID"))
         .in(jsonBody[NewTask].description("specifies a new task"))
         .out(jsonBody[Task].description("returns created task"))
         .description("Updates a task in a project")
         .serverLogic { userId =>
           { case (projectId, taskId, newTask) =>
-            val task = Task.fromNewTask(newTask, userId, ProjectId(projectId))
+            val task = Task.fromNewTask(newTask, userId, projectId)
             taskService
-              .update(TaskId(taskId), task, userId)
+              .update(taskId, task, userId)
               .map(_.leftMap(ResponseError.fromAppError))
               .extractFromEffectandMerge
           }
