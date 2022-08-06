@@ -1,6 +1,5 @@
 package taskforce.task
 
-
 import cats.effect.kernel.Async
 import cats.implicits._
 import org.http4s.HttpRoutes
@@ -49,7 +48,7 @@ final class TaskRoutes[F[_]: Async] private (
           { case (projectId, taskId) =>
             taskService
               .find(ProjectId(projectId), TaskId(taskId))
-              .map(Either.fromOption(_, ResponseError.NotFound("task not found")))
+              .map(Either.fromOption(_, ResponseError.NotFound(s"resource $taskId is not found")))
           }
         }
 
@@ -113,11 +112,9 @@ final class TaskRoutes[F[_]: Async] private (
         .reduce(_ <+> _)
   }
 
- 
-
   def routes =
     Router(
-      prefixPath ->endpoints.routes
+      prefixPath -> endpoints.routes
     )
 }
 

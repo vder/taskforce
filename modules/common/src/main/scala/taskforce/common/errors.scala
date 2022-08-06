@@ -36,6 +36,7 @@ object ResponseError {
     case AppError.InvalidStatsQueryParam(s) => BadRequest(s)
     case AppError.InvalidTask(s)            => BadRequest(s)
     case AppError.InvalidNewProject(s)      => BadRequest(s)
+    case AppError.WrongPeriodError                  => WrongPeriodError("Reporter already logged task in a given time")
 
   }
 
@@ -45,6 +46,7 @@ object ResponseError {
   final case class DuplicateProjectName2(message: String) extends ResponseError
   final case class NotAuthor(message: String)             extends ResponseError
   final case class BadRequest(message: String)            extends ResponseError
+  final case class WrongPeriodError(message: String)            extends ResponseError
 
   implicit class ResponseErrorOps1[F[_]: MonadThrow, A](fa: F[Either[ResponseError, A]]) {
     def extractFromEffectandMerge =

@@ -59,7 +59,7 @@ class ProjectRoutesSuite extends HttpTestSuite with Circe with Http4s[IO] {
       PUT(
         p2.name,
         Uri.unsafeFromString(s"api/v1/projects/${p1.id.value}"),
-        Authorization(Credentials.Token(AuthScheme.Bearer, "open sesame"))
+        authHeader
       ).pure[IO].flatMap { req =>
         assertHttp(routes, req)(
           Status.Conflict,

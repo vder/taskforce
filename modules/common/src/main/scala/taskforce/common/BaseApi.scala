@@ -32,6 +32,11 @@ object BaseApi extends instances.Circe {
             jsonBody[ResponseError.DuplicateProjectName2]
               .description("project's name is already in use")
               .and(statusCode(StatusCode.Conflict))
+          ),
+          oneOfVariant[ResponseError.WrongPeriodError](
+            jsonBody[ResponseError.WrongPeriodError]
+              .description("User alredy reported given time")
+              .and(statusCode(StatusCode.Conflict))
           )
         )
       )

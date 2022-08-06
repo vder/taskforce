@@ -29,7 +29,7 @@ final class TaskService[F[_]: Sync] private (
           }
           .compile
           .toList
-          .ensure(WrongPeriodError)(_.head)
+          .ensure(AppError.WrongPeriodError)(_.head)
     } yield isValid.head
   }
 
@@ -54,7 +54,7 @@ final class TaskService[F[_]: Sync] private (
   def find(projectId: ProjectId, taskId: TaskId) =
     taskRepo
       .find(projectId, taskId)
-      .ensure(AppError.NotFound(taskId.value.toString))(_.isDefined)
+      
 
   def create(task: Task): F[Either[AppError, Task]] =
     for {
