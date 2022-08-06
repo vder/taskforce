@@ -1,21 +1,21 @@
 package taskforce.project
 
+import cats.effect.kernel.Async
 import cats.implicits._
-import taskforce.common.instances.{Http4s => CommonInstancesHttp4s}
 import io.circe.refined._
 import org.http4s.HttpRoutes
-import sttp.tapir.server.http4s.Http4sServerInterpreter
-import cats.effect.kernel.Async
+import org.http4s.server.Router
+import sttp.model.StatusCode
 import sttp.tapir._
 import sttp.tapir.json.circe._
+import sttp.tapir.server.http4s.Http4sServerInterpreter
+import taskforce.authentication.Authenticator
+import taskforce.common.BaseApi
 import taskforce.common.ResponseError
 import taskforce.common.ResponseError._
-import sttp.model.StatusCode
-import taskforce.authentication.Authenticator
-import taskforce.project.TotalTime
+import taskforce.common.instances.{Http4s => CommonInstancesHttp4s}
 import taskforce.project.ProjectName
-import org.http4s.server.Router
-import taskforce.common.BaseApi
+import taskforce.project.TotalTime
 
 
 final class ProjectRoutes[F[_]: Async] private (

@@ -34,11 +34,11 @@ final class Server[F[_]: Logger: Async] private (
       projectRoutes  <- ProjectRoutes.make(authenticator, projectService).pure[F]
       filterRoutes   <- FilterRoutes.make(authMiddleware, filterService).pure[F]
       statsRoutes    <- StatsRoutes.make(authMiddleware, statsService).pure[F]
-      taskRoutes     <- TaskRoutes.make(authMiddleware, taskService).pure[F]
+      taskRoutes     <- TaskRoutes.make(authenticator, taskService).pure[F]
       errHandler     <- ErrorHandler[F].pure[F]
       routes =
         basicRoutes.routes <+> projectRoutes.routes <+>
-          taskRoutes.routes(errHandler) <+> filterRoutes.routes(errHandler) <+>
+          taskRoutes.routes <+> filterRoutes.routes(errHandler) <+>
           statsRoutes.routes(errHandler)
       middlewares =
         LoggerMiddleware
