@@ -7,11 +7,13 @@ import java.time.format.DateTimeFormatter
 import taskforce.authentication.UserId
 import taskforce.stats.{StatsResponse, StatsQuery}
 import monix.newtypes.integrations.DerivedCirceCodec
+import java.time.Instant
+import java.time.ZoneId
 
 trait Circe extends DerivedCirceCodec {
 
   private val toDateFmt   = DateTimeFormatter.ofPattern("yyyy.MM.dd")
-  private val fromDateFmt = DateTimeFormatter.ofPattern("yyyy.MM")
+  private val fromDateFmt = DateTimeFormatter.ofPattern("yyyy.MM").withZone(ZoneId.systemDefault())
 
   implicit val circeStatsResponseDecoder: Decoder[StatsResponse] =
     deriveDecoder[StatsResponse]
@@ -22,14 +24,14 @@ trait Circe extends DerivedCirceCodec {
     Decoder.forProduct3[StatsQuery, List[UserId], Option[String], Option[String]]("users", "from", "to")((u, f, t) =>
       StatsQuery(
         u,
-        f.map(x => LocalDate.parse(s"$x.01", toDateFmt)),
-        t.map(x => LocalDate.parse(s"$x.01", toDateFmt))
+        f.map(x => Instant.from(LocalDate.parse(s"$x.01", toDateFmt))),
+        t.map(x => Instant.from(LocalDate.parse(s"$x.01", toDateFmt)))
       )
     )
 
   implicit val circeStatsQueryEncoder: Encoder[StatsQuery] =
     Encoder.forProduct3("users", "from", "to")(x =>
-      (x.users, x.from.map(_.format(fromDateFmt)), x.to.map(_.format(fromDateFmt)))
+      (x.users, x.from.map(fromDateFmt.format), x.to.map(fromDateFmt.format))
     )
 
 }

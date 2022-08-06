@@ -3,20 +3,13 @@ package taskforce.task
 import cats.effect.kernel.MonadCancelThrow
 import cats.syntax.all._
 import doobie.implicits._
-import org.polyvariant.doobiequill.DoobieContext
 import doobie.util.transactor.Transactor
 import org.postgresql.util.PSQLException
 import taskforce.authentication.UserId
 import fs2.Stream
-import eu.timepit.refined.numeric
-import eu.timepit.refined.api.Refined
-import eu.timepit.refined.types.string
-import java.time.Instant
-import io.getquill.NamingStrategy
-import io.getquill.PluralizedTableNames
-import io.getquill.SnakeCase
 import taskforce.common.DeletionDate
 import taskforce.common.AppError
+import java.time.Instant
 
 trait TaskRepository[F[_]] {
   def create(task: Task): F[Either[AppError.DuplicateTaskNameError, Task]]
@@ -27,89 +20,69 @@ trait TaskRepository[F[_]] {
   def update(id: TaskId, task: Task): F[Either[AppError.DuplicateTaskNameError, Task]]
 }
 
-
-
 object TaskRepository {
   def make[F[_]: MonadCancelThrow](xa: Transactor[F]) =
-  new  TaskRepository[F]
-    with instances.Doobie {
+    new TaskRepository[F] with instances.Doobie {
 
-  val ctx =
-    new DoobieContext.Postgres(NamingStrategy(PluralizedTableNames, SnakeCase))
-  import ctx._
+      import ctx._
+      private def mapDatabaseErr(
+          task: Task
+      ): PartialFunction[Throwable, Either[AppError.DuplicateTaskNameError, Task]] = {
+        case x: PSQLException
+            if x.getMessage.contains(
+              "unique constraint"
+            ) =>
+          AppError.DuplicateTaskNameError(task.id.value.toString()).asLeft[Task]
+      }
 
-  val taskQuery = quote {
-    querySchema[Task]("tasks", _.created -> "started")
-  }
+      override def update(
+          id: TaskId,
+          task: Task
+      ): F[Either[AppError.DuplicateTaskNameError, Task]] = {
+        val update = for {
+          _ <- run(
+            taskQuery
+              .filter(p => p.id == lift(id) && p.deleted.isEmpty)
+              .update(_.deleted -> lift(DeletionDate(Instant.now()).some))
+          )
+          _ <- run(taskQuery.insert(lift(task)))
+        } yield ()
+        update
+          .transact(xa)
+          .as(task.asRight[AppError.DuplicateTaskNameError])
+          .recover(mapDatabaseErr(task))
 
-  implicit val decodePositiveInt =
-    MappedEncoding[Int, Int Refined numeric.Positive](Refined.unsafeApply(_))
-  implicit val encodePositiveInt =
-    MappedEncoding[Int Refined numeric.Positive, Int](_.value)
+      }
 
-  implicit val decodeNonEmptyString =
-    MappedEncoding[String, string.NonEmptyString](Refined.unsafeApply(_))
-  implicit val encodeNonEmptyString =
-    MappedEncoding[string.NonEmptyString, String](_.value)
+      override def listByUser(author: UserId): Stream[F, Task] =
+        stream(taskQuery.filter(_.author == lift(author)))
+          .transact(xa)
 
-  private def mapDatabaseErr(
-      task: Task
-  ): PartialFunction[Throwable, Either[AppError.DuplicateTaskNameError, Task]] = {
-    case x: PSQLException
-        if x.getMessage.contains(
-          "unique constraint"
-        ) =>
-      AppError.DuplicateTaskNameError(task.id.value.toString()).asLeft[Task]
-  }
+      override def find(projectId: ProjectId, taskId: TaskId): F[Option[Task]] =
+        run(
+          taskQuery.filter(t => t.projectId == lift(projectId) && t.id == lift(taskId))
+        )
+          .transact(xa)
+          .map(_.headOption)
 
-  override def update(
-      id: TaskId,
-      task: Task
-  ): F[Either[AppError.DuplicateTaskNameError, Task]] = {
-    val update = for {
-      _ <- run(
-        taskQuery
-          .filter(p => p.id == lift(id) && p.deleted.isEmpty)
-          .update(_.deleted -> lift(DeletionDate(Instant.now()).some))
-      )
-      _ <- run(taskQuery.insert(lift(task)))
-    } yield ()
-    update
-      .transact(xa)
-      .as(task.asRight[AppError.DuplicateTaskNameError])
-      .recover(mapDatabaseErr(task))
+      override def create(task: Task): F[Either[AppError.DuplicateTaskNameError, Task]] =
+        run(taskQuery.insert(lift(task)))
+          .transact(xa)
+          .as(task.asRight[AppError.DuplicateTaskNameError])
+          .recover(mapDatabaseErr(task))
 
-  }
+      override def delete(id: TaskId): F[Int] =
+        run(
+          taskQuery
+            .filter(p => p.id == lift(id) && p.deleted.isEmpty)
+            .update(_.deleted -> lift(DeletionDate(Instant.now()).some))
+        )
+          .transact(xa)
+          .map(_.toInt)
 
-  override def listByUser(author: UserId): Stream[F, Task] =
-    stream(taskQuery.filter(_.author == lift(author)))
-      .transact(xa)
+      override def list(projectId: ProjectId): Stream[F, Task] =
+        stream(taskQuery.filter(_.projectId == lift(projectId)))
+          .transact(xa)
 
-  override def find(projectId: ProjectId, taskId: TaskId): F[Option[Task]] =
-    run(
-      taskQuery.filter(t => t.projectId == lift(projectId) && t.id == lift(taskId))
-    )
-      .transact(xa)
-      .map(_.headOption)
-
-  override def create(task: Task): F[Either[AppError.DuplicateTaskNameError, Task]] =
-    run(taskQuery.insert(lift(task)))
-      .transact(xa)
-      .as(task.asRight[AppError.DuplicateTaskNameError])
-      .recover(mapDatabaseErr(task))
-
-  override def delete(id: TaskId): F[Int] =
-    run(
-      taskQuery
-        .filter(p => p.id == lift(id) && p.deleted.isEmpty)
-        .update(_.deleted -> lift(DeletionDate(Instant.now()).some))
-    )
-      .transact(xa)
-      .map(_.toInt)
-
-  override def list(projectId: ProjectId): Stream[F, Task] =
-    stream(taskQuery.filter(_.projectId == lift(projectId)))
-      .transact(xa)
-
-}
+    }
 }
