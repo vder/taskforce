@@ -1,34 +1,34 @@
 package taskforce.filter.instances
 
-import taskforce.filter._
+import taskforce.filter.model._
 
 object helpers {
 
   val operatorFromString: String => Operator = {
-    case "eq"   => Eq
-    case "lt"   => Lt
-    case "gt"   => Gt
-    case "lteq" => Lteq
-    case "gteq" => Gteq
+    case "eq"   => Operator.Eq
+    case "lt"   => Operator.Lt
+    case "gt"   => Operator.Gt
+    case "lteq" => Operator.Lteq
+    case "gteq" => Operator.Gteq
   }
 
   val operatorToString: Operator => String = {
-    case Eq   => "eq"
-    case Gt   => "gt"
-    case Gteq => "gteq"
-    case Lt   => "lt"
-    case Lteq => "lteq"
+    case Operator.Eq   => "eq"
+    case Operator.Gt   => "gt"
+    case Operator.Gteq => "gteq"
+    case Operator.Lt   => "lt"
+    case Operator.Lteq => "lteq"
   }
 
   val statusFromString: String => Status = {
-    case "active"   => Active
-    case "deactive" => Deactive
-    case "all"      => All
+    case "active"   => Status.Active
+    case "deactive" => Status.Deactive
+    case "all"      => Status.All
   }
 
   val statusToString: Status => String = {
-    case Active   => "active"
-    case Deactive => "deactive"
-    case All      => "all"
+    case Status.Active   => "active"
+    case Status.Deactive => "deactive"
+    case Status.All      => "all"
   }
 }

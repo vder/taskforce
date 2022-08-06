@@ -10,6 +10,7 @@ import org.scalacheck.effect.PropF
 import arbitraries._
 import taskforce.BasicRepositorySuite
 import java.time.Instant
+import taskforce.filter.model._
 
 class FilterRepositorySuite extends BasicRepositorySuite {
 
@@ -24,7 +25,7 @@ class FilterRepositorySuite extends BasicRepositorySuite {
     PropF.forAllF { (f: FilterId, pageSize: PageSize) =>
       for {
         fRepo <- filterRepo
-        filter = Filter(f, List(In(List(Refined.unsafeApply[String, NonEmpty]("project 1")))))
+        filter = Filter(f, List(Criteria.In(List(Refined.unsafeApply[String, NonEmpty]("project 1")))))
         rows <-
           fRepo
             .execute(
@@ -45,7 +46,7 @@ class FilterRepositorySuite extends BasicRepositorySuite {
     PropF.forAllF { (f: FilterId) =>
       for {
         fRepo <- filterRepo
-        filter = Filter(f, List(In(List(Refined.unsafeApply[String, NonEmpty]("project 1")))))
+        filter = Filter(f, List(Criteria.In(List(Refined.unsafeApply[String, NonEmpty]("project 1")))))
         page = Page(
           PageNo(Refined.unsafeApply[Int, Positive](1)),
           PageSize(Refined.unsafeApply[Int, Positive](40))
@@ -77,7 +78,7 @@ class FilterRepositorySuite extends BasicRepositorySuite {
     PropF.forAllF { (f: FilterId) =>
       for {
         fRepo <- filterRepo
-        filter = Filter(f, List(State(All)))
+        filter = Filter(f, List(Criteria.State(Status.All)))
         page = Page(
           PageNo(Refined.unsafeApply[Int, Positive](1)),
           PageSize(Refined.unsafeApply[Int, Positive](40))
@@ -109,7 +110,7 @@ class FilterRepositorySuite extends BasicRepositorySuite {
     PropF.forAllF { (f: FilterId) =>
       for {
         fRepo <- filterRepo
-        filter = Filter(f, List(State(All)))
+        filter = Filter(f, List(Criteria.State(Status.All)))
         page = Page(
           PageNo(Refined.unsafeApply[Int, Positive](1)),
           PageSize(Refined.unsafeApply[Int, Positive](40))
@@ -126,7 +127,7 @@ class FilterRepositorySuite extends BasicRepositorySuite {
         rowsDeleted <-
           fRepo
             .execute(
-              Filter(f, List(State(Deactive))),
+              Filter(f, List(Criteria.State(Status.Deactive))),
               SortBy(CreatedDate, Desc).some,
               page
             )
@@ -140,7 +141,7 @@ class FilterRepositorySuite extends BasicRepositorySuite {
     PropF.forAllF { (f: FilterId) =>
       for {
         fRepo <- filterRepo
-        filter = Filter(f, List(State(All)))
+        filter = Filter(f, List(Criteria.State(Status.All)))
         page = Page(
           PageNo(Refined.unsafeApply[Int, Positive](1)),
           PageSize(Refined.unsafeApply[Int, Positive](40))
@@ -157,7 +158,7 @@ class FilterRepositorySuite extends BasicRepositorySuite {
         rowsDeleted <-
           fRepo
             .execute(
-              Filter(f, List(State(Active))),
+              Filter(f, List(Criteria.State(Status.Active))),
               SortBy(CreatedDate, Desc).some,
               page
             )
@@ -171,7 +172,7 @@ class FilterRepositorySuite extends BasicRepositorySuite {
     PropF.forAllF { (f: FilterId) =>
       for {
         fRepo <- filterRepo
-        filter   = Filter(f, List(State(All)))
+        filter   = Filter(f, List(Criteria.State(Status.All)))
         fromDate = Instant.parse("0004-12-03T10:15:30Z")
         toDate   = Instant.parse("0004-12-03T10:15:30Z")
         page = Page(
@@ -190,7 +191,10 @@ class FilterRepositorySuite extends BasicRepositorySuite {
         rowsDeleted <-
           fRepo
             .execute(
-              Filter(f, List(TaskCreatedDate(Gt, fromDate), TaskCreatedDate(Lt, toDate))),
+              Filter(
+                f,
+                List(Criteria.TaskCreatedDate(Operator.Gt, fromDate), Criteria.TaskCreatedDate(Operator.Lt, toDate))
+              ),
               SortBy(CreatedDate, Desc).some,
               page
             )

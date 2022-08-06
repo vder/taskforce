@@ -6,7 +6,7 @@ import eu.timepit.refined.auto._
 import eu.timepit.refined.numeric._
 import org.http4s.{ParseFailure, QueryParamDecoder}
 import org.http4s.dsl.impl.OptionalQueryParamDecoderMatcher
-import taskforce.filter._
+import taskforce.filter.model._
 
 trait Http4s {
 

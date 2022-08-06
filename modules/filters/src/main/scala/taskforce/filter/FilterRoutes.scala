@@ -9,6 +9,7 @@ import org.http4s.dsl.Http4sDsl
 import org.http4s.server.{AuthMiddleware, Router}
 import taskforce.authentication.UserId
 import taskforce.common.{ErrorHandler, AppError}
+import taskforce.filter.model._
 import cats.MonadThrow
 
 final class FilterRoutes[F[_]: MonadThrow: JsonDecoder] private (

@@ -6,22 +6,22 @@ import io.circe.refined._
 import io.circe.syntax._
 import io.circe.{Decoder, Encoder}
 import java.util.UUID
-import taskforce.filter._
 import io.circe.generic.semiauto._
+import taskforce.filter.model._
 
 trait Circe {
 
   implicit lazy val encodeCriteria: Encoder[Criteria] = Encoder.instance {
-    case in @ In(_)                   => in.asJson
-    case state @ State(_)             => state.asJson
-    case task @ TaskCreatedDate(_, _) => task.asJson
+    case in @ Criteria.In(_)                   => in.asJson
+    case state @ Criteria.State(_)             => state.asJson
+    case task @ Criteria.TaskCreatedDate(_, _) => task.asJson
   }
 
   implicit lazy val decodeCriteria: Decoder[Criteria] =
     List[Decoder[Criteria]](
-      Decoder[In].widen,
-      Decoder[State].widen,
-      Decoder[TaskCreatedDate].widen
+      Decoder[Criteria.In].widen,
+      Decoder[Criteria.State].widen,
+      Decoder[Criteria.TaskCreatedDate].widen
     ).reduceLeft(_ or _)
 
   implicit lazy val encodeOperator: Encoder[Operator] =
@@ -39,11 +39,11 @@ trait Circe {
       helpers.statusFromString(x).asRight
     }
 
-  implicit lazy val decodeTaskCreatedDate: Decoder[TaskCreatedDate] = deriveDecoder
-  implicit lazy val encodeTaskCreatedDate: Encoder[TaskCreatedDate] = deriveEncoder
+  implicit lazy val decodeTaskCreatedDate: Decoder[Criteria.TaskCreatedDate] = deriveDecoder
+  implicit lazy val encodeTaskCreatedDate: Encoder[Criteria.TaskCreatedDate] = deriveEncoder
 
-  implicit lazy val decodeState: Decoder[State] = deriveDecoder
-  implicit lazy val encodeState: Encoder[State] = deriveEncoder
+  implicit lazy val decodeState: Decoder[Criteria.State] = deriveDecoder
+  implicit lazy val encodeState: Encoder[Criteria.State] = deriveEncoder
 
   implicit lazy val decodeFilterId: Decoder[FilterId] =
     Decoder[UUID].map(FilterId.apply)
@@ -59,9 +59,9 @@ trait Circe {
   implicit lazy val circeRowDecoder: Decoder[FilterResultRow] = deriveDecoder
   implicit lazy val circeRowEncoder: Encoder[FilterResultRow] = deriveEncoder
 
-  implicit lazy val decodeIn: Decoder[In] =
-    Decoder.forProduct1("in")(In.apply)
-  implicit lazy val encodeIn: Encoder[In] =
+  implicit lazy val decodeIn: Decoder[Criteria.In] =
+    Decoder.forProduct1("in")(Criteria.In.apply)
+  implicit lazy val encodeIn: Encoder[Criteria.In] =
     Encoder.forProduct1("in")(_.names)
 
 }

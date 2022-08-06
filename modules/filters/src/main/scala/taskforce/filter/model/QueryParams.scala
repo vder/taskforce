@@ -1,4 +1,4 @@
-package taskforce.filter
+package taskforce.filter.model
 
 import eu.timepit.refined._
 import eu.timepit.refined.numeric._

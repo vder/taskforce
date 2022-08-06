@@ -19,8 +19,9 @@ import taskforce.common.{ErrorMessage, ErrorHandler}
 import taskforce.common.HttpTestSuite
 import taskforce.common.instances.Http4s
 import taskforce.common.AppError
+import taskforce.filter.model.{Status => _, _}
 
-class FilterRoutesSuite extends HttpTestSuite with instances.Circe  with Http4s[IO]{
+class FilterRoutesSuite extends HttpTestSuite with instances.Circe with Http4s[IO] {
 
   implicit def entityDecodeNewFilter: EntityDecoder[IO, NewFilter] = jsonOf
   implicit def entityEncodeNewFilter: EntityEncoder[IO, NewFilter] = jsonEncoderOf
