@@ -1,9 +1,10 @@
 package taskforce.stats
 
-import java.time.LocalDate
-import taskforce.authentication.UserId
 
-final case class StatsQuery(users: List[UserId], from: Option[LocalDate], to: Option[LocalDate])
+import taskforce.authentication.UserId
+import java.time.Instant
+
+final case class StatsQuery(users: List[UserId], from: Option[Instant], to: Option[Instant])
 
 final case class StatsResponse(
     tasksNo: Option[Int],
