@@ -1,52 +1,43 @@
 package taskforce.stats
 
-import cats.implicits._
-import org.http4s.AuthedRoutes
-import org.http4s.circe.CirceEntityEncoder._
-import org.http4s.circe._
-import org.http4s.dsl.Http4sDsl
-import org.http4s.server.{AuthMiddleware, Router}
-import org.typelevel.log4cats.Logger
-import taskforce.authentication.UserId
-import taskforce.common.{ErrorHandler, AppError}
-import cats.MonadThrow
+import cats.effect.kernel.Async
+import org.http4s.server.Router
+import sttp.tapir.json.circe._
+import sttp.tapir.server.http4s.Http4sServerInterpreter
+import taskforce.authentication.Authenticator
+import taskforce.common.BaseApi
 
-final class StatsRoutes[F[_]: MonadThrow: JsonDecoder: Logger] private (
-    authMiddleware: AuthMiddleware[F, UserId],
+final class StatsRoutes[F[_]: Async] private (
+    authenticator: Authenticator[F],
     statsService: StatsService[F]
-) extends instances.Circe {
+) extends instances.Circe
+    with instances.TapirCodecs {
 
   private[this] val prefixPath = "/api/v1/stats"
 
-  val httpRoutes: AuthedRoutes[UserId, F] = {
-    val dsl = new Http4sDsl[F] {}
-    import dsl._
-
-    AuthedRoutes.of { case authReq @ GET -> Root as _ =>
-      for {
-        query <-
-          authReq.req
-            .asJsonDecode[StatsQuery]
-            .adaptError(_ => AppError.InvalidStatsQueryParam(s"${authReq.req.uri}"))
-        _ <- Logger[F].info(query.toString())
-        stats <-
-          statsService
-            .getStats(query)
-        response <- Ok(stats)
-      } yield response
-
-    }
+  object endpoints {
+    val stats =
+      authenticator
+        .secureEndpoints(BaseApi.endpoint)
+        .get
+        .in(jsonBody[StatsQuery])
+        .out(jsonBody[StatsResponse])
+        .serverLogicSuccess(_ =>
+          query =>
+            statsService
+              .getStats(query)
+        )
   }
 
-  def routes(errHandler: ErrorHandler[F]) =
+  def routes =
     Router(
-      prefixPath -> errHandler.basicHandle(authMiddleware(httpRoutes))
+      prefixPath -> Http4sServerInterpreter[F]().toRoutes(endpoints.stats)
     )
 }
 
 object StatsRoutes {
-  def make[F[_]: MonadThrow: Logger: JsonDecoder](
-      authMiddleware: AuthMiddleware[F, UserId],
+  def make[F[_]: Async](
+      authenticator: Authenticator[F],
       statsService: StatsService[F]
-  ) = new StatsRoutes(authMiddleware, statsService)
+  ) = new StatsRoutes(authenticator, statsService)
 }
