@@ -17,7 +17,6 @@ import taskforce.task.Task
 import cats.effect.kernel.MonadCancelThrow
 import eu.timepit.refined.cats._
 import org.typelevel.log4cats.Logger
-import cats.Show
 import java.time.Instant
 
 
@@ -34,11 +33,8 @@ trait FilterRepository[F[_]] {
 }
 
 object FilterRepository {
-  def make[F[_]: MonadCancelThrow: Logger](xa: Transactor[F]) =
-    new FilterRepository[F] with instances.Doobie {
+  def make[F[_]: MonadCancelThrow: Logger](xa: Transactor[F]): FilterRepository[F] = new FilterRepository[F] with instances.Doobie {
 
-      implicit val showInstance: Show[Instant] =
-        Show.fromToString[Instant]
 
       private val tuple2Condition: PartialFunction[
         (

@@ -10,9 +10,10 @@ import org.http4s.implicits._
 import org.scalacheck.effect.PropF
 import taskforce.HttpTestSuite
 import taskforce.authentication.UserId
-import taskforce.common.LiveHttpErrorHandler
+import taskforce.common.ErrorHandler
 import taskforce.project.ProjectName
 import taskforce.project.instances.Circe
+import taskforce.common.instances.Http4s
 import java.time.Instant
 import taskforce.common.AppError
 import taskforce.authentication.Authenticator
@@ -24,14 +25,14 @@ import sttp.tapir.server.PartialServerEndpoint
 import io.circe.generic.auto._
 
 
-class ProjectRoutesSuite extends HttpTestSuite with Circe {
+class ProjectRoutesSuite extends HttpTestSuite with Circe with Http4s[IO] {
 
   import arbitraries._
 
   implicit def decodeNewProduct: EntityDecoder[IO, ProjectName] = jsonOf
   implicit def encodeNewProduct: EntityEncoder[IO, ProjectName] = jsonEncoderOf
 
-  val errHandler = LiveHttpErrorHandler[IO]
+  val errHandler = ErrorHandler[IO]
 
   def testAuthenticator(userId: UserId) = new Authenticator[IO] {
     def secureEndpoints[SECURITY_INPUT, INPUT, OUTPUT](
@@ -58,7 +59,7 @@ class ProjectRoutesSuite extends HttpTestSuite with Circe {
       PUT(
         p2.name,
         Uri.unsafeFromString(s"api/v1/projects/${p1.id.value}"),
-        Authorization(Credentials.Token(AuthScheme.Bearer, "open sesame"))
+        authHeader
       ).pure[IO].flatMap { req =>
         assertHttp(routes, req)(
           Status.Conflict,

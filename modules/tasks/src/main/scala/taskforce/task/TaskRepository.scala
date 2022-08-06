@@ -16,14 +16,15 @@ import io.getquill.NamingStrategy
 import io.getquill.PluralizedTableNames
 import io.getquill.SnakeCase
 import taskforce.common.DeletionDate
+import taskforce.common.AppError
 
 trait TaskRepository[F[_]] {
-  def create(task: Task): F[Either[DuplicateTaskNameError, Task]]
+  def create(task: Task): F[Either[AppError.DuplicateTaskNameError, Task]]
   def delete(id: TaskId): F[Int]
   def find(projectId: ProjectId, taskId: TaskId): F[Option[Task]]
   def list(projectId: ProjectId): Stream[F, Task]
   def listByUser(author: UserId): Stream[F, Task]
-  def update(id: TaskId, task: Task): F[Either[DuplicateTaskNameError, Task]]
+  def update(id: TaskId, task: Task): F[Either[AppError.DuplicateTaskNameError, Task]]
 }
 
 
@@ -53,18 +54,18 @@ object TaskRepository {
 
   private def mapDatabaseErr(
       task: Task
-  ): PartialFunction[Throwable, Either[DuplicateTaskNameError, Task]] = {
+  ): PartialFunction[Throwable, Either[AppError.DuplicateTaskNameError, Task]] = {
     case x: PSQLException
         if x.getMessage.contains(
           "unique constraint"
         ) =>
-      DuplicateTaskNameError(task).asLeft[Task]
+      AppError.DuplicateTaskNameError(task.id.value.toString()).asLeft[Task]
   }
 
   override def update(
       id: TaskId,
       task: Task
-  ): F[Either[DuplicateTaskNameError, Task]] = {
+  ): F[Either[AppError.DuplicateTaskNameError, Task]] = {
     val update = for {
       _ <- run(
         taskQuery
@@ -75,7 +76,7 @@ object TaskRepository {
     } yield ()
     update
       .transact(xa)
-      .as(task.asRight[DuplicateTaskNameError])
+      .as(task.asRight[AppError.DuplicateTaskNameError])
       .recover(mapDatabaseErr(task))
 
   }
@@ -91,10 +92,10 @@ object TaskRepository {
       .transact(xa)
       .map(_.headOption)
 
-  override def create(task: Task): F[Either[DuplicateTaskNameError, Task]] =
+  override def create(task: Task): F[Either[AppError.DuplicateTaskNameError, Task]] =
     run(taskQuery.insert(lift(task)))
       .transact(xa)
-      .as(task.asRight[DuplicateTaskNameError])
+      .as(task.asRight[AppError.DuplicateTaskNameError])
       .recover(mapDatabaseErr(task))
 
   override def delete(id: TaskId): F[Int] =

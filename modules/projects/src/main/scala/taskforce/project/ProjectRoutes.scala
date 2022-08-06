@@ -1,66 +1,38 @@
 package taskforce.project
 
+import cats.effect.kernel.Async
 import cats.implicits._
 import io.circe.refined._
 import org.http4s.HttpRoutes
-import sttp.tapir.server.http4s.Http4sServerInterpreter
-import cats.effect.kernel.Async
-import io.circe.generic.auto._
-import sttp.tapir.generic.auto._
+import org.http4s.server.Router
+import sttp.model.StatusCode
 import sttp.tapir._
 import sttp.tapir.json.circe._
+import sttp.tapir.server.http4s.Http4sServerInterpreter
+import taskforce.authentication.Authenticator
+import taskforce.common.BaseApi
 import taskforce.common.ResponseError
 import taskforce.common.ResponseError._
-import sttp.model.StatusCode
-import taskforce.authentication.Authenticator
-import taskforce.project.TotalTime
+import taskforce.common.instances.{Http4s => CommonInstancesHttp4s}
 import taskforce.project.ProjectName
-import org.http4s.server.Router
+import taskforce.project.TotalTime
+
 
 final class ProjectRoutes[F[_]: Async] private (
     authenticator: Authenticator[F],
     projectService: ProjectService[F]
-) extends instances.Http4s[F]
-    with instances.TapirCodecs {
+) extends instances.Http4s[F] with CommonInstancesHttp4s[F] with instances.TapirCodecs{
 
-  val baseEndpoint: Endpoint[String, Unit, ResponseError, Unit, Any] =
-    endpoint
-      .securityIn(auth.bearer[String]())
-      .errorOut(
-        oneOf[ResponseError](
-          oneOfVariant[TokenDecoding](
-            statusCode(StatusCode.Unauthorized)
-              .and(jsonBody[TokenDecoding].description("invalid token"))
-          ),
-          oneOfVariant[Forbidden](
-            statusCode(StatusCode.Unauthorized)
-              .and(jsonBody[Forbidden].description("Unknown User"))
-          ),
-          oneOfVariant[NotFound](
-            statusCode(StatusCode.NotFound)
-              .and(jsonBody[NotFound].description("resource not found"))
-          ),
-          oneOfVariant[NotAuthor](
-            statusCode(StatusCode.Forbidden)
-              .and(jsonBody[NotAuthor].description("authorised user is not owner of the resource"))
-          ),
-          oneOfVariant[DuplicateProjectName2](
-            jsonBody[DuplicateProjectName2]
-              .description("project's name is already in use")
-              .and(statusCode(StatusCode.Conflict))
-          )
-        )
-      )
-
+  
   object endpoints {
 
     val list =
-      authenticator.secureEndpoints(baseEndpoint).get
+      authenticator.secureEndpoints(BaseApi.endpoint).get
         .out(jsonBody[List[Project]])
         .serverLogicSuccess(_ => _ => projectService.list)
 
     val find =
-      authenticator.secureEndpoints(baseEndpoint).get
+      authenticator.secureEndpoints(BaseApi.endpoint).get
         .in(path[Long])
         .out(jsonBody[Project])
         .serverLogic { _ => projectId =>
@@ -70,7 +42,7 @@ final class ProjectRoutes[F[_]: Async] private (
         }
 
     val create =
-      authenticator.secureEndpoints(baseEndpoint).post
+      authenticator.secureEndpoints(BaseApi.endpoint).post
         .in(jsonBody[ProjectName])
         .out(jsonBody[Project].and(statusCode(StatusCode.Created)))
         .serverLogic { userId => projectName =>
@@ -81,7 +53,7 @@ final class ProjectRoutes[F[_]: Async] private (
         }
 
     val delete =
-      authenticator.secureEndpoints(baseEndpoint).delete
+      authenticator.secureEndpoints(BaseApi.endpoint).delete
         .in(path[Long])
         .out(statusCode(StatusCode.Ok))
         .serverLogic { userId => projectId =>
@@ -89,7 +61,7 @@ final class ProjectRoutes[F[_]: Async] private (
         }
 
     val totalTime =
-      authenticator.secureEndpoints(baseEndpoint).get
+      authenticator.secureEndpoints(BaseApi.endpoint).get
         .in(path[Long])
         .in("totalTime")
         .out(jsonBody[TotalTime])
@@ -98,7 +70,7 @@ final class ProjectRoutes[F[_]: Async] private (
         }
 
     val update =
-      authenticator.secureEndpoints(baseEndpoint).put
+      authenticator.secureEndpoints(BaseApi.endpoint).put
         .in(path[Long])
         .in(jsonBody[ProjectName])
         .out(jsonBody[Project])

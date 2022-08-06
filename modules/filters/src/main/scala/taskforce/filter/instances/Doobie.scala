@@ -17,10 +17,16 @@ import taskforce.common.Sqlizer
 import taskforce.common.Sqlizer.ops._
 import taskforce.filter._
 import taskforce.common.NewTypeDoobieMeta
+import _root_.cats.Show
+import java.time.Instant
 
 
 
 trait Doobie extends taskforce.task.instances.Doobie with NewTypeDoobieMeta with doobie.util.meta.LegacyInstantMetaInstance {
+
+
+  implicit val showInstance: Show[Instant] =
+        Show.fromToString[Instant]
 
   implicit val putNonEmptyList: Put[List[NonEmptyString]] =
     Put[List[String]].contramap(_.map(_.value))

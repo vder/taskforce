@@ -1,12 +1,13 @@
 package taskforce.common
 
 import cats.data.{Kleisli, OptionT}
-import cats.{MonadError, ApplicativeError}
+import cats.MonadError
 import org.http4s.circe.CirceEntityEncoder._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.{HttpRoutes, Response}
+import cats.syntax.all._
 
-trait ErrorHandler[F[_], E <: Throwable] {
+trait ErrorHandler[F[_]] {
   def handle(
       otherHandler: PartialFunction[Throwable, F[Response[F]]]
   )(routes: HttpRoutes[F]): HttpRoutes[F]
@@ -14,13 +15,12 @@ trait ErrorHandler[F[_], E <: Throwable] {
   def basicHandle(routes: HttpRoutes[F]): HttpRoutes[F] = handle(PartialFunction.empty)(routes)
 }
 
-object LiveHttpErrorHandler {
+object ErrorHandler {
 
-  def apply[F[_]: MonadError[*[_], Throwable]]: ErrorHandler[F, Throwable] =
-    new ErrorHandler[F, Throwable] {
+  def apply[F[_]: MonadError[*[_], Throwable]]: ErrorHandler[F] =
+    new ErrorHandler[F] with instances.Circe{
       val dsl = new Http4sDsl[F] {}
       import dsl._
-      val A: ApplicativeError[F, Throwable] = implicitly
 
       val handler: PartialFunction[Throwable, F[Response[F]]] = {
         case AppError.NotAuthor(_) =>
@@ -44,9 +44,8 @@ object LiveHttpErrorHandler {
       )(routes: HttpRoutes[F]): HttpRoutes[F] =
         Kleisli { req =>
           val finalHandler = handler orElse otherHandler
-          OptionT {
-            A.handleErrorWith(routes.run(req).value)(e => A.map(finalHandler(e))(Option(_)))
-          }
+
+          routes.run(req).handleErrorWith(err => OptionT.liftF(finalHandler(err)))
         }
 
     }

@@ -29,7 +29,7 @@ final class TaskService[F[_]: Sync] private (
           }
           .compile
           .toList
-          .ensure(WrongPeriodError)(_.head)
+          .ensure(AppError.WrongPeriodError)(_.head)
     } yield isValid.head
   }
 
@@ -54,29 +54,28 @@ final class TaskService[F[_]: Sync] private (
   def find(projectId: ProjectId, taskId: TaskId) =
     taskRepo
       .find(projectId, taskId)
-      .ensure(AppError.NotFound(taskId.value.toString))(_.isDefined)
+      
 
-  def create(task: Task): F[Either[TaskError, Task]] =
-    (for {
+  def create(task: Task): F[Either[AppError, Task]] =
+    for {
       allUserTasks <- taskRepo.listByUser(task.author).pure[F]
       _            <- taskPeriodIsValid(task, allUserTasks)
       result       <- taskRepo.create(task)
-    } yield result.leftWiden[TaskError]).recover { case WrongPeriodError =>
-      WrongPeriodError.asLeft[Task]
-    }
+    } yield result.leftWiden[AppError]
+    
 
   def update(
       taskId: TaskId,
       task: Task,
       caller: UserId
-  ): F[Either[TaskError, Task]] =
-    (for {
+  ): F[Either[AppError, Task]] =
+    for {
       oldTask      <- getTaskIfAuthor(task.projectId, taskId, caller)
       allUserTasks <- taskRepo.listByUser(task.author).pure[F]
       allUserTasksWithoutOld = allUserTasks.filterNot(_.id == oldTask.id)
       _           <- taskPeriodIsValid(task, allUserTasksWithoutOld)
       updatedTask <- taskRepo.update(oldTask.id, task)
-    } yield updatedTask.leftWiden[TaskError]).recover { case WrongPeriodError => WrongPeriodError.asLeft[Task] }
+    } yield updatedTask.leftWiden[AppError]
 
   def delete(projectId: ProjectId, taskId: TaskId, caller: UserId) =
     for {
