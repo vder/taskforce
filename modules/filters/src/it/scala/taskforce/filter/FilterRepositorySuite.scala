@@ -64,7 +64,7 @@ class FilterRepositorySuite extends BasicRepositorySuite {
           fRepo
             .execute(
               filter,
-              SortBy(CreatedDate, Asc).some,
+              SortBy(Field.CreatedDate, Order.Asc).some,
               page
             )
             .compile
@@ -96,7 +96,7 @@ class FilterRepositorySuite extends BasicRepositorySuite {
           fRepo
             .execute(
               filter,
-              SortBy(CreatedDate, Desc).some,
+              SortBy(Field.CreatedDate, Order.Desc).some,
               page
             )
             .compile
@@ -119,7 +119,7 @@ class FilterRepositorySuite extends BasicRepositorySuite {
           fRepo
             .execute(
               filter,
-              SortBy(CreatedDate, Desc).some,
+              SortBy(Field.CreatedDate, Order.Desc).some,
               page
             )
             .compile
@@ -128,7 +128,7 @@ class FilterRepositorySuite extends BasicRepositorySuite {
           fRepo
             .execute(
               Filter(f, List(Criteria.State(Status.Deactive))),
-              SortBy(CreatedDate, Desc).some,
+              SortBy(Field.CreatedDate, Order.Desc).some,
               page
             )
             .compile
@@ -150,7 +150,7 @@ class FilterRepositorySuite extends BasicRepositorySuite {
           fRepo
             .execute(
               filter,
-              SortBy(CreatedDate, Desc).some,
+              SortBy(Field.CreatedDate, Order.Desc).some,
               page
             )
             .compile
@@ -159,7 +159,7 @@ class FilterRepositorySuite extends BasicRepositorySuite {
           fRepo
             .execute(
               Filter(f, List(Criteria.State(Status.Active))),
-              SortBy(CreatedDate, Desc).some,
+              SortBy(Field.CreatedDate, Order.Desc).some,
               page
             )
             .compile
@@ -183,7 +183,7 @@ class FilterRepositorySuite extends BasicRepositorySuite {
           fRepo
             .execute(
               filter,
-              SortBy(CreatedDate, Desc).some,
+              SortBy(Field.CreatedDate, Order.Desc).some,
               page
             )
             .compile
@@ -195,7 +195,7 @@ class FilterRepositorySuite extends BasicRepositorySuite {
                 f,
                 List(Criteria.TaskCreatedDate(Operator.Gt, fromDate), Criteria.TaskCreatedDate(Operator.Lt, toDate))
               ),
-              SortBy(CreatedDate, Desc).some,
+              SortBy(Field.CreatedDate, Order.Desc).some,
               page
             )
             .compile

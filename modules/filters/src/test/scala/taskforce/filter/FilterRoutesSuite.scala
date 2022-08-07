@@ -34,7 +34,7 @@ class FilterRoutesSuite extends HttpTestSuite with instances.Circe with Http4s[I
   val authHeader = Authorization(Credentials.Token(AuthScheme.Bearer, "open sesame"))
 
   def sortBytoQuery(s: SortBy): String =
-    s"""sortBy=${if (s.order == Desc) "-" else ""}${if (s.field == CreatedDate) "created" else "updated"}"""
+    s"""sortBy=${if (s.order == Order.Desc) "-" else ""}${if (s.field == Field.CreatedDate) "created" else "updated"}"""
 
   def pageToQuery(p: Page) = s"page=${p.no.value.value}&size=${p.size.value.value}"
 

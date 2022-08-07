@@ -78,8 +78,8 @@ object generators {
   } yield Page(no, size)
 
   val sortByGen = for {
-    field <- Gen.oneOf(List(CreatedDate, UpdatedDate))
-    order <- Gen.oneOf(List(Asc, Desc))
+    field <- Gen.oneOf(List(Field.CreatedDate, Field.UpdatedDate))
+    order <- Gen.oneOf(List(Order.Asc, Order.Desc))
   } yield SortBy(field, order)
 
   val rowGen = for {

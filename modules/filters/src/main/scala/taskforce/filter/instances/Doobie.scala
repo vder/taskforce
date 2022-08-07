@@ -98,8 +98,8 @@ trait Doobie extends taskforce.task.instances.Doobie with NewTypeDoobieMeta with
     new Sqlizer[SortBy] {
       def toFragment(s: SortBy) =
         Fragment.const(s.field match {
-          case CreatedDate => s"order by t.started ${s.order}"
-          case UpdatedDate =>
+          case Field.CreatedDate => s"order by t.started ${s.order}"
+          case Field.UpdatedDate =>
             s"order by coalesce(t.started,p.created) ${s.order}"
         })
     }

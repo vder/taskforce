@@ -40,19 +40,19 @@ trait TapirCodecs extends CommonTapirCodecs {
     Codec.string.mapDecode(s =>
       s match {
         case "created" =>
-          DecodeResult.Value(SortBy(CreatedDate, Asc))
+          DecodeResult.Value(SortBy(Field.CreatedDate, Order.Asc))
         case "updated" =>
-          DecodeResult.Value(SortBy(UpdatedDate, Asc))
-        case "-created" => DecodeResult.Value(SortBy(CreatedDate, Desc))
-        case "-updated" => DecodeResult.Value(SortBy(UpdatedDate, Desc))
+          DecodeResult.Value(SortBy(Field.UpdatedDate, Order.Asc))
+        case "-created" => DecodeResult.Value(SortBy(Field.CreatedDate, Order.Desc))
+        case "-updated" => DecodeResult.Value(SortBy(Field.UpdatedDate, Order.Desc))
         case _          => DecodeResult.Error(s, AppError.InvalidQueryParam(s"SortBy=$s"))
       }
     )(sortBy =>
       sortBy match {
-        case SortBy(CreatedDate, Desc) => "-created"
-        case SortBy(CreatedDate, Asc)  => "created"
-        case SortBy(UpdatedDate, Desc) => "-updated"
-        case SortBy(UpdatedDate, Asc)  => "updated"
+        case SortBy(Field.CreatedDate, Order.Desc) => "-created"
+        case SortBy(Field.CreatedDate, Order.Asc)  => "created"
+        case SortBy(Field.UpdatedDate, Order.Desc) => "-updated"
+        case SortBy(Field.UpdatedDate, Order.Asc)  => "updated"
       }
     )
 }
