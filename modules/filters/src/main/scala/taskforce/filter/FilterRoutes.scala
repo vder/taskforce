@@ -25,7 +25,6 @@ final class FilterRoutes[F[_]: Async: Logger] private (
     authenticator: Authenticator[F],
     filterService: FilterService[F]
 ) extends instances.Circe
-    with instances.Http4s
     with instances.TapirCodecs {
 
   private[this] val prefixPath = "/api/v1/filters"
