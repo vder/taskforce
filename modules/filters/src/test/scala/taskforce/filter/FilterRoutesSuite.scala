@@ -17,11 +17,9 @@ import taskforce.common.HttpTestSuite
 import taskforce.common.instances.Http4s
 import taskforce.common.AppError
 import taskforce.filter.model.{Status => _, _}
-import sttp.tapir.Endpoint
-import sttp.tapir.server.PartialServerEndpoint
-import taskforce.authentication.Authenticator
 import taskforce.common.ResponseError
 import org.http4s.headers.Authorization
+import taskforce.auth.TestAuthenticator
 
 class FilterRoutesSuite extends HttpTestSuite with instances.Circe with Http4s[IO] {
 
@@ -30,13 +28,6 @@ class FilterRoutesSuite extends HttpTestSuite with instances.Circe with Http4s[I
   implicit def decodeRow: EntityDecoder[IO, FilterResultRow]       = jsonOf
   implicit def encodeRow: EntityEncoder[IO, FilterResultRow]       = jsonEncoderOf
 
-  def testAuthenticator(userId: UserId) = new Authenticator[IO] {
-    def secureEndpoints[SECURITY_INPUT, INPUT, OUTPUT](
-        endpoints: Endpoint[String, INPUT, ResponseError, OUTPUT, Any]
-    ): PartialServerEndpoint[String, UserId, INPUT, ResponseError, OUTPUT, Any, IO] =
-      endpoints
-        .serverSecurityLogic { _ => userId.asRight[ResponseError].pure[IO] }
-  }
 
   implicit def unsafeLogger = Slf4jLogger.getLogger[IO]
 
@@ -54,7 +45,7 @@ class FilterRoutesSuite extends HttpTestSuite with instances.Circe with Http4s[I
       val filterRepo = new TestFilterRepository(List(Filter(fId, f.conditions)), List())
 
       val routes = FilterRoutes
-        .make[IO](testAuthenticator(UserId(UUID.randomUUID())), FilterService.make(filterRepo))
+        .make[IO](TestAuthenticator(UserId(UUID.randomUUID())), FilterService.make(filterRepo))
         .routes
 
       POST(f, uri, authHeader)
@@ -72,7 +63,7 @@ class FilterRoutesSuite extends HttpTestSuite with instances.Circe with Http4s[I
       val filterRepo = new TestFilterRepository(List(), List())
       val routes =
         FilterRoutes
-          .make[IO](testAuthenticator(UserId(UUID.randomUUID())), FilterService.make(filterRepo))
+          .make[IO](TestAuthenticator(UserId(UUID.randomUUID())), FilterService.make(filterRepo))
           .routes
 
       GET(uri / fId.toString, authHeader)
@@ -99,7 +90,7 @@ class FilterRoutesSuite extends HttpTestSuite with instances.Circe with Http4s[I
       }
 
       val routes =
-        FilterRoutes.make[IO](testAuthenticator(UserId(UUID.randomUUID())), FilterService.make(filterRepo)).routes
+        FilterRoutes.make[IO](TestAuthenticator(UserId(UUID.randomUUID())), FilterService.make(filterRepo)).routes
 
       GET(f, Uri.unsafeFromString(s"api/v1/filters/${fId.toString()}/data?${queryParams}"), authHeader)
         .pure[IO]
