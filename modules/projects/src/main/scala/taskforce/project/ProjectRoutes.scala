@@ -8,7 +8,6 @@ import org.http4s.server.Router
 import sttp.model.StatusCode
 import sttp.tapir._
 import sttp.tapir.json.circe._
-import sttp.tapir.server.http4s.Http4sServerInterpreter
 import taskforce.authentication.Authenticator
 import taskforce.common.BaseApi
 import taskforce.common.ResponseError
@@ -16,25 +15,35 @@ import taskforce.common.ResponseError._
 import taskforce.common.instances.{Http4s => CommonInstancesHttp4s}
 import taskforce.project.ProjectName
 import taskforce.project.TotalTime
-
+import taskforce.common.DefaultEndpointInterpreter
 
 final class ProjectRoutes[F[_]: Async] private (
     authenticator: Authenticator[F],
     projectService: ProjectService[F]
-) extends instances.Http4s[F] with CommonInstancesHttp4s[F] with instances.TapirCodecs{
+) extends instances.Http4s[F]
+    with CommonInstancesHttp4s[F]
+    with instances.TapirCodecs
+    with DefaultEndpointInterpreter {
 
-  
-  object endpoints {
+  private object endpoints {
+
+    val base = BaseApi.endpoint.in("projects")
 
     val list =
-      authenticator.secureEndpoints(BaseApi.endpoint).get
-        .out(jsonBody[List[Project]])
+      authenticator
+        .secureEndpoints(base)
+        .get
+        .out(jsonBody[List[Project]].description("List of all created projects"))
+        .description("Lists all created projects")
         .serverLogicSuccess(_ => _ => projectService.list)
 
     val find =
-      authenticator.secureEndpoints(BaseApi.endpoint).get
-        .in(path[Long])
-        .out(jsonBody[Project])
+      authenticator
+        .secureEndpoints(base)
+        .get
+        .in(path[Long].description("Project ID"))
+        .out(jsonBody[Project].description("Details of the selected project"))
+        .description("Returns data for single project")
         .serverLogic { _ => projectId =>
           projectService
             .find(ProjectId(projectId))
@@ -42,9 +51,16 @@ final class ProjectRoutes[F[_]: Async] private (
         }
 
     val create =
-      authenticator.secureEndpoints(BaseApi.endpoint).post
-        .in(jsonBody[ProjectName])
-        .out(jsonBody[Project].and(statusCode(StatusCode.Created)))
+      authenticator
+        .secureEndpoints(base)
+        .post
+        .in(jsonBody[ProjectName].description("Name of the created project"))
+        .out(
+          jsonBody[Project]
+            .description("Details of the created project")
+            .and(statusCode(StatusCode.Created))
+        )
+        .description("Creates new project")
         .serverLogic { userId => projectName =>
           projectService
             .create(projectName, userId)
@@ -53,27 +69,36 @@ final class ProjectRoutes[F[_]: Async] private (
         }
 
     val delete =
-      authenticator.secureEndpoints(BaseApi.endpoint).delete
-        .in(path[Long])
+      authenticator
+        .secureEndpoints(base)
+        .delete
+        .in(path[Long].description("Project ID"))
         .out(statusCode(StatusCode.Ok))
+        .description("Deletes project")
         .serverLogic { userId => projectId =>
           projectService.delete(ProjectId(projectId), userId).void.extractFromEffect
         }
 
     val totalTime =
-      authenticator.secureEndpoints(BaseApi.endpoint).get
-        .in(path[Long])
+      authenticator
+        .secureEndpoints(base)
+        .get
+        .in(path[Long].description("Project ID"))
         .in("totalTime")
-        .out(jsonBody[TotalTime])
+        .out(jsonBody[TotalTime].description("Total time logged in a given project"))
+        .description("Returns total time for given project")
         .serverLogic { _ => projectId =>
           projectService.totalTime(ProjectId(projectId)).extractFromEffect
         }
 
     val update =
-      authenticator.secureEndpoints(BaseApi.endpoint).put
-        .in(path[Long])
-        .in(jsonBody[ProjectName])
-        .out(jsonBody[Project])
+      authenticator
+        .secureEndpoints(base)
+        .put
+        .in(path[Long].description("Project ID"))
+        .in(jsonBody[ProjectName].description("New project's name"))
+        .out(jsonBody[Project].description("Details of the updated project"))
+        .description("Renames existing project")
         .serverLogic { userId =>
           { case (projectId, projectName) =>
             projectService
@@ -83,19 +108,12 @@ final class ProjectRoutes[F[_]: Async] private (
           }
         }
 
-    def routes: HttpRoutes[F] =
-      (find :: list :: totalTime :: create :: delete :: update :: Nil)
-        .map(Http4sServerInterpreter[F]().toRoutes(_))
-        .reduce(_ <+> _)
+    def routes: HttpRoutes[F] = toRoutes("projects")(find, list, totalTime, create, delete, update)
 
   }
 
-  private[this] val prefixPath = "/api/v1/projects"
-
   def routes: HttpRoutes[F] =
-    Router(
-      prefixPath -> endpoints.routes
-    )
+    Router("/" -> endpoints.routes)
 }
 
 object ProjectRoutes {

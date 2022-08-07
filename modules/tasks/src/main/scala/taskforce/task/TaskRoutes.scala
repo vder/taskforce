@@ -7,7 +7,6 @@ import org.http4s.server.Router
 import sttp.model.StatusCode
 import sttp.tapir._
 import sttp.tapir.json.circe._
-import sttp.tapir.server.http4s.Http4sServerInterpreter
 import taskforce.authentication.Authenticator
 import taskforce.common.BaseApi
 import taskforce.common.ResponseError
@@ -15,35 +14,38 @@ import taskforce.common.ResponseError._
 import taskforce.common.instances.{Http4s => CommonInstancesHttp4s}
 
 import java.util.UUID
+import taskforce.common.DefaultEndpointInterpreter
 
 final class TaskRoutes[F[_]: Async] private (
     authenticator: Authenticator[F],
     taskService: TaskService[F]
 ) extends instances.Http4s[F]
     with CommonInstancesHttp4s[F]
-    with instances.TapirCodecs {
+    with instances.TapirCodecs
+    with DefaultEndpointInterpreter {
+  private object endpoints {
 
-  private[this] val prefixPath = "/api/v1/projects"
-
-  object endpoints {
+    val base = BaseApi.endpoint.in("projects")
 
     val list =
       authenticator
-        .secureEndpoints(BaseApi.endpoint)
+        .secureEndpoints(base)
         .get
-        .in(path[Long])
+        .in(path[Long].description("project ID"))
         .in("tasks")
-        .out(jsonBody[List[Task]])
+        .out(jsonBody[List[Task]].description("tasks in given project"))
+        .description("Lists all task in a given project")
         .serverLogicSuccess(_ => projectId => taskService.list(ProjectId(projectId)).compile.toList)
 
     val find =
       authenticator
-        .secureEndpoints(BaseApi.endpoint)
+        .secureEndpoints(base)
         .get
-        .in(path[Long])
+        .in(path[Long].description("project ID"))
         .in("tasks")
-        .in(path[UUID])
-        .out(jsonBody[Task])
+        .in(path[UUID].description("task ID"))
+        .out(jsonBody[Task].description("returns task with given ID"))
+        .description("Returns task with a given Id")
         .serverLogic { _ =>
           { case (projectId, taskId) =>
             taskService
@@ -54,12 +56,13 @@ final class TaskRoutes[F[_]: Async] private (
 
     val create =
       authenticator
-        .secureEndpoints(BaseApi.endpoint)
+        .secureEndpoints(base)
         .post
-        .in(path[Long])
+        .in(path[Long].description("project ID"))
         .in("tasks")
-        .in(jsonBody[NewTask])
+        .in(jsonBody[NewTask].description("specifies a new task"))
         .out(jsonBody[Task].and(statusCode(StatusCode.Created)))
+        .description("Create a new task in a project")
         .serverLogic { userId =>
           { case (projectId, newTask) =>
             taskService
@@ -67,17 +70,17 @@ final class TaskRoutes[F[_]: Async] private (
               .map(_.leftMap(ResponseError.fromAppError))
               .extractFromEffectandMerge
           }
-
         }
 
     val delete =
       authenticator
-        .secureEndpoints(BaseApi.endpoint)
+        .secureEndpoints(base)
         .delete
-        .in(path[Long])
+        .in(path[Long].description("project ID"))
         .in("tasks")
-        .in(path[UUID])
+        .in(path[UUID].description("task ID"))
         .out(statusCode(StatusCode.Ok))
+        .description("Deletes a task in a project")
         .serverLogic { userId =>
           { case (projectId, taskId) =>
             taskService
@@ -89,13 +92,14 @@ final class TaskRoutes[F[_]: Async] private (
 
     val update =
       authenticator
-        .secureEndpoints(BaseApi.endpoint)
+        .secureEndpoints(base)
         .put
-        .in(path[Long])
+        .in(path[Long].description("project ID"))
         .in("tasks")
-        .in(path[UUID])
-        .in(jsonBody[NewTask])
-        .out(jsonBody[Task])
+        .in(path[UUID].description("task ID"))
+        .in(jsonBody[NewTask].description("specifies a new task"))
+        .out(jsonBody[Task].description("returns created task"))
+        .description("Updates a task in a project")
         .serverLogic { userId =>
           { case (projectId, taskId, newTask) =>
             val task = Task.fromNewTask(newTask, userId, ProjectId(projectId))
@@ -106,15 +110,13 @@ final class TaskRoutes[F[_]: Async] private (
           }
         }
 
-    def routes: HttpRoutes[F] =
-      (find :: list :: create :: delete :: update :: Nil)
-        .map(Http4sServerInterpreter[F]().toRoutes(_))
-        .reduce(_ <+> _)
+    def routes: HttpRoutes[F] = toRoutes("tasks")(find, list, create, delete, update)
+
   }
 
   def routes =
     Router(
-      prefixPath -> endpoints.routes
+      "/" -> endpoints.routes
     )
 }
 
