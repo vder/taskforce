@@ -9,16 +9,12 @@ import org.http4s.client.dsl.io._
 import org.http4s.implicits._
 import io.circe.generic.auto._
 import org.scalacheck.effect.PropF
-import sttp.tapir.Endpoint
-import sttp.tapir.server.PartialServerEndpoint
-import taskforce.HttpTestSuite
-import taskforce.authentication.Authenticator
+import taskforce.common.HttpTestSuite
 import taskforce.authentication.UserId
-//import taskforce.common.CreationDate
-//import taskforce.common.ErrorMessage
 import taskforce.common.ResponseError
 import taskforce.common.instances.Http4s
 import taskforce.task.instances.Circe
+
 
 //import java.time.Duration
 
@@ -26,18 +22,12 @@ import arbitraries._
 import org.http4s.headers.Authorization
 import taskforce.common.CreationDate
 import java.time.Duration
+import taskforce.auth.TestAuthenticator
 
 class TasksRoutesSuite extends HttpTestSuite with Circe with Http4s[IO] {
 
   implicit def encodeNewTask: EntityEncoder[IO, NewTask] = jsonEncoderOf
 
-  private def testAuthenticator(userId: UserId) = new Authenticator[IO] {
-    def secureEndpoints[SECURITY_INPUT, INPUT, OUTPUT](
-        endpoints: Endpoint[String, INPUT, ResponseError, OUTPUT, Any]
-    ): PartialServerEndpoint[String, UserId, INPUT, ResponseError, OUTPUT, Any, IO] =
-      endpoints
-        .serverSecurityLogic { _ => userId.asRight[ResponseError].pure[IO] }
-  }
 
   private val uri        = uri"api/v1/projects/"
   private val authHeader = Authorization(Credentials.Token(AuthScheme.Bearer, "open sesame"))
@@ -46,7 +36,7 @@ class TasksRoutesSuite extends HttpTestSuite with Circe with Http4s[IO] {
     PropF.forAllF { (t: Task, u: UserId) =>
       val taskRepo = new TestTaskRepository(List(t))
       val routes = TaskRoutes
-        .make[IO](testAuthenticator(u), TaskService.make(taskRepo))
+        .make[IO](TestAuthenticator(u), TaskService.make(taskRepo))
         .routes
 
       DELETE(
@@ -65,7 +55,7 @@ class TasksRoutesSuite extends HttpTestSuite with Circe with Http4s[IO] {
     PropF.forAllF { (t: Task) =>
       val taskRepo = new TestTaskRepository(List(t))
       val routes = TaskRoutes
-        .make[IO](testAuthenticator(t.author), TaskService.make(taskRepo))
+        .make[IO](TestAuthenticator(t.author), TaskService.make(taskRepo))
         .routes
       val newTask = NewTask(t.created.some, t.duration, None, None)
 
@@ -86,7 +76,7 @@ class TasksRoutesSuite extends HttpTestSuite with Circe with Http4s[IO] {
     PropF.forAllF { (t: Task) =>
       val taskRepo = new TestTaskRepository(List(t))
       val routes = TaskRoutes
-        .make[IO](testAuthenticator(t.author), TaskService.make(taskRepo))
+        .make[IO](TestAuthenticator(t.author), TaskService.make(taskRepo))
         .routes
       val newTask =
         NewTask(
@@ -115,7 +105,7 @@ class TasksRoutesSuite extends HttpTestSuite with Circe with Http4s[IO] {
     PropF.forAllF { (t: Task) =>
       val taskRepo = new TestTaskRepository(List(t))
       val routes = TaskRoutes
-        .make[IO](testAuthenticator(t.author), TaskService.make(taskRepo))
+        .make[IO](TestAuthenticator(t.author), TaskService.make(taskRepo))
         .routes
       val newTask =
         NewTask(
@@ -142,7 +132,7 @@ class TasksRoutesSuite extends HttpTestSuite with Circe with Http4s[IO] {
     PropF.forAllF { (t: Task, u: UserId) =>
       val taskRepo = new TestTaskRepository(List(t))
       val routes = TaskRoutes
-        .make[IO](testAuthenticator(u), TaskService.make(taskRepo))
+        .make[IO](TestAuthenticator(u), TaskService.make(taskRepo))
         .routes
       val newTask = NewTask(t.created.some, t.duration, None, None)
 
@@ -160,7 +150,7 @@ class TasksRoutesSuite extends HttpTestSuite with Circe with Http4s[IO] {
     PropF.forAllF { (taskId: TaskId, projectId: ProjectId, u: UserId) =>
       val taskRepo = new TestTaskRepository(List())
       val routes = TaskRoutes
-        .make[IO](testAuthenticator(u), TaskService.make(taskRepo))
+        .make[IO](TestAuthenticator(u), TaskService.make(taskRepo))
         .routes
 
       GET(

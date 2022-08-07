@@ -22,7 +22,6 @@ final class BasicRoutes[F[_]: Async] private (authenticator: Authenticator[F]) {
 
   val securedEndpoint = endpoint
         .in("testAuth")
-        .securityIn(auth.bearer[String]())
         .errorOut(
         oneOf[ResponseError](
           oneOfVariant[TokenDecoding](

@@ -87,7 +87,7 @@ object FilterRepository {
         val limitClause = page.toFragment
         val sqlQuery    = sql.getData ++ whereClause ++ orderClause ++ limitClause
 
-        Stream.eval[F, Unit](Logger[F].info(s"test: $sqlQuery")) >>
+        Stream.eval[F, Unit](Logger[F].debug(s"test: $sqlQuery")) >>
           sqlQuery
             .query[(Project, Option[Task])]
             // .query[CreationDate]
