@@ -80,7 +80,7 @@ class FilterRoutesSuite extends HttpTestSuite with instances.Circe with Http4s[I
   test("validate query Param decoding") {
     PropF.forAllF { (f: NewFilter, fId: FilterId, sortBy: SortBy, pg: Page, row: FilterResultRow) =>
       val queryParams = s"${pageToQuery(pg)}&${sortBytoQuery(sortBy)}"
-      val filterRepo = new TestFilterRepository(List(Filter(fId, f.conditions)), List(row,row)) {
+      val filterRepo = new TestFilterRepository(List(Filter(fId, f.conditions)), List(row)) {
         override def execute(filter: Filter, sortByOption: Option[SortBy], page: Page): Stream[IO, FilterResultRow] = {
           if (page == pg && sortBy.some == sortByOption)
             Stream.emits(rows)
@@ -95,7 +95,6 @@ class FilterRoutesSuite extends HttpTestSuite with instances.Circe with Http4s[I
       GET(f, Uri.unsafeFromString(s"api/v1/filters/${fId.toString()}/data?${queryParams}"), authHeader)
         .pure[IO]
         .flatMap { req =>
-          println(s"REQ: $req :: $sortBy :: $pg")
           assertHttp(routes, req)(
             Status.Ok,
             List(row)

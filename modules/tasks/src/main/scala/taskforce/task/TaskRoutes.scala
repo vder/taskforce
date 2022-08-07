@@ -12,10 +12,13 @@ import taskforce.common.BaseApi
 import taskforce.common.ResponseError
 import taskforce.common.ResponseError._
 import taskforce.common.instances.{Http4s => CommonInstancesHttp4s}
-import io.circe.syntax._
 
 import taskforce.task.ProjectId
 import taskforce.common.DefaultEndpointInterpreter
+import taskforce.common.StreamingResponse
+import java.nio.charset.StandardCharsets
+import sttp.capabilities.fs2.Fs2Streams
+
 
 final class TaskRoutes[F[_]: Async] private (
     authenticator: Authenticator[F],
@@ -23,10 +26,12 @@ final class TaskRoutes[F[_]: Async] private (
 ) extends instances.Http4s[F]
     with CommonInstancesHttp4s[F]
     with instances.TapirCodecs
-    with DefaultEndpointInterpreter {
+    with DefaultEndpointInterpreter
+    with StreamingResponse {
   private object endpoints {
 
     val base = BaseApi.endpoint.in("projects")
+
 
     val list =
       authenticator
@@ -35,11 +40,13 @@ final class TaskRoutes[F[_]: Async] private (
         .in(path[ProjectId].description("project ID"))
         .in("tasks")
         .out(streamBody(Fs2Streams[F])(Schema.binary, CodecFormat.Json(), Some(StandardCharsets.UTF_8)))
-        .serverLogicSuccess(_ => projectId => 
-          taskService.
-          list(projectId).map(_.asJson.noSpaces.getBytes("UTF-8"))
-            .flatMap(a => fs2.Stream.chunk(Chunk.array(a)))
-            .pure[F])
+        .serverLogicSuccess(_ =>
+          projectId =>
+            taskService
+              .list(projectId)
+              .through(wrapInArray)
+              .pure[F]
+        )
 
     val find =
       authenticator

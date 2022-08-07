@@ -1,53 +1,53 @@
 package taskforce.filter
 
 import cats.implicits._
-import io.circe.syntax._
 import sttp.tapir._
 import sttp.tapir.json.circe._
 import org.http4s.server.Router
 import taskforce.filter.model._
 import taskforce.authentication.Authenticator
 import taskforce.common.BaseApi
-import fs2.Chunk
 import sttp.capabilities.fs2.Fs2Streams
 import java.nio.charset.StandardCharsets
 import org.http4s.HttpRoutes
-import sttp.tapir.server.http4s.Http4sServerInterpreter
 import cats.effect.kernel.Async
 import taskforce.common.ResponseError
+import taskforce.common.StreamingResponse
 import sttp.model.StatusCode
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import cats.effect
 import sttp.tapir.server.http4s.Http4sServerOptions
+import taskforce.common.DefaultEndpointInterpreter
 
 final class FilterRoutes[F[_]: Async: Logger] private (
     authenticator: Authenticator[F],
     filterService: FilterService[F]
 ) extends instances.Circe
-    with instances.TapirCodecs {
-
-  private[this] val prefixPath = "/api/v1/filters"
+    with instances.TapirCodecs
+    with DefaultEndpointInterpreter
+    with StreamingResponse {
 
   implicit def unsafeLogger[IO] = Slf4jLogger.getLogger[effect.IO]
 
-  object endpoints {
+  private object endpoints {
+
+    val base = BaseApi.endpoint.in("filters")
 
     val list =
       authenticator
-        .secureEndpoints(BaseApi.endpoint)
+        .secureEndpoints(base)
         .get
         .out(streamBody(Fs2Streams[F])(Schema.binary, CodecFormat.Json(), Some(StandardCharsets.UTF_8)))
         .serverLogicSuccess { _ => _ =>
           filterService.getAll
-            .map(_.asJson.noSpaces.getBytes("UTF-8"))
-            .flatMap(a => fs2.Stream.chunk(Chunk.array(a)))
+            .through(wrapInArray)
             .pure[F]
         }
 
     val find =
       authenticator
-        .secureEndpoints(BaseApi.endpoint)
+        .secureEndpoints(base)
         .get
         .in(path[FilterId])
         .out(jsonBody[Filter])
@@ -59,7 +59,7 @@ final class FilterRoutes[F[_]: Async: Logger] private (
 
     val fetch =
       authenticator
-        .secureEndpoints(BaseApi.endpoint)
+        .secureEndpoints(base)
         .get
         .in(path[FilterId])
         .in("data")
@@ -74,15 +74,15 @@ final class FilterRoutes[F[_]: Async: Logger] private (
               .map { case (page, sortBy) =>
                 filterService
                   .getData(filterId, page, sortBy)
-                  .map(_.asJson.noSpaces.getBytes("UTF-8"))
-                  .flatMap(a => fs2.Stream.chunk(Chunk.array(a)))
+                  .through(wrapInArray)
+
               }
           }
         }
 
     val fetchTest =
       authenticator
-        .secureEndpoints(BaseApi.endpoint)
+        .secureEndpoints(base)
         .get
         .in(path[FilterId])
         .in("data")
@@ -98,7 +98,7 @@ final class FilterRoutes[F[_]: Async: Logger] private (
 
     val create =
       authenticator
-        .secureEndpoints(BaseApi.endpoint)
+        .secureEndpoints(base)
         .post
         .in(jsonBody[NewFilter])
         .out(jsonBody[Filter].and(statusCode(StatusCode.Created)))
@@ -106,14 +106,12 @@ final class FilterRoutes[F[_]: Async: Logger] private (
 
     val defaultServerOptions = Http4sServerOptions.default[F]
 
-    def routes: HttpRoutes[F] =
-      Http4sServerInterpreter[F]()
-        .toRoutes(fetch :: find :: create :: list :: Nil)
+    def routes: HttpRoutes[F] = toRoutes("filters")(fetch, find, create, list)
 
   }
 
   def routes = Router(
-    prefixPath -> endpoints.routes
+    "/" -> endpoints.routes
   )
 }
 
