@@ -1,6 +1,5 @@
 package taskforce.filter
 
-
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.numeric.Positive
 import eu.timepit.refined.types.string.NonEmptyString
@@ -9,9 +8,11 @@ import java.time.LocalDate
 
 import org.scalacheck.Gen
 import taskforce.task.generators._
+import taskforce.filter.model._
 import taskforce.project.generators._
 import java.time.ZoneOffset
 import java.time.Instant
+
 
 object generators {
 
@@ -28,22 +29,24 @@ object generators {
     } yield LocalDate
       .parse("2000.01.01", DateTimeFormatter.ofPattern("yyyy.MM.dd"))
       .atStartOfDay()
-      .plusMinutes(minutes.toLong).toInstant(ZoneOffset.UTC)
-  val operatorGen: Gen[Operator] = Gen.oneOf(List(Eq, Gt, Gteq, Lteq, Lt))
+      .plusMinutes(minutes.toLong)
+      .toInstant(ZoneOffset.UTC)
+  val operatorGen: Gen[Operator] =
+    Gen.oneOf(List(Operator.Eq, Operator.Gt, Operator.Gteq, Operator.Lteq, Operator.Lt))
 
-  val statusGen: Gen[Status] = Gen.oneOf(List(Active, Deactive, All))
+  val statusGen: Gen[Status] = Gen.oneOf(List(Status.Active, Status.Deactive, Status.All))
 
-  val inGen: Gen[In] =
+  val inGen: Gen[Criteria.In] =
     Gen
       .listOf(nonEmptyStringGen.map[NonEmptyString](Refined.unsafeApply))
-      .map(In.apply)
+      .map(Criteria.In.apply)
 
-  val taskCreatedGen: Gen[TaskCreatedDate] = for {
-    op <- operatorGen
+  val taskCreatedGen: Gen[Criteria.TaskCreatedDate] = for {
+    op   <- operatorGen
     date <- instantGen
-  } yield TaskCreatedDate(op, date)
+  } yield Criteria.TaskCreatedDate(op, date)
 
-  val stateGen = statusGen.map(State.apply)
+  val stateGen = statusGen.map(Criteria.State.apply)
 
   val conditionsGen: Gen[List[Criteria]] = for {
     i <- inGen
@@ -57,7 +60,7 @@ object generators {
   val newFilterGen = conditionsGen.map(NewFilter.apply)
 
   val filterGen = for {
-    c <- conditionsGen
+    c  <- conditionsGen
     id <- filterIdGen
   } yield Filter(id, c)
 
@@ -71,12 +74,12 @@ object generators {
 
   val pageGen = for {
     size <- pageSizeGen
-    no <- pageNoGen
+    no   <- pageNoGen
   } yield Page(no, size)
 
   val sortByGen = for {
-    field <- Gen.oneOf(List(CreatedDate, UpdatedDate))
-    order <- Gen.oneOf(List(Asc, Desc))
+    field <- Gen.oneOf(List(Field.CreatedDate, Field.UpdatedDate))
+    order <- Gen.oneOf(List(Order.Asc, Order.Desc))
   } yield SortBy(field, order)
 
   val rowGen = for {

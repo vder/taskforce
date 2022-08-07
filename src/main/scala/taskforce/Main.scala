@@ -6,7 +6,6 @@ import doobie.hikari._
 import doobie.util.ExecutionContexts
 import pureconfig.ConfigSource
 import pureconfig.module.catseffect.syntax._
-import taskforce.authentication.TaskForceAuthMiddleware
 import taskforce.config.DatabaseConfig
 import taskforce.config.HostConfig
 import taskforce.infrastructure.Db
@@ -45,12 +44,10 @@ object Main extends IOApp {
       .use { case (xa, hostConfig) =>
         for {
           db             <- Db.make[IO](xa)
-          authMiddleware <- TaskForceAuthMiddleware(db.userRepo, hostConfig.secret.value).pure[IO]
           authService <- AuthService(db.userRepo, hostConfig.secret.value).pure[IO]
           authEndpoint <- Authenticator.make[IO](authService).pure[IO]
           server <- Server.make[IO](
             hostConfig.port.value,
-            authMiddleware,
             authEndpoint,
             db
           ).pure[IO]

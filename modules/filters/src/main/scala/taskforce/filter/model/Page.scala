@@ -1,26 +1,18 @@
-package taskforce.filter
+package taskforce.filter.model
 
 import eu.timepit.refined._
 import eu.timepit.refined.numeric._
 import eu.timepit.refined.types.numeric.PosInt
 
-sealed trait Field
-final case object CreatedDate extends Field
-final case object UpdatedDate extends Field
-
-sealed trait Order
-final case object Asc  extends Order
-final case object Desc extends Order
-
 final case class SortBy(field: Field, order: Order)
-case class PageNo(value: PosInt)
-case class PageSize(value: PosInt)
+final case class PageNo(value: PosInt)
+final case class PageSize(value: PosInt)
 
 final case class Page(no: PageNo, size: PageSize)
 
 object Page {
 
-  val default =
+  val default: Page =
     Page(PageNo(refineMV[Positive](1)), PageSize(refineMV[Positive](100)))
 
   def fromParamsOrDefault(
@@ -35,9 +27,9 @@ object Page {
 }
 
 object PageNo {
-  val default = PageNo(refineMV[Positive](1))
+  val default: PageNo = PageNo(refineMV[Positive](1))
 }
 
 object PageSize {
-  val default = PageSize(refineMV[Positive](100))
+  val default: PageSize = PageSize(refineMV[Positive](100))
 }

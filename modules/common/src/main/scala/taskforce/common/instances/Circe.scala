@@ -10,8 +10,8 @@ trait Circe {
   implicit val errorMessageDecoder: Decoder[ErrorMessage] = deriveDecoder
   implicit val errorMessageEncoder: Encoder[ErrorMessage] = deriveEncoder
 
-  implicit val responseErrorDecoder: Decoder[ResponseError] = deriveDecoder
-  implicit val responseErrorEncoder: Encoder[ResponseError] = deriveEncoder
+  implicit val responseErrorDecoder: Decoder[ResponseError.NotFound] = deriveDecoder
+  implicit val responseErrorEncoder: Encoder[ResponseError.NotFound] = deriveEncoder
 
 
 }

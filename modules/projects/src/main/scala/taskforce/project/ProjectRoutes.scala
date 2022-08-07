@@ -41,12 +41,12 @@ final class ProjectRoutes[F[_]: Async] private (
       authenticator
         .secureEndpoints(base)
         .get
-        .in(path[Long].description("Project ID"))
+        .in(path[ProjectId].description("Project ID"))
         .out(jsonBody[Project].description("Details of the selected project"))
         .description("Returns data for single project")
         .serverLogic { _ => projectId =>
           projectService
-            .find(ProjectId(projectId))
+            .find(projectId)
             .map(Either.fromOption(_, ResponseError.NotFound("project not found")))
         }
 
@@ -72,37 +72,37 @@ final class ProjectRoutes[F[_]: Async] private (
       authenticator
         .secureEndpoints(base)
         .delete
-        .in(path[Long].description("Project ID"))
+        .in(path[ProjectId].description("Project ID"))
         .out(statusCode(StatusCode.Ok))
         .description("Deletes project")
         .serverLogic { userId => projectId =>
-          projectService.delete(ProjectId(projectId), userId).void.extractFromEffect
+          projectService.delete(projectId, userId).void.extractFromEffect
         }
 
     val totalTime =
       authenticator
         .secureEndpoints(base)
         .get
-        .in(path[Long].description("Project ID"))
+        .in(path[ProjectId].description("Project ID"))
         .in("totalTime")
         .out(jsonBody[TotalTime].description("Total time logged in a given project"))
         .description("Returns total time for given project")
         .serverLogic { _ => projectId =>
-          projectService.totalTime(ProjectId(projectId)).extractFromEffect
+          projectService.totalTime(projectId).extractFromEffect
         }
 
     val update =
       authenticator
         .secureEndpoints(base)
         .put
-        .in(path[Long].description("Project ID"))
+        .in(path[ProjectId].description("Project ID"))
         .in(jsonBody[ProjectName].description("New project's name"))
         .out(jsonBody[Project].description("Details of the updated project"))
         .description("Renames existing project")
         .serverLogic { userId =>
           { case (projectId, projectName) =>
             projectService
-              .update(ProjectId(projectId), projectName, userId)
+              .update(projectId, projectName, userId)
               .map(_.leftMap(ResponseError.fromAppError))
               .extractFromEffectandMerge
           }

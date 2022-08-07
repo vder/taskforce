@@ -5,6 +5,8 @@ import fs2.Stream
 import java.util.UUID
 import taskforce.common.AppError
 import cats.MonadThrow
+import taskforce.filter.model._
+
 final class FilterService[F[_]: MonadThrow] private (filterRepo: FilterRepository[F]) {
 
   def create(newFilter: NewFilter) =

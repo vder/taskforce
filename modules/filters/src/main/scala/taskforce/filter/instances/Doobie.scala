@@ -15,7 +15,7 @@ import eu.timepit.refined.collection._
 import eu.timepit.refined.types.string.NonEmptyString
 import taskforce.common.Sqlizer
 import taskforce.common.Sqlizer.ops._
-import taskforce.filter._
+import taskforce.filter.model._
 import taskforce.common.NewTypeDoobieMeta
 import _root_.cats.Show
 import java.time.Instant
@@ -40,37 +40,37 @@ trait Doobie extends taskforce.task.instances.Doobie with NewTypeDoobieMeta with
   implicit val getNonEmptyList: Get[List[NonEmptyString]] =
     Get[List[String]] temap (_.traverse(refineV[NonEmpty](_)))
 
-  implicit val inSqlizer: Sqlizer[In] = new Sqlizer[In] {
-    def toFragment(in: In) =
+  implicit val inSqlizer: Sqlizer[Criteria.In] = new Sqlizer[Criteria.In] {
+    def toFragment(in: Criteria.In) =
       NonEmptyList
         .fromList(in.names)
         .map(x => Fragments.in(fr"p.name", x))
         .getOrElse(Fragment.empty)
   }
 
-  implicit val stateSqlizer: Sqlizer[State] = new Sqlizer[State] {
-    def toFragment(s: State) =
+  implicit val stateSqlizer: Sqlizer[Criteria.State] = new Sqlizer[Criteria.State] {
+    def toFragment(s: Criteria.State) =
       s.status match {
-        case All      => fr"1=1"
-        case Deactive => fr"""t.deleted is not null"""
-        case Active   => fr"""t.deleted is null"""
+        case Status.All      => fr"1=1"
+        case Status.Deactive => fr"""t.deleted is not null"""
+        case Status.Active   => fr"""t.deleted is null"""
       }
   }
 
   implicit val operatorSqlizer: Sqlizer[Operator] = new Sqlizer[Operator] {
     def toFragment(o: Operator) =
       Fragment.const(o match {
-        case Eq   => "="
-        case Gt   => ">"
-        case Gteq => ">="
-        case Lt   => "<"
-        case Lteq => "<="
+        case Operator.Eq   => "="
+        case Operator.Gt   => ">"
+        case Operator.Gteq => ">="
+        case Operator.Lt   => "<"
+        case Operator.Lteq => "<="
       })
   }
 
-  implicit val taskCreatedDateSqlizer: Sqlizer[TaskCreatedDate] =
-    new Sqlizer[TaskCreatedDate] {
-      def toFragment(t: TaskCreatedDate) =
+  implicit val taskCreatedDateSqlizer: Sqlizer[Criteria.TaskCreatedDate] =
+    new Sqlizer[Criteria.TaskCreatedDate] {
+      def toFragment(t: Criteria.TaskCreatedDate) =
         Fragment.const(s" t.started ") ++ t.op.toFragment ++ fr"${t.date}"
     }
 
@@ -78,9 +78,9 @@ trait Doobie extends taskforce.task.instances.Doobie with NewTypeDoobieMeta with
     new Sqlizer[Criteria] {
       def toFragment(t: Criteria) =
         t match {
-          case x: TaskCreatedDate => x.toFragment
-          case x: In              => x.toFragment
-          case x: State           => x.toFragment
+          case x: Criteria.TaskCreatedDate => x.toFragment
+          case x: Criteria.In              => x.toFragment
+          case x: Criteria.State           => x.toFragment
         }
     }
 
@@ -98,8 +98,8 @@ trait Doobie extends taskforce.task.instances.Doobie with NewTypeDoobieMeta with
     new Sqlizer[SortBy] {
       def toFragment(s: SortBy) =
         Fragment.const(s.field match {
-          case CreatedDate => s"order by t.started ${s.order}"
-          case UpdatedDate =>
+          case Field.CreatedDate => s"order by t.started ${s.order}"
+          case Field.UpdatedDate =>
             s"order by coalesce(t.started,p.created) ${s.order}"
         })
     }

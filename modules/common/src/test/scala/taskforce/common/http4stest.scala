@@ -30,10 +30,18 @@ trait HttpTestSuite extends CatsEffectSuite with ScalaCheckEffectSuite {
     routes.run(req).value.flatMap {
       case Some(resp) =>
         resp.asJson.map { json =>
-          assertEquals((resp.status, json.dropNullValues), (expectedStatus, Json.fromJsonObject(JsonObject("value" -> Json.fromJsonObject(JsonObject("message" -> expectedBody.message.asJson))))))
+          assertEquals(
+            (resp.status, json.dropNullValues),
+            (
+              expectedStatus,
+              Json.fromJsonObject(
+                JsonObject("value" -> Json.fromJsonObject(JsonObject("message" -> expectedBody.message.asJson)))
+              )
+            )
+          )
         }
       case None => fail("route not found")
-    }  
+    }
 
   def assertHttpStatus(routes: HttpRoutes[IO], req: Request[IO])(expectedStatus: Status) =
     routes.run(req).value.map {

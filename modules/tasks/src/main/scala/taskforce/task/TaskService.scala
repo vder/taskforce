@@ -49,7 +49,7 @@ final class TaskService[F[_]: Sync] private (
           .ensure(AppError.NotAuthor(userId.value))(_.author == userId)
     } yield task
 
-  def list(projectId: ProjectId) = taskRepo.list(projectId)
+  def list(projectId: ProjectId): fs2.Stream[F,Task] = taskRepo.list(projectId)
 
   def find(projectId: ProjectId, taskId: TaskId) =
     taskRepo

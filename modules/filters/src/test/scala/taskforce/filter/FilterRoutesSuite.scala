@@ -1,7 +1,6 @@
 package taskforce.filter
 
 import arbitraries._
-import cats.data.Kleisli
 import cats.effect.IO
 import cats.implicits._
 import fs2.Stream
@@ -11,63 +10,70 @@ import org.http4s.circe._
 import org.http4s.client.dsl.io._
 import org.http4s.implicits._
 import org.http4s.Method._
-import org.http4s.server.AuthMiddleware
 import org.scalacheck.effect.PropF
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import taskforce.authentication.UserId
-import taskforce.common.{ErrorMessage, ErrorHandler}
 import taskforce.common.HttpTestSuite
 import taskforce.common.instances.Http4s
 import taskforce.common.AppError
+import taskforce.filter.model.{Status => _, _}
+import taskforce.common.ResponseError
+import org.http4s.headers.Authorization
+import taskforce.auth.TestAuthenticator
 
-class FilterRoutesSuite extends HttpTestSuite with instances.Circe  with Http4s[IO]{
+class FilterRoutesSuite extends HttpTestSuite with instances.Circe with Http4s[IO] {
 
   implicit def entityDecodeNewFilter: EntityDecoder[IO, NewFilter] = jsonOf
   implicit def entityEncodeNewFilter: EntityEncoder[IO, NewFilter] = jsonEncoderOf
   implicit def decodeRow: EntityDecoder[IO, FilterResultRow]       = jsonOf
   implicit def encodeRow: EntityEncoder[IO, FilterResultRow]       = jsonEncoderOf
 
-  val errHandler = ErrorHandler[IO]
 
   implicit def unsafeLogger = Slf4jLogger.getLogger[IO]
 
-  def authMiddleware: AuthMiddleware[IO, UserId] =
-    AuthMiddleware(Kleisli.pure(UserId(UUID.randomUUID())))
-
-  def authMiddleware(userId: UserId): AuthMiddleware[IO, UserId] =
-    AuthMiddleware(Kleisli.pure(userId))
+  val authHeader = Authorization(Credentials.Token(AuthScheme.Bearer, "open sesame"))
 
   def sortBytoQuery(s: SortBy): String =
-    s"""sortBy=${if (s.order == Desc) "-" else ""}${if (s.field == CreatedDate) "created" else "updated"}"""
+    s"""sortBy=${if (s.order == Order.Desc) "-" else ""}${if (s.field == Field.CreatedDate) "created" else "updated"}"""
 
   def pageToQuery(p: Page) = s"page=${p.no.value.value}&size=${p.size.value.value}"
 
-  val uri = uri"api/v1/filters"
+  val uri: Uri = uri"api/v1/filters"
 
   test("create filter") {
     PropF.forAllF { (f: NewFilter, fId: FilterId) =>
       val filterRepo = new TestFilterRepository(List(Filter(fId, f.conditions)), List())
-      val routes     = FilterRoutes.make[IO](authMiddleware, FilterService.make(filterRepo)).routes(errHandler)
-      POST(f, uri).pure[IO].flatMap { _ =>
-        assertHttpStatus(routes, POST(f, uri))(
-          Status.Created
-        )
-      }
+
+      val routes = FilterRoutes
+        .make[IO](TestAuthenticator(UserId(UUID.randomUUID())), FilterService.make(filterRepo))
+        .routes
+
+      POST(f, uri, authHeader)
+        .pure[IO]
+        .flatMap { _ =>
+          assertHttpStatus(routes, POST(f, uri, authHeader))(
+            Status.Created
+          )
+        }
     }
   }
+
   test("get filter that does not exist") {
-    PropF.forAllF { (f: NewFilter, fId: FilterId, fId2: FilterId) =>
-      val filterRepo = new TestFilterRepository(List(Filter(fId2, f.conditions)), List())
-      val routes     = FilterRoutes.make[IO](authMiddleware, FilterService.make(filterRepo)).routes(errHandler)
-      GET(f, Uri.unsafeFromString(s"api/v1/filters/${fId.value}?sortBy=-creaed")).pure[IO].flatMap { req =>
-        assertHttp(routes, req)(
-          Status.NotFound,
-          ErrorMessage(
-            "BASIC-001",
-            s"resource with given id ${fId} does not exist"
+    PropF.forAllF { (fId: FilterId) =>
+      val filterRepo = new TestFilterRepository(List(), List())
+      val routes =
+        FilterRoutes
+          .make[IO](TestAuthenticator(UserId(UUID.randomUUID())), FilterService.make(filterRepo))
+          .routes
+
+      GET(uri / fId.toString, authHeader)
+        .pure[IO]
+        .flatMap { req =>
+          assertHttp(routes, req)(
+            Status.NotFound,
+            ResponseError.NotFound(s"resource ${fId} is not found")
           )
-        )
-      }
+        }
     }
   }
 
@@ -83,13 +89,17 @@ class FilterRoutesSuite extends HttpTestSuite with instances.Circe  with Http4s[
         }
       }
 
-      val routes = FilterRoutes.make[IO](authMiddleware, FilterService.make(filterRepo)).routes(errHandler)
-      GET(f, Uri.unsafeFromString(s"api/v1/filters/${fId.value}/data?${queryParams}")).pure[IO].flatMap { req =>
-        assertHttp(routes, req)(
-          Status.Ok,
-          List(row)
-        )
-      }
+      val routes =
+        FilterRoutes.make[IO](TestAuthenticator(UserId(UUID.randomUUID())), FilterService.make(filterRepo)).routes
+
+      GET(f, Uri.unsafeFromString(s"api/v1/filters/${fId.toString()}/data?${queryParams}"), authHeader)
+        .pure[IO]
+        .flatMap { req =>
+          assertHttp(routes, req)(
+            Status.Ok,
+            List(row)
+          )
+        }
     }
   }
 
