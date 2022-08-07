@@ -1,4 +1,4 @@
-package taskforce
+package taskforce.common
 
 import cats.effect.IO
 import io.circe._

@@ -16,7 +16,7 @@ import org.scalacheck.effect.PropF
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import taskforce.authentication.UserId
 import taskforce.common.{ErrorMessage, ErrorHandler}
-import taskforce.HttpTestSuite
+import taskforce.common.HttpTestSuite
 import taskforce.common.instances.Http4s
 import taskforce.common.AppError
 

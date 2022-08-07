@@ -7,9 +7,8 @@ import io.circe.generic.auto._
 import sttp.tapir.generic.auto._
 
 object BaseApi extends instances.Circe {
-  val endpoint: Endpoint[String, Unit, ResponseError, Unit, Any] =
+  val endpoint: Endpoint[Unit, Unit, ResponseError, Unit, Any] =
     tapirEndpoint
-      .securityIn(auth.bearer[String]())
       .errorOut(
         oneOf[ResponseError](
           oneOfVariant[ResponseError.TokenDecoding](
