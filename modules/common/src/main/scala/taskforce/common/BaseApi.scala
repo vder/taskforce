@@ -53,6 +53,11 @@ object BaseApi extends instances.Circe {
             jsonBody[ResponseError.WrongPeriodError]
               .description("User alredy reported given time")
               .and(statusCode(StatusCode.Conflict).description("Conflict"))
+          ),
+          oneOfVariant[ResponseError.BadRequest](
+            jsonBody[ResponseError.BadRequest]
+              .description("User alredy reported given time")
+              .and(statusCode(StatusCode.BadRequest))
           )
         )
       )

@@ -12,6 +12,7 @@ import taskforce.common.BaseApi
 import taskforce.common.ResponseError
 import taskforce.common.ResponseError._
 import taskforce.common.instances.{Http4s => CommonInstancesHttp4s}
+import io.circe.syntax._
 
 import taskforce.task.ProjectId
 import taskforce.common.DefaultEndpointInterpreter
@@ -33,9 +34,12 @@ final class TaskRoutes[F[_]: Async] private (
         .get
         .in(path[ProjectId].description("project ID"))
         .in("tasks")
-        .out(jsonBody[List[Task]].description("tasks in given project"))
-        .description("Lists all task in a given project")
-        .serverLogicSuccess(_ => projectId => taskService.list(projectId).compile.toList)
+        .out(streamBody(Fs2Streams[F])(Schema.binary, CodecFormat.Json(), Some(StandardCharsets.UTF_8)))
+        .serverLogicSuccess(_ => projectId => 
+          taskService.
+          list(projectId).map(_.asJson.noSpaces.getBytes("UTF-8"))
+            .flatMap(a => fs2.Stream.chunk(Chunk.array(a)))
+            .pure[F])
 
     val find =
       authenticator
