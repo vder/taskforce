@@ -89,6 +89,8 @@ lazy val common = (project in file("modules/common"))
       tapirCirce,
       tapirCats,
       tapirRefined,
+      tapirSwagger,
+      tapirHttp4s
     ).map(_.exclude("org.slf4j", "*")),
     addCompilerPlugin(kindProjector),
     scalacOptions ++= Seq("-Ymacro-annotations")
