@@ -6,28 +6,27 @@ import io.circe.refined._
 import org.http4s.HttpRoutes
 import org.http4s.server.Router
 import sttp.model.StatusCode
-import sttp.tapir._
+import sttp.tapir.{path, statusCode}
 import sttp.tapir.json.circe._
 import taskforce.authentication.Authenticator
-import taskforce.common.BaseApi
 import taskforce.common.ResponseError
 import taskforce.common.ResponseError._
-import taskforce.common.instances.{Http4s => CommonInstancesHttp4s}
 import taskforce.project.ProjectName
 import taskforce.project.TotalTime
 import taskforce.common.DefaultEndpointInterpreter
+import taskforce.common.BaseEndpoint
 
 final class ProjectRoutes[F[_]: Async] private (
     authenticator: Authenticator[F],
     projectService: ProjectService[F]
 ) extends instances.Http4s[F]
-    with CommonInstancesHttp4s[F]
     with instances.TapirCodecs
-    with DefaultEndpointInterpreter {
+    with DefaultEndpointInterpreter
+    with BaseEndpoint {
 
   private object endpoints {
 
-    val base = BaseApi.endpoint.in("projects")
+    val base = endpoint.in("projects")
 
     val list =
       authenticator

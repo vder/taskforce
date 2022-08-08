@@ -6,7 +6,7 @@ import sttp.model._
 import io.circe.generic.auto._
 import sttp.tapir.generic.auto._
 
-object BaseApi extends instances.Circe {
+trait BaseEndpoint extends instances.Circe {
   val endpoint: Endpoint[Unit, Unit, ResponseError, Unit, Any] =
     tapirEndpoint
       .in("api")

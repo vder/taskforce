@@ -19,7 +19,7 @@ trait DefaultEndpointInterpreter {
     val options = SwaggerUIOptions.default.copy(pathPrefix = List("docs", path))
 
     val swaggerEndpoints = httpInterpreter.toRoutes(
-      SwaggerInterpreter(swaggerUIOptions = options).fromEndpoints[F](endpoints.map(_.endpoint), "My App", "1.0")
+      SwaggerInterpreter(swaggerUIOptions = options).fromEndpoints[F](endpoints.map(_.endpoint), "Taskforce", "1.0")
     )
 
     swaggerEndpoints <+> httpInterpreter.toRoutes(endpoints)
