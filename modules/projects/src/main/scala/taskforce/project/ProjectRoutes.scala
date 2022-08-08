@@ -11,7 +11,6 @@ import sttp.tapir.json.circe._
 import taskforce.authentication.Authenticator
 import taskforce.common.ResponseError
 import taskforce.common.ResponseError._
-import taskforce.common.instances.{Http4s => CommonInstancesHttp4s}
 import taskforce.project.ProjectName
 import taskforce.project.TotalTime
 import taskforce.common.DefaultEndpointInterpreter
@@ -21,7 +20,6 @@ final class ProjectRoutes[F[_]: Async] private (
     authenticator: Authenticator[F],
     projectService: ProjectService[F]
 ) extends instances.Http4s[F]
-    with CommonInstancesHttp4s[F]
     with instances.TapirCodecs
     with DefaultEndpointInterpreter
     with BaseEndpoint {

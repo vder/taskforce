@@ -10,10 +10,8 @@ import org.http4s.implicits._
 import org.scalacheck.effect.PropF
 import taskforce.common.HttpTestSuite
 import taskforce.authentication.UserId
-import taskforce.common.ErrorHandler
 import taskforce.project.ProjectName
 import taskforce.project.instances.Circe
-import taskforce.common.instances.Http4s
 import java.time.Instant
 import taskforce.common.AppError
 import taskforce.common.ResponseError
@@ -23,14 +21,12 @@ import io.circe.generic.auto._
 import taskforce.auth.TestAuthenticator
 
 
-class ProjectRoutesSuite extends HttpTestSuite with Circe with Http4s[IO] {
+class ProjectRoutesSuite extends HttpTestSuite with Circe  {
 
   import arbitraries._
 
   implicit def decodeNewProduct: EntityDecoder[IO, ProjectName] = jsonOf
   implicit def encodeNewProduct: EntityEncoder[IO, ProjectName] = jsonEncoderOf
-
-  val errHandler = ErrorHandler[IO]
 
   val currentTime = Instant.now()
 

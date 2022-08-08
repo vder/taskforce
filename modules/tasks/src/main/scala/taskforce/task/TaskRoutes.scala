@@ -5,13 +5,12 @@ import cats.implicits._
 import org.http4s.HttpRoutes
 import org.http4s.server.Router
 import sttp.model.StatusCode
-import sttp.tapir.{path, statusCode}
+import sttp.tapir._
 import sttp.tapir.json.circe._
 import taskforce.authentication.Authenticator
 import taskforce.common.BaseEndpoint
 import taskforce.common.ResponseError
 import taskforce.common.ResponseError._
-import taskforce.common.instances.{Http4s => CommonInstancesHttp4s}
 
 import taskforce.task.ProjectId
 import taskforce.common.DefaultEndpointInterpreter
@@ -20,11 +19,11 @@ import java.nio.charset.StandardCharsets
 import sttp.capabilities.fs2.Fs2Streams
 
 
+
 final class TaskRoutes[F[_]: Async] private (
     authenticator: Authenticator[F],
     taskService: TaskService[F]
 ) extends instances.Http4s[F]
-    with CommonInstancesHttp4s[F]
     with instances.TapirCodecs
     with BaseEndpoint
     with DefaultEndpointInterpreter

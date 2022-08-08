@@ -12,7 +12,6 @@ import org.scalacheck.effect.PropF
 import taskforce.common.HttpTestSuite
 import taskforce.authentication.UserId
 import taskforce.common.ResponseError
-import taskforce.common.instances.Http4s
 import taskforce.task.instances.Circe
 
 
@@ -24,7 +23,7 @@ import taskforce.common.CreationDate
 import java.time.Duration
 import taskforce.auth.TestAuthenticator
 
-class TasksRoutesSuite extends HttpTestSuite with Circe with Http4s[IO] {
+class TasksRoutesSuite extends HttpTestSuite with Circe {
 
   implicit def encodeNewTask: EntityEncoder[IO, NewTask] = jsonEncoderOf
 

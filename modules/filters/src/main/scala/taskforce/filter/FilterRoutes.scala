@@ -6,7 +6,6 @@ import sttp.tapir.json.circe._
 import org.http4s.server.Router
 import taskforce.filter.model._
 import taskforce.authentication.Authenticator
-import taskforce.common.BaseApi
 import sttp.capabilities.fs2.Fs2Streams
 import java.nio.charset.StandardCharsets
 import org.http4s.HttpRoutes
@@ -19,6 +18,7 @@ import org.typelevel.log4cats.slf4j.Slf4jLogger
 import cats.effect
 import sttp.tapir.server.http4s.Http4sServerOptions
 import taskforce.common.DefaultEndpointInterpreter
+import taskforce.common.BaseEndpoint
 
 final class FilterRoutes[F[_]: Async: Logger] private (
     authenticator: Authenticator[F],
@@ -26,13 +26,14 @@ final class FilterRoutes[F[_]: Async: Logger] private (
 ) extends instances.Circe
     with instances.TapirCodecs
     with DefaultEndpointInterpreter
-    with StreamingResponse {
+    with StreamingResponse
+    with BaseEndpoint {
 
   implicit def unsafeLogger[IO] = Slf4jLogger.getLogger[effect.IO]
 
   private object endpoints {
 
-    val base = BaseApi.endpoint.in("filters")
+    val base = endpoint.in("filters")
 
     val list =
       authenticator

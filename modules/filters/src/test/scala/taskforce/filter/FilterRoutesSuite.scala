@@ -14,14 +14,13 @@ import org.scalacheck.effect.PropF
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import taskforce.authentication.UserId
 import taskforce.common.HttpTestSuite
-import taskforce.common.instances.Http4s
 import taskforce.common.AppError
 import taskforce.filter.model.{Status => _, _}
 import taskforce.common.ResponseError
 import org.http4s.headers.Authorization
 import taskforce.auth.TestAuthenticator
 
-class FilterRoutesSuite extends HttpTestSuite with instances.Circe with Http4s[IO] {
+class FilterRoutesSuite extends HttpTestSuite with instances.Circe {
 
   implicit def entityDecodeNewFilter: EntityDecoder[IO, NewFilter] = jsonOf
   implicit def entityEncodeNewFilter: EntityEncoder[IO, NewFilter] = jsonEncoderOf
