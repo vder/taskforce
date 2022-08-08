@@ -5,10 +5,10 @@ import cats.implicits._
 import org.http4s.HttpRoutes
 import org.http4s.server.Router
 import sttp.model.StatusCode
-import sttp.tapir._
+import sttp.tapir.{path, statusCode}
 import sttp.tapir.json.circe._
 import taskforce.authentication.Authenticator
-import taskforce.common.BaseApi
+import taskforce.common.BaseEndpoint
 import taskforce.common.ResponseError
 import taskforce.common.ResponseError._
 import taskforce.common.instances.{Http4s => CommonInstancesHttp4s}
@@ -26,12 +26,12 @@ final class TaskRoutes[F[_]: Async] private (
 ) extends instances.Http4s[F]
     with CommonInstancesHttp4s[F]
     with instances.TapirCodecs
+    with BaseEndpoint
     with DefaultEndpointInterpreter
     with StreamingResponse {
   private object endpoints {
 
-    val base = BaseApi.endpoint.in("projects")
-
+    val base = endpoint.in("projects")
 
     val list =
       authenticator
