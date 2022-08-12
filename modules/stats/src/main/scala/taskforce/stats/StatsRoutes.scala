@@ -44,7 +44,7 @@ final class StatsRoutes[F[_]: Async] private (
     def routes: HttpRoutes[F] = toRoutes("stats")(stats)
   }
 
-  def routes =
+  def routes: HttpRoutes[F] =
     Router(
       "/" -> endpoints.routes
     )
@@ -54,5 +54,5 @@ object StatsRoutes {
   def make[F[_]: Async](
       authenticator: Authenticator[F],
       statsService: StatsService[F]
-  ) = new StatsRoutes(authenticator, statsService)
+  ): StatsRoutes[F] = new StatsRoutes(authenticator, statsService)
 }

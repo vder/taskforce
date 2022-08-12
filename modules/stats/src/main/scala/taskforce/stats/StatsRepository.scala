@@ -11,7 +11,7 @@ trait StatsRepository[F[_]] {
 }
 
 object StatsRepository {
-  def make[F[_]: MonadCancelThrow](xa: Transactor[F]) =
+  def make[F[_]: MonadCancelThrow](xa: Transactor[F]): StatsRepository[F] =
     new StatsRepository[F] with instances.Doobie {
 
       override def get(query: StatsQuery): F[StatsResponse] =
