@@ -14,9 +14,6 @@ import taskforce.common.ResponseError
 import taskforce.common.StreamingResponse
 import sttp.model.StatusCode
 import org.typelevel.log4cats.Logger
-import org.typelevel.log4cats.slf4j.Slf4jLogger
-import cats.effect
-import sttp.tapir.server.http4s.Http4sServerOptions
 import taskforce.common.DefaultEndpointInterpreter
 import taskforce.common.BaseEndpoint
 
@@ -28,8 +25,6 @@ final class FilterRoutes[F[_]: Async: Logger] private (
     with DefaultEndpointInterpreter
     with StreamingResponse
     with BaseEndpoint {
-
-  implicit def unsafeLogger[IO] = Slf4jLogger.getLogger[effect.IO]
 
   private object endpoints {
 
@@ -81,22 +76,6 @@ final class FilterRoutes[F[_]: Async: Logger] private (
           }
         }
 
-    val fetchTest =
-      authenticator
-        .secureEndpoint(base)
-        .get
-        .in(path[FilterId])
-        .in("data")
-        .in(query[Option[PageSize]]("size"))
-        .in(query[Option[PageNo]]("page"))
-        .in(query[Option[SortBy]]("sortBy"))
-        .out(stringBody)
-        .serverLogicSuccess { _ =>
-          { case (filterId, pageSize, pageNo, sortBy) =>
-            s" RESponse = $filterId, $pageSize, $pageNo, $sortBy".pure[F]
-          }
-        }
-
     val create =
       authenticator
         .secureEndpoint(base)
@@ -105,13 +84,11 @@ final class FilterRoutes[F[_]: Async: Logger] private (
         .out(jsonBody[Filter].and(statusCode(StatusCode.Created)))
         .serverLogicSuccess { _ => newFilter => filterService.create(newFilter) }
 
-    val defaultServerOptions = Http4sServerOptions.default[F]
-
     def routes: HttpRoutes[F] = toRoutes("filters")(fetch, find, create, list)
 
   }
 
-  def routes = Router(
+  def routes: HttpRoutes[F] = Router(
     "/" -> endpoints.routes
   )
 }
@@ -120,5 +97,5 @@ object FilterRoutes {
   def make[F[_]: Async: Logger](
       authenticator: Authenticator[F],
       filterService: FilterService[F]
-  ) = new FilterRoutes(authenticator, filterService)
+  ): FilterRoutes[F] = new FilterRoutes(authenticator, filterService)
 }

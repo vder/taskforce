@@ -2,35 +2,33 @@ package taskforce.filter
 
 import cats.implicits._
 import fs2.Stream
-import java.util.UUID
 import taskforce.common.AppError
 import cats.MonadThrow
 import taskforce.filter.model._
+import cats.effect.std.UUIDGen
 
-final class FilterService[F[_]: MonadThrow] private (filterRepo: FilterRepository[F]) {
+final class FilterService[F[_]: MonadThrow: UUIDGen] private (filterRepo: FilterRepository[F]) {
 
-  def create(newFilter: NewFilter) =
-    filterRepo
-      .create(
-        Filter(FilterId(UUID.randomUUID()), newFilter.conditions)
-      )
-
-  def getAll                  = filterRepo.list
-  def get(filterId: FilterId) = filterRepo.find(filterId)
-  def getData(filterId: FilterId, pagination: Page, sortBy: Option[SortBy]) =
+  def create(newFilter: NewFilter): F[Filter] =
     for {
-      filterOption <- Stream.eval(
-        filterRepo
-          .find(filterId)
-          .ensure(AppError.NotFound(filterId.value.toString))(_.isDefined)
-      )
-      rows <- filterRepo.execute(filterOption.get, sortBy, pagination)
+      id <- UUIDGen.randomUUID
+      filter = Filter(FilterId(id), newFilter.conditions)
+      _ <- filterRepo.create(filter)
+    } yield filter
+
+  def getAll: Stream[F, Filter]                  = filterRepo.list
+  def get(filterId: FilterId): F[Option[Filter]] = filterRepo.find(filterId)
+  def getData(filterId: FilterId, pagination: Page, sortBy: Option[SortBy]): Stream[F, FilterResultRow] =
+    for {
+      filterOpt <- Stream.eval(filterRepo.find(filterId))
+      filter    <- filterOpt.toRight(AppError.NotFound(filterId.value.toString)).liftTo[Stream[F, *]]
+      rows      <- filterRepo.execute(filter, sortBy, pagination)
     } yield rows
 
 }
 
 object FilterService {
-  def make[F[_]: MonadThrow](filterRepo: FilterRepository[F]) =
+  def make[F[_]: MonadThrow: UUIDGen](filterRepo: FilterRepository[F]): FilterService[F] =
     new FilterService[F](filterRepo)
 
 }

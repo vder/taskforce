@@ -49,7 +49,7 @@ trait Doobie extends taskforce.task.instances.Doobie with NewTypeDoobieMeta with
     def toFragment(s: Criteria.State) =
       s.status match {
         case Status.All      => fr"1=1"
-        case Status.Deactive => fr"""t.deleted is not null"""
+        case Status.Inactive => fr"""t.deleted is not null"""
         case Status.Active   => fr"""t.deleted is null"""
       }
   }

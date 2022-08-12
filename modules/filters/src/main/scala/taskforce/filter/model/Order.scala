@@ -1,6 +1,6 @@
 package taskforce.filter.model
 
-sealed trait Order
+sealed trait Order extends Product with Serializable
 
 object Order {
   final case object Asc  extends Order

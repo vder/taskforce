@@ -5,12 +5,13 @@ import fs2.Stream
 import taskforce.filter.model._
 import cats.Applicative
 
-case class TestFilterRepository[F[_]: Applicative](filters: List[Filter], rows: List[FilterResultRow]) extends FilterRepository[F] {
+case class TestFilterRepository[F[_]: Applicative](filters: List[Filter], rows: List[FilterResultRow])
+    extends FilterRepository[F] {
 
   override def execute(filter: Filter, sortByOption: Option[SortBy], page: Page): Stream[F, FilterResultRow] =
     Stream.emits(rows)
 
-  override def create(filter: Filter): F[Filter] = filter.pure[F]
+  override def create(filter: Filter): F[Unit] = ().pure[F]
 
   override def delete(id: FilterId): F[Int] = 1.pure[F]
 

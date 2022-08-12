@@ -20,7 +20,7 @@ import java.time.Instant
 import taskforce.filter.model._
 
 trait FilterRepository[F[_]] {
-  def create(filter: Filter): F[Filter]
+  def create(filter: Filter): F[Unit]
   def delete(id: FilterId): F[Int]
   def find(id: FilterId): F[Option[Filter]]
   def execute(
@@ -85,9 +85,7 @@ object FilterRepository {
       Stream.eval[F, Unit](Logger[F].debug(s"test: $sqlQuery")) >>
         sqlQuery
           .query[(Project, Option[Task])]
-          // .query[CreationDate]
           .stream
-          // .as( null : FilterResultRow)
           .transact(xa)
           .map(x => FilterResultRow.fromTuple(x))
     }
@@ -95,17 +93,17 @@ object FilterRepository {
     def createCriterias(filterId: FilterId)(criteria: Criteria): doobie.ConnectionIO[Int] =
       criteria match {
         case in @ Criteria.In(_) =>
-          sql.createInCritaria(filterId, in).update.run
+          sql.createInCriteria(filterId, in).update.run
         case date @ Criteria.TaskCreatedDate(_, _) =>
-          sql.createDateCritaria(filterId, date).update.run
+          sql.createDateCriteria(filterId, date).update.run
         case state @ Criteria.State(_) =>
-          sql.createStateCritaria(filterId, state).update.run
+          sql.createStateCriteria(filterId, state).update.run
       }
-    override def create(filter: Filter): F[Filter] = {
+    override def create(filter: Filter): F[Unit] = {
       filter.conditions
         .traverse(createCriterias(filter.id))
         .transact(xa)
-        .as(filter)
+        .void
     }
 
     override def delete(id: FilterId): F[Int] =
@@ -151,20 +149,20 @@ object FilterRepository {
                       |       list_value 
                       |  from filters order by filter_id""".stripMargin
 
-      def createStateCritaria(id: FilterId, state: Criteria.State) =
+      def createStateCriteria(id: FilterId, state: Criteria.State) =
         sql"""insert into filters(filter_id,criteria_type,status_value)
            | values (${id},
            |         'state',
            |         ${state.status})""".stripMargin
 
-      def createInCritaria(id: FilterId, in: Criteria.In) =
+      def createInCriteria(id: FilterId, in: Criteria.In) =
         sql"""insert into filters(filter_id,criteria_type,list_value)
           | values (${id},
           |         'in',
           |         ${in.names.map(_.value)}
           |         )""".stripMargin
 
-      def createDateCritaria(id: FilterId, date: Criteria.TaskCreatedDate) =
+      def createDateCriteria(id: FilterId, date: Criteria.TaskCreatedDate) =
         sql"""insert into filters(filter_id,criteria_type,operator,date_value)
                | values (${id},
                |         'cond',

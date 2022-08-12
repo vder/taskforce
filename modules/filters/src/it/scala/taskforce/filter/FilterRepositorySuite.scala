@@ -127,7 +127,7 @@ class FilterRepositorySuite extends BasicRepositorySuite {
         rowsDeleted <-
           fRepo
             .execute(
-              Filter(f, List(Criteria.State(Status.Deactive))),
+              Filter(f, List(Criteria.State(Status.Inactive))),
               SortBy(Field.CreatedDate, Order.Desc).some,
               page
             )
