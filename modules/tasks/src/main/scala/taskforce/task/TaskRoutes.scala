@@ -18,8 +18,6 @@ import taskforce.common.StreamingResponse
 import java.nio.charset.StandardCharsets
 import sttp.capabilities.fs2.Fs2Streams
 
-
-
 final class TaskRoutes[F[_]: Async] private (
     authenticator: Authenticator[F],
     taskService: TaskService[F]
@@ -75,10 +73,13 @@ final class TaskRoutes[F[_]: Async] private (
         .description("Create a new task in a project")
         .serverLogic { userId =>
           { case (projectId, newTask) =>
-            taskService
-              .create(Task.fromNewTask(newTask, userId, projectId))
-              .map(_.leftMap(ResponseError.fromAppError))
-              .extractFromEffectandMerge
+            for {
+              task <- Task.fromNewTask[F](newTask, userId, projectId)
+              result <- taskService
+                .create(task)
+                .map(_.leftMap(ResponseError.fromAppError))
+                .extractFromEffectandMerge
+            } yield result
           }
         }
 
@@ -112,11 +113,13 @@ final class TaskRoutes[F[_]: Async] private (
         .description("Updates a task in a project")
         .serverLogic { userId =>
           { case (projectId, taskId, newTask) =>
-            val task = Task.fromNewTask(newTask, userId, projectId)
-            taskService
-              .update(taskId, task, userId)
-              .map(_.leftMap(ResponseError.fromAppError))
-              .extractFromEffectandMerge
+            for {
+              task <- Task.fromNewTask[F](newTask, userId, projectId)
+              result <- taskService
+                .update(taskId, task, userId)
+                .map(_.leftMap(ResponseError.fromAppError))
+                .extractFromEffectandMerge
+            } yield result
           }
         }
 
@@ -134,5 +137,5 @@ object TaskRoutes {
   def make[F[_]: Async](
       authenticator: Authenticator[F],
       taskService: TaskService[F]
-  ) = new TaskRoutes(authenticator, taskService)
+  ): TaskRoutes[F] = new TaskRoutes(authenticator, taskService)
 }

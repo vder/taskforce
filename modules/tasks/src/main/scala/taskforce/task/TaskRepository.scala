@@ -9,7 +9,7 @@ import taskforce.authentication.UserId
 import fs2.Stream
 import taskforce.common.DeletionDate
 import taskforce.common.AppError
-import java.time.Instant
+import cats.effect.kernel.Clock
 
 trait TaskRepository[F[_]] {
   def create(task: Task): F[Either[AppError.DuplicateTaskNameError, Task]]
@@ -21,7 +21,7 @@ trait TaskRepository[F[_]] {
 }
 
 object TaskRepository {
-  def make[F[_]: MonadCancelThrow](xa: Transactor[F]) =
+  def make[F[_]: MonadCancelThrow: Clock](xa: Transactor[F]): TaskRepository[F] =
     new TaskRepository[F] with instances.Doobie {
 
       import ctx._
@@ -39,18 +39,23 @@ object TaskRepository {
           id: TaskId,
           task: Task
       ): F[Either[AppError.DuplicateTaskNameError, Task]] = {
-        val update = for {
+
+        def update(deletionDate: DeletionDate) = for {
           _ <- run(
             taskQuery
               .filter(p => p.id == lift(id) && p.deleted.isEmpty)
-              .update(_.deleted -> lift(DeletionDate(Instant.now()).some))
+              .update(_.deleted -> lift(deletionDate.some))
           )
           _ <- run(taskQuery.insert(lift(task)))
         } yield ()
-        update
-          .transact(xa)
-          .as(task.asRight[AppError.DuplicateTaskNameError])
-          .recover(mapDatabaseErr(task))
+
+        for {
+          deletionDate <- Clock[F].realTimeInstant.map(DeletionDate(_))
+          result <- update(deletionDate)
+            .transact(xa)
+            .as(task.asRight[AppError.DuplicateTaskNameError])
+            .recover(mapDatabaseErr(task))
+        } yield result
 
       }
 
@@ -71,14 +76,17 @@ object TaskRepository {
           .as(task.asRight[AppError.DuplicateTaskNameError])
           .recover(mapDatabaseErr(task))
 
-      override def delete(id: TaskId): F[Int] =
-        run(
-          taskQuery
-            .filter(p => p.id == lift(id) && p.deleted.isEmpty)
-            .update(_.deleted -> lift(DeletionDate(Instant.now()).some))
-        )
-          .transact(xa)
-          .map(_.toInt)
+      def delete(id: TaskId): F[Int] =
+        for {
+          deletionDate <- Clock[F].realTimeInstant.map(DeletionDate(_))
+          result <- run(
+            taskQuery
+              .filter(p => p.id == lift(id) && p.deleted.isEmpty)
+              .update(_.deleted -> lift(deletionDate.some))
+          )
+            .transact(xa)
+            .map(_.toInt)
+        } yield result
 
       override def list(projectId: ProjectId): Stream[F, Task] =
         stream(taskQuery.filter(_.projectId == lift(projectId)))
