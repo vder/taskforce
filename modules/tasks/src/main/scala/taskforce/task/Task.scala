@@ -1,6 +1,5 @@
 package taskforce.task
 
-
 import java.util.UUID
 import taskforce.authentication.UserId
 import taskforce.common._

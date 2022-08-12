@@ -1,6 +1,5 @@
 package taskforce.filter
 
-
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.numeric.Positive
 import eu.timepit.refined.types.string.NonEmptyString
@@ -28,7 +27,8 @@ object generators {
     } yield LocalDate
       .parse("2000.01.01", DateTimeFormatter.ofPattern("yyyy.MM.dd"))
       .atStartOfDay()
-      .plusMinutes(minutes.toLong).toInstant(ZoneOffset.UTC)
+      .plusMinutes(minutes.toLong)
+      .toInstant(ZoneOffset.UTC)
   val operatorGen: Gen[Operator] = Gen.oneOf(List(Eq, Gt, Gteq, Lteq, Lt))
 
   val statusGen: Gen[Status] = Gen.oneOf(List(Active, Deactive, All))
@@ -39,7 +39,7 @@ object generators {
       .map(In.apply)
 
   val taskCreatedGen: Gen[TaskCreatedDate] = for {
-    op <- operatorGen
+    op   <- operatorGen
     date <- instantGen
   } yield TaskCreatedDate(op, date)
 
@@ -57,7 +57,7 @@ object generators {
   val newFilterGen = conditionsGen.map(NewFilter.apply)
 
   val filterGen = for {
-    c <- conditionsGen
+    c  <- conditionsGen
     id <- filterIdGen
   } yield Filter(id, c)
 
@@ -71,7 +71,7 @@ object generators {
 
   val pageGen = for {
     size <- pageSizeGen
-    no <- pageNoGen
+    no   <- pageNoGen
   } yield Page(no, size)
 
   val sortByGen = for {

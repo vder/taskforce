@@ -47,7 +47,8 @@ object generators {
     } yield LocalDate
       .parse("2000.01.01", DateTimeFormatter.ofPattern("yyyy.MM.dd"))
       .atStartOfDay()
-      .plusMinutes(minutes.toLong).toInstant(ZoneOffset.UTC)
+      .plusMinutes(minutes.toLong)
+      .toInstant(ZoneOffset.UTC)
 
   val taskVolumeGen: Gen[TaskVolume] =
     Gen
