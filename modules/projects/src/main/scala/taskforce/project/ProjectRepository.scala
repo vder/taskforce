@@ -11,9 +11,9 @@ import taskforce.authentication.UserId
 import taskforce.common.NewTypeQuillInstances
 import java.time.Duration
 import java.time.temporal.ChronoUnit
-import java.time.Instant
 import taskforce.common.{CreationDate, DeletionDate}
 import taskforce.common.AppError
+import cats.effect.kernel.Clock
 
 trait ProjectRepository[F[_]] {
   def create(newProject: ProjectName, userId: UserId): F[Either[AppError.DuplicateProjectName, Project]]
@@ -28,7 +28,7 @@ trait ProjectRepository[F[_]] {
 }
 
 object ProjectRepository {
-  def make[F[_]: MonadCancelThrow](xa: Transactor[F]) =
+  def make[F[_]: MonadCancelThrow: Clock](xa: Transactor[F]): ProjectRepository[F] =
     new ProjectRepository[F] with instances.Doobie with NewTypeQuillInstances {
 
       private val ctx = new DoobieContext.Postgres(NamingStrategy(PluralizedTableNames, SnakeCase))
@@ -57,32 +57,40 @@ object ProjectRepository {
       override def create(
           newProject: ProjectName,
           author: UserId
-      ): F[Either[AppError.DuplicateProjectName, Project]] = {
-        val created = CreationDate(Instant.now().truncatedTo(ChronoUnit.SECONDS))
-        run(
-          projectQuery
-            .insertValue(lift(Project(newProjectId, newProject, author, created, None)))
-            .returningGenerated(_.id)
-        )
-          .transact(xa)
-          .map { id =>
-            Project(id, newProject, author, created, None)
-          }
-          .map(_.asRight[AppError.DuplicateProjectName])
-          .recover(mapDatabaseErr(newProject))
-      }
-
-      override def delete(id: ProjectId): F[Int] = {
-        val deleted = DeletionDate(Instant.now()).some
-        val result = for {
-          x <- run(projectQuery.filter(p => p.id == lift(id) && p.deleted.isEmpty).update(_.deleted -> lift(deleted)))
-          y <- run(
-            taskQuery.filter(t => t.projectId == lift(id) && t.deleted.isEmpty).update(_.deleted -> lift(deleted))
+      ): F[Either[AppError.DuplicateProjectName, Project]] =
+        for {
+          creationDate <- Clock[F].realTimeInstant.map(_.truncatedTo(ChronoUnit.SECONDS)).map(CreationDate.apply)
+          result <- run(
+            projectQuery
+              .insertValue(lift(Project(newProjectId, newProject, author, creationDate, None)))
+              .returningGenerated(_.id)
           )
-        } yield x + y
+            .transact(xa)
+            .map { id =>
+              Project(id, newProject, author, creationDate, None)
+            }
+            .map(_.asRight[AppError.DuplicateProjectName])
+            .recover(mapDatabaseErr(newProject))
+        } yield result
 
-        result.transact(xa).map(_.toInt)
-      }
+      override def delete(id: ProjectId): F[Int] =
+        for {
+          deletionDate <- Clock[F].realTimeInstant
+            .map(_.truncatedTo(ChronoUnit.SECONDS))
+            .map(DeletionDate(_))
+          result <- (for {
+            x <- run(
+              projectQuery
+                .filter(p => p.id == lift(id) && p.deleted.isEmpty)
+                .update(_.deleted -> lift(Option(deletionDate)))
+            )
+            y <- run(
+              taskQuery
+                .filter(t => t.projectId == lift(id) && t.deleted.isEmpty)
+                .update(_.deleted -> lift(Option(deletionDate)))
+            )
+          } yield x + y).transact(xa)
+        } yield result.toInt
 
       override def update(
           id: ProjectId,
