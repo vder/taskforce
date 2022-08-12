@@ -37,7 +37,7 @@ final class FilterRoutes[F[_]: Async: Logger] private (
 
     val list =
       authenticator
-        .secureEndpoints(base)
+        .secureEndpoint(base)
         .get
         .out(streamBody(Fs2Streams[F])(Schema.binary, CodecFormat.Json(), Some(StandardCharsets.UTF_8)))
         .serverLogicSuccess { _ => _ =>
@@ -48,7 +48,7 @@ final class FilterRoutes[F[_]: Async: Logger] private (
 
     val find =
       authenticator
-        .secureEndpoints(base)
+        .secureEndpoint(base)
         .get
         .in(path[FilterId])
         .out(jsonBody[Filter])
@@ -60,7 +60,7 @@ final class FilterRoutes[F[_]: Async: Logger] private (
 
     val fetch =
       authenticator
-        .secureEndpoints(base)
+        .secureEndpoint(base)
         .get
         .in(path[FilterId])
         .in("data")
@@ -83,7 +83,7 @@ final class FilterRoutes[F[_]: Async: Logger] private (
 
     val fetchTest =
       authenticator
-        .secureEndpoints(base)
+        .secureEndpoint(base)
         .get
         .in(path[FilterId])
         .in("data")
@@ -99,7 +99,7 @@ final class FilterRoutes[F[_]: Async: Logger] private (
 
     val create =
       authenticator
-        .secureEndpoints(base)
+        .secureEndpoint(base)
         .post
         .in(jsonBody[NewFilter])
         .out(jsonBody[Filter].and(statusCode(StatusCode.Created)))

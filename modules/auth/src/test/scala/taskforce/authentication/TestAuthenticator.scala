@@ -1,6 +1,5 @@
-package taskforce.auth
+package taskforce.authentication
 
-import taskforce.authentication.Authenticator
 import cats.effect.IO
 import sttp.tapir.Endpoint
 import sttp.tapir.auth
@@ -13,10 +12,10 @@ object TestAuthenticator {
 
   def apply(userId: UserId): Authenticator[IO] =
     new Authenticator[IO] {
-      override def secureEndpoints[SECURITY_INPUT, INPUT, OUTPUT](
-          endpoints: Endpoint[Unit, INPUT, ResponseError, OUTPUT, Any]
+      override def secureEndpoint[INPUT, OUTPUT](
+          endpoint: Endpoint[Unit, INPUT, ResponseError, OUTPUT, Any]
       ): PartialServerEndpoint[String, UserId, INPUT, ResponseError, OUTPUT, Any, IO] =
-        endpoints
+        endpoint
           .securityIn(auth.bearer[String]())
           .serverSecurityLogic { _ => userId.asRight[ResponseError].pure[IO] }
 

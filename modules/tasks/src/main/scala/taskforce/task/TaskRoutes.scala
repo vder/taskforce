@@ -34,7 +34,7 @@ final class TaskRoutes[F[_]: Async] private (
 
     val list =
       authenticator
-        .secureEndpoints(base)
+        .secureEndpoint(base)
         .get
         .in(path[ProjectId].description("project ID"))
         .in("tasks")
@@ -49,7 +49,7 @@ final class TaskRoutes[F[_]: Async] private (
 
     val find =
       authenticator
-        .secureEndpoints(base)
+        .secureEndpoint(base)
         .get
         .in(path[ProjectId].description("project ID"))
         .in("tasks")
@@ -66,7 +66,7 @@ final class TaskRoutes[F[_]: Async] private (
 
     val create =
       authenticator
-        .secureEndpoints(base)
+        .secureEndpoint(base)
         .post
         .in(path[ProjectId].description("project ID"))
         .in("tasks")
@@ -84,7 +84,7 @@ final class TaskRoutes[F[_]: Async] private (
 
     val delete =
       authenticator
-        .secureEndpoints(base)
+        .secureEndpoint(base)
         .delete
         .in(path[ProjectId].description("project ID"))
         .in("tasks")
@@ -102,7 +102,7 @@ final class TaskRoutes[F[_]: Async] private (
 
     val update =
       authenticator
-        .secureEndpoints(base)
+        .secureEndpoint(base)
         .put
         .in(path[ProjectId].description("project ID"))
         .in("tasks")

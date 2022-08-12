@@ -30,7 +30,7 @@ final class ProjectRoutes[F[_]: Async] private (
 
     val list =
       authenticator
-        .secureEndpoints(base)
+        .secureEndpoint(base)
         .get
         .out(jsonBody[List[Project]].description("List of all created projects"))
         .description("Lists all created projects")
@@ -38,7 +38,7 @@ final class ProjectRoutes[F[_]: Async] private (
 
     val find =
       authenticator
-        .secureEndpoints(base)
+        .secureEndpoint(base)
         .get
         .in(path[ProjectId].description("Project ID"))
         .out(jsonBody[Project].description("Details of the selected project"))
@@ -51,7 +51,7 @@ final class ProjectRoutes[F[_]: Async] private (
 
     val create =
       authenticator
-        .secureEndpoints(base)
+        .secureEndpoint(base)
         .post
         .in(jsonBody[ProjectName].description("Name of the created project"))
         .out(
@@ -69,7 +69,7 @@ final class ProjectRoutes[F[_]: Async] private (
 
     val delete =
       authenticator
-        .secureEndpoints(base)
+        .secureEndpoint(base)
         .delete
         .in(path[ProjectId].description("Project ID"))
         .out(statusCode(StatusCode.Ok))
@@ -80,7 +80,7 @@ final class ProjectRoutes[F[_]: Async] private (
 
     val totalTime =
       authenticator
-        .secureEndpoints(base)
+        .secureEndpoint(base)
         .get
         .in(path[ProjectId].description("Project ID"))
         .in("totalTime")
@@ -92,7 +92,7 @@ final class ProjectRoutes[F[_]: Async] private (
 
     val update =
       authenticator
-        .secureEndpoints(base)
+        .secureEndpoint(base)
         .put
         .in(path[ProjectId].description("Project ID"))
         .in(jsonBody[ProjectName].description("New project's name"))

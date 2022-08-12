@@ -92,7 +92,7 @@ object FilterRepository {
           .map(x => FilterResultRow.fromTuple(x))
     }
 
-    def createCriterias(filterId: FilterId)(criteria: Criteria) =
+    def createCriterias(filterId: FilterId)(criteria: Criteria): doobie.ConnectionIO[Int] =
       criteria match {
         case in @ Criteria.In(_) =>
           sql.createInCritaria(filterId, in).update.run

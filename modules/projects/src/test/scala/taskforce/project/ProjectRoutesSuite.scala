@@ -18,7 +18,7 @@ import taskforce.common.ResponseError
 import io.circe.refined._
 import org.http4s.headers.Authorization
 import io.circe.generic.auto._
-import taskforce.auth.TestAuthenticator
+import taskforce.authentication.TestAuthenticator
 
 
 class ProjectRoutesSuite extends HttpTestSuite with Circe  {

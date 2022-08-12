@@ -24,7 +24,7 @@ final class StatsRoutes[F[_]: Async] private (
 
     val stats =
       authenticator
-        .secureEndpoints(base)
+        .secureEndpoint(base)
         .get
         .in(query[NonEmptyList[UserId]]("users").description("List of users id which we are calculate stats for"))
         .in(query[Option[DateFrom]]("from").description("Start of the period in format YYYY-DD-MM"))

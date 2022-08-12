@@ -37,17 +37,15 @@ trait TapirCodecs extends CommonTapirCodecs {
     )(pageNo => s"${pageNo.value.value}")
 
   implicit val sortByCodec: Codec[String, SortBy, CodecFormat.TextPlain] =
-    Codec.string.mapDecode(s =>
-      s match {
-        case "created" =>
-          DecodeResult.Value(SortBy(Field.CreatedDate, Order.Asc))
-        case "updated" =>
-          DecodeResult.Value(SortBy(Field.UpdatedDate, Order.Asc))
-        case "-created" => DecodeResult.Value(SortBy(Field.CreatedDate, Order.Desc))
-        case "-updated" => DecodeResult.Value(SortBy(Field.UpdatedDate, Order.Desc))
-        case _          => DecodeResult.Error(s, AppError.InvalidQueryParam(s"SortBy=$s"))
-      }
-    )(sortBy =>
+    Codec.string.mapDecode {
+      case "created" =>
+        DecodeResult.Value(SortBy(Field.CreatedDate, Order.Asc))
+      case "updated" =>
+        DecodeResult.Value(SortBy(Field.UpdatedDate, Order.Asc))
+      case "-created" => DecodeResult.Value(SortBy(Field.CreatedDate, Order.Desc))
+      case "-updated" => DecodeResult.Value(SortBy(Field.UpdatedDate, Order.Desc))
+      case s => DecodeResult.Error(s, AppError.InvalidQueryParam(s"SortBy=$s"))
+    }(sortBy =>
       sortBy match {
         case SortBy(Field.CreatedDate, Order.Desc) => "-created"
         case SortBy(Field.CreatedDate, Order.Asc)  => "created"
