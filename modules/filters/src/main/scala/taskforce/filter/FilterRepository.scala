@@ -1,6 +1,5 @@
 package taskforce.filter
 
-
 import cats.implicits._
 import doobie._
 import doobie.implicits._
@@ -19,7 +18,6 @@ import eu.timepit.refined.cats._
 import org.typelevel.log4cats.Logger
 import cats.Show
 import java.time.Instant
-
 
 trait FilterRepository[F[_]] {
   def create(filter: Filter): F[Filter]
