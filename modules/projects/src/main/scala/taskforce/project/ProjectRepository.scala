@@ -48,7 +48,7 @@ object ProjectRepository {
           .map(t => t.getOrElse(TotalTime(Duration.ZERO)))
 
       override def find(id: ProjectId): F[Option[Project]] =
-        run(query[Project].filter(_.id == lift(id))).transact(xa).map(_.headOption)
+        run(projectQuery.filter(_.id == lift(id))).transact(xa).map(_.headOption)
 
       override def list: F[List[Project]] =
         run(projectQuery)
