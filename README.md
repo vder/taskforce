@@ -10,7 +10,7 @@ The task is to write a REST API for the time logging system.
    * Timestamp of project creation for accounting purposes. 
 3. The system enables the author of the project to change the project ID. 
 4. The system allows each user to log the time spent on project (hereinafter referred to as a task). The task consists of: 
-   * Project start time stamp.
+   * Project start timestamp.
    * The duration of the task.
    * Optional: volume expressed as a natural number.
    * Optional: comment. 
