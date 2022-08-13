@@ -38,7 +38,7 @@ and simple pagination based on size and page number.
     * Average volume of the job (for jobs with the specified volume).
     * Volume weighted average task duration (for tasks from given volume).
 
-Access to statistics should be parameterized with a list of identifiers users whose tasks should be included and the from-to dates in the form year-month.
+Access to statistics should be parameterized with a list of identifiers users whose tasks should be included and the from-to dates.
 
 
 ## Usage
