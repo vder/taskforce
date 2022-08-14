@@ -29,7 +29,7 @@ object AuthService {
             JwtCirce
               .decode(bearerToken, secret, Seq(JwtAlgorithm.HS256))
               .toEither
-              .leftMap[ResponseError](_ => TokenDecoding(s"Failed to decode a token: $bearerToken"))
+              .leftMap[ResponseError](_ => TokenDecoding("Failed to decode auth token"))
           )
           userFromToken <- EitherT.fromEither[F](
             parse(jwtClaim.content)

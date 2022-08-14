@@ -18,7 +18,7 @@ import taskforce.common.ResponseError
 import io.circe.refined._
 import org.http4s.headers.Authorization
 import io.circe.generic.auto._
-import taskforce.auth.TestAuthenticator
+import taskforce.authentication.TestAuthenticator
 
 
 class ProjectRoutesSuite extends HttpTestSuite with Circe  {
@@ -49,7 +49,7 @@ class ProjectRoutesSuite extends HttpTestSuite with Circe  {
       ).pure[IO].flatMap { req =>
         assertHttp(routes, req)(
           Status.Conflict,
-          ResponseError.DuplicateProjectName2(s"project name '${p2.name}' already exists")
+          ResponseError.DuplicateProjectName(s"project name '${p2.name}' already exists")
         )
       }
     }
@@ -70,7 +70,7 @@ class ProjectRoutesSuite extends HttpTestSuite with Circe  {
       POST(p1.name, uri, authHeader).pure[IO].flatMap { req =>
         assertHttp(routes, req)(
           Status.Conflict,
-          ResponseError.DuplicateProjectName2(s"project name '${p1.name}' already exists")
+          ResponseError.DuplicateProjectName(s"project name '${p1.name}' already exists")
         )
       }
     }

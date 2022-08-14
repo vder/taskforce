@@ -14,14 +14,12 @@ import taskforce.authentication.UserId
 import taskforce.common.ResponseError
 import taskforce.task.instances.Circe
 
-
-//import java.time.Duration
-
 import arbitraries._
 import org.http4s.headers.Authorization
 import taskforce.common.CreationDate
 import java.time.Duration
-import taskforce.auth.TestAuthenticator
+import taskforce.authentication.TestAuthenticator
+
 
 class TasksRoutesSuite extends HttpTestSuite with Circe {
 

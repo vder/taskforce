@@ -16,7 +16,7 @@ trait BaseEndpoint extends instances.Circe {
           oneOfVariant[ResponseError.TokenDecoding](
             statusCode(StatusCode.Unauthorized)
               .description("Unauthorized")
-              .and(jsonBody[ResponseError.TokenDecoding].description("cannot decode given authorization token"))
+              .and(jsonBody[ResponseError.TokenDecoding].description("Cannot decode given authorization token"))
           ),
           oneOfVariant[ResponseError.Forbidden](
             statusCode(StatusCode.Unauthorized)
@@ -32,8 +32,8 @@ trait BaseEndpoint extends instances.Circe {
               .description("NotFound")
               .and(
                 jsonBody[ResponseError.NotFound]
-                  .description("resource not found")
-                  .description("gined resource does not exists")
+                  .description("Resource not found")
+                  .description("Given resource does not exists")
               )
           ),
           oneOfVariant[ResponseError.NotAuthor](
@@ -41,12 +41,12 @@ trait BaseEndpoint extends instances.Circe {
               .description("Forbidden")
               .and(
                 jsonBody[ResponseError.NotAuthor]
-                  .description("authorized user is not owner of the resource and cannot make changes")
+                  .description("Authorized user is not owner of the resource and cannot make changes")
               )
           ),
-          oneOfVariant[ResponseError.DuplicateProjectName2](
-            jsonBody[ResponseError.DuplicateProjectName2]
-              .description("project's name is already in use")
+          oneOfVariant[ResponseError.DuplicateProjectName](
+            jsonBody[ResponseError.DuplicateProjectName]
+              .description("Project's name is already in use")
               .and(statusCode(StatusCode.Conflict).description("Conflict"))
           ),
           oneOfVariant[ResponseError.WrongPeriodError](

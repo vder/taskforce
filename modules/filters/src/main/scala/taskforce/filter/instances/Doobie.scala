@@ -40,19 +40,16 @@ trait Doobie extends taskforce.task.instances.Doobie with NewTypeDoobieMeta with
   implicit val getNonEmptyList: Get[List[NonEmptyString]] =
     Get[List[String]] temap (_.traverse(refineV[NonEmpty](_)))
 
-  implicit val inSqlizer: Sqlizer[Criteria.In] = new Sqlizer[Criteria.In] {
-    def toFragment(in: Criteria.In) =
-      NonEmptyList
-        .fromList(in.names)
-        .map(x => Fragments.in(fr"p.name", x))
-        .getOrElse(Fragment.empty)
-  }
+  implicit val inSqlizer: Sqlizer[Criteria.In] = (in: Criteria.In) => NonEmptyList
+    .fromList(in.names)
+    .map(x => Fragments.in(fr"p.name", x))
+    .getOrElse(Fragment.empty)
 
   implicit val stateSqlizer: Sqlizer[Criteria.State] = new Sqlizer[Criteria.State] {
     def toFragment(s: Criteria.State) =
       s.status match {
         case Status.All      => fr"1=1"
-        case Status.Deactive => fr"""t.deleted is not null"""
+        case Status.Inactive => fr"""t.deleted is not null"""
         case Status.Active   => fr"""t.deleted is null"""
       }
   }

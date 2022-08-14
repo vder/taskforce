@@ -1,6 +1,5 @@
 package taskforce.project
 
-import cats.effect.Sync
 import cats.implicits._
 import taskforce.authentication.UserId
 import taskforce.common.AppError
@@ -10,42 +9,43 @@ final class ProjectService[F[_]: MonadThrow] private (
     projectRepo: ProjectRepository[F]
 ) {
 
-  def totalTime(projectId: ProjectId) = find(projectId) *> projectRepo.totalTime(projectId)
+  def totalTime(projectId: ProjectId): F[TotalTime] = projectRepo.totalTime(projectId)
 
   def list: F[List[Project]] = projectRepo.list
 
-  def delete(projectId: ProjectId, actionBy: UserId) =
+  def delete(projectId: ProjectId, actionBy: UserId): F[Int] =
     for {
-      projectOption <- projectRepo.find(projectId)
-      _ <-
-        MonadThrow[F]
-          .fromOption(projectOption, AppError.NotFound(projectId.value.toString()))
-          .ensure(AppError.NotAuthor(actionBy.value))(_.author == actionBy)
+      _         <- validateProjectExistsAndUserIsAuthor(projectId, actionBy)
       rowsCount <- projectRepo.delete(projectId)
     } yield rowsCount
 
-  def find(projectId: ProjectId) =
+  def find(projectId: ProjectId): F[Option[Project]] =
     projectRepo
       .find(projectId)
 
+  def create(newProject: ProjectName, actionBy: UserId): F[Either[AppError.DuplicateProjectName, Project]] =
+    projectRepo.create(newProject, actionBy)
 
-  def create(newProject: ProjectName, userId: UserId): F[Either[AppError.DuplicateProjectName, Project]] =
-    projectRepo.create(newProject, userId)
-
-  def update(projectId: ProjectId, newProject: ProjectName, userId: UserId) =
+  def update(
+      projectId: ProjectId,
+      newProject: ProjectName,
+      actionBy: UserId
+  ): F[Either[AppError.DuplicateProjectName, Project]] =
     for {
-      _ <-
-        projectRepo
-          .find(projectId)
-          .ensure(AppError.NotFound(projectId.value.toString()))(_.isDefined)
-          .ensure(AppError.NotAuthor(userId.value))(_.filter(_.author == userId).isDefined)
+      _ <- validateProjectExistsAndUserIsAuthor(projectId, actionBy)
       project <-
         projectRepo
           .update(projectId, newProject)
     } yield project
+
+  private def validateProjectExistsAndUserIsAuthor(projectId: ProjectId, userId: UserId) =
+    projectRepo
+      .find(projectId)
+      .flatMap(_.toRight(AppError.NotFound(projectId.value.toString)).liftTo[F])
+      .ensure(AppError.NotAuthor(userId.value))(_.author == userId)
 }
 
 object ProjectService {
-  def make[F[_]: Sync](projectRepo: ProjectRepository[F]): ProjectService[F] = new ProjectService[F](projectRepo)
+  def make[F[_]: MonadThrow](projectRepo: ProjectRepository[F]): ProjectService[F] = new ProjectService[F](projectRepo)
 
 }

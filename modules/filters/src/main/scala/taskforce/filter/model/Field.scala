@@ -1,6 +1,6 @@
 package taskforce.filter.model
 
-sealed trait Field
+sealed trait Field extends Product with Serializable
 
 object Field {
   final case object CreatedDate extends Field

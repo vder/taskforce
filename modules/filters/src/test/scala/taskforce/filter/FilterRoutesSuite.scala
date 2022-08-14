@@ -18,7 +18,7 @@ import taskforce.common.AppError
 import taskforce.filter.model.{Status => _, _}
 import taskforce.common.ResponseError
 import org.http4s.headers.Authorization
-import taskforce.auth.TestAuthenticator
+import taskforce.authentication.TestAuthenticator
 
 class FilterRoutesSuite extends HttpTestSuite with instances.Circe {
 
@@ -41,7 +41,7 @@ class FilterRoutesSuite extends HttpTestSuite with instances.Circe {
 
   test("create filter") {
     PropF.forAllF { (f: NewFilter, fId: FilterId) =>
-      val filterRepo = new TestFilterRepository(List(Filter(fId, f.conditions)), List())
+      val filterRepo = new TestFilterRepository[IO](List(Filter(fId, f.conditions)), List())
 
       val routes = FilterRoutes
         .make[IO](TestAuthenticator(UserId(UUID.randomUUID())), FilterService.make(filterRepo))
@@ -59,7 +59,7 @@ class FilterRoutesSuite extends HttpTestSuite with instances.Circe {
 
   test("get filter that does not exist") {
     PropF.forAllF { (fId: FilterId) =>
-      val filterRepo = new TestFilterRepository(List(), List())
+      val filterRepo = new TestFilterRepository[IO](List(), List())
       val routes =
         FilterRoutes
           .make[IO](TestAuthenticator(UserId(UUID.randomUUID())), FilterService.make(filterRepo))
@@ -79,7 +79,7 @@ class FilterRoutesSuite extends HttpTestSuite with instances.Circe {
   test("validate query Param decoding") {
     PropF.forAllF { (f: NewFilter, fId: FilterId, sortBy: SortBy, pg: Page, row: FilterResultRow) =>
       val queryParams = s"${pageToQuery(pg)}&${sortBytoQuery(sortBy)}"
-      val filterRepo = new TestFilterRepository(List(Filter(fId, f.conditions)), List(row)) {
+      val filterRepo = new TestFilterRepository[IO](List(Filter(fId, f.conditions)), List(row)) {
         override def execute(filter: Filter, sortByOption: Option[SortBy], page: Page): Stream[IO, FilterResultRow] = {
           if (page == pg && sortBy.some == sortByOption)
             Stream.emits(rows)

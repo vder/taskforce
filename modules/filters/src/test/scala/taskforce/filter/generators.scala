@@ -34,7 +34,7 @@ object generators {
   val operatorGen: Gen[Operator] =
     Gen.oneOf(List(Operator.Eq, Operator.Gt, Operator.Gteq, Operator.Lteq, Operator.Lt))
 
-  val statusGen: Gen[Status] = Gen.oneOf(List(Status.Active, Status.Deactive, Status.All))
+  val statusGen: Gen[Status] = Gen.oneOf(List(Status.Active, Status.Inactive, Status.All))
 
   val inGen: Gen[Criteria.In] =
     Gen

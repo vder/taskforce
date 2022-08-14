@@ -19,7 +19,7 @@ final case class FilterResultRow(
 
 object FilterResultRow {
 
-  def fromTuple(x: (Project, Option[Task])) =
+  def fromTuple(x: (Project, Option[Task])): FilterResultRow =
     x match {
       case (p, tOpt) =>
         FilterResultRow(

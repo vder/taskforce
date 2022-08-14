@@ -15,10 +15,7 @@ object Page {
   val default: Page =
     Page(PageNo(refineMV[Positive](1)), PageSize(refineMV[Positive](100)))
 
-  def fromParamsOrDefault(
-      pageNoOption: Option[PageNo],
-      pageSizeOption: Option[PageSize]
-  ) =
+  def fromParamsOrDefault(pageNoOption: Option[PageNo], pageSizeOption: Option[PageSize]): Page =
     Page(
       pageNoOption.getOrElse(PageNo.default),
       pageSizeOption.getOrElse(PageSize.default)

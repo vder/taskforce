@@ -14,15 +14,14 @@ import cats.effect.Resource
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import taskforce.authentication.Authenticator
 import taskforce.authentication.AuthService
-
+import org.typelevel.log4cats.Logger
 
 object Main extends IOApp {
 
-  implicit def unsafeLogger[F[_]: Sync] = Slf4jLogger.getLogger[F]
+  implicit def unsafeLogger[F[_]: Sync]: Logger[F] = Slf4jLogger.getLogger[F]
 
   val resources: Resource[IO, (HikariTransactor[IO], HostConfig)] =
     for {
-      //be <- Resource.unit[IO]
       dbConfig <- Resource.eval(
         ConfigSource.default.at("database").loadF[IO, DatabaseConfig]()
       )
@@ -43,14 +42,16 @@ object Main extends IOApp {
     resources
       .use { case (xa, hostConfig) =>
         for {
-          db             <- Db.make[IO](xa)
-          authService <- AuthService(db.userRepo, hostConfig.secret.value).pure[IO]
+          db           <- Db.make[IO](xa).pure[IO]
+          authService  <- AuthService(db.userRepo, hostConfig.secret.value).pure[IO]
           authEndpoint <- Authenticator.make[IO](authService).pure[IO]
-          server <- Server.make[IO](
-            hostConfig.port.value,
-            authEndpoint,
-            db
-          ).pure[IO]
+          server <- Server
+            .make[IO](
+              hostConfig.port.value,
+              authEndpoint,
+              db
+            )
+            .pure[IO]
           exitCode <- server.run
         } yield exitCode
       }

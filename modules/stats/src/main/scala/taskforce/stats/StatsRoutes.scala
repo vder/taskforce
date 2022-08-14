@@ -24,7 +24,7 @@ final class StatsRoutes[F[_]: Async] private (
 
     val stats =
       authenticator
-        .secureEndpoints(base)
+        .secureEndpoint(base)
         .get
         .in(query[NonEmptyList[UserId]]("users").description("List of users id which we are calculate stats for"))
         .in(query[Option[DateFrom]]("from").description("Start of the period in format YYYY-DD-MM"))
@@ -44,7 +44,7 @@ final class StatsRoutes[F[_]: Async] private (
     def routes: HttpRoutes[F] = toRoutes("stats")(stats)
   }
 
-  def routes =
+  def routes: HttpRoutes[F] =
     Router(
       "/" -> endpoints.routes
     )
@@ -54,5 +54,5 @@ object StatsRoutes {
   def make[F[_]: Async](
       authenticator: Authenticator[F],
       statsService: StatsService[F]
-  ) = new StatsRoutes(authenticator, statsService)
+  ): StatsRoutes[F] = new StatsRoutes(authenticator, statsService)
 }

@@ -36,7 +36,7 @@ final class BasicRoutes[F[_]: Async] private (authenticator: Authenticator[F]) {
         .out(stringBody)
 
   private val authTestEndpoint = authenticator
-    .secureEndpoints(
+    .secureEndpoint(
       securedEndpoint
     )
     .serverLogicPure(userId => _ => s"its alive(tapir) $userId".asRight[ResponseError])

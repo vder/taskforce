@@ -26,7 +26,7 @@ trait TapirCodecs extends CommonTapirCodecs {
         case Some(i) if i > 0 => DecodeResult.Value(PageSize(Refined.unsafeApply[Int, Positive](i)))
         case _                => DecodeResult.Error(s, AppError.InvalidQueryParam(s"pageSize=$s"))
       }
-    )(pageSize => s"${pageSize.value.value}")
+    )(_.value.value.toString)
 
   implicit val pageNoCodec: Codec[String, PageNo, CodecFormat.TextPlain] =
     Codec.string.mapDecode(s =>
@@ -34,20 +34,18 @@ trait TapirCodecs extends CommonTapirCodecs {
         case Some(i) if i > 0 => DecodeResult.Value(PageNo(Refined.unsafeApply[Int, Positive](i)))
         case _                => DecodeResult.Error(s, AppError.InvalidQueryParam(s"pageNo=$s"))
       }
-    )(pageNo => s"${pageNo.value.value}")
+    )(_.value.value.toString)
 
   implicit val sortByCodec: Codec[String, SortBy, CodecFormat.TextPlain] =
-    Codec.string.mapDecode(s =>
-      s match {
-        case "created" =>
-          DecodeResult.Value(SortBy(Field.CreatedDate, Order.Asc))
-        case "updated" =>
-          DecodeResult.Value(SortBy(Field.UpdatedDate, Order.Asc))
-        case "-created" => DecodeResult.Value(SortBy(Field.CreatedDate, Order.Desc))
-        case "-updated" => DecodeResult.Value(SortBy(Field.UpdatedDate, Order.Desc))
-        case _          => DecodeResult.Error(s, AppError.InvalidQueryParam(s"SortBy=$s"))
-      }
-    )(sortBy =>
+    Codec.string.mapDecode {
+      case "created" =>
+        DecodeResult.Value(SortBy(Field.CreatedDate, Order.Asc))
+      case "updated" =>
+        DecodeResult.Value(SortBy(Field.UpdatedDate, Order.Asc))
+      case "-created" => DecodeResult.Value(SortBy(Field.CreatedDate, Order.Desc))
+      case "-updated" => DecodeResult.Value(SortBy(Field.UpdatedDate, Order.Desc))
+      case s          => DecodeResult.Error(s, AppError.InvalidQueryParam(s"sortBy=$s"))
+    }(sortBy =>
       sortBy match {
         case SortBy(Field.CreatedDate, Order.Desc) => "-created"
         case SortBy(Field.CreatedDate, Order.Asc)  => "created"
