@@ -40,6 +40,17 @@ and simple pagination based on size and page number.
 
 Access to statistics should be parameterized with a list of identifiers users whose tasks should be included and the from-to dates.
 
+## Tech stack
+* scala 2.13
+* cats & cats effect 3
+* pure config
+* monix new types
+* refined
+* postgress
+* flyway
+* doobie & quill
+* munit & scalacheck
+* http4s & tapir
 
 ## Usage
 
