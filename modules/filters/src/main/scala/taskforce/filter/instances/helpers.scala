@@ -22,13 +22,13 @@ object helpers {
 
   val statusFromString: PartialFunction[String, Status] = {
     case "active"   => Status.Active
-    case "deactive" => Status.Inactive
+    case "inactive" => Status.Inactive
     case "all"      => Status.All
   }
 
   val statusToString: Status => String = {
     case Status.Active   => "active"
-    case Status.Inactive => "deactive"
+    case Status.Inactive => "inactive"
     case Status.All      => "all"
   }
 }
