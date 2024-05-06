@@ -4,7 +4,7 @@ import com.typesafe.sbt.packager.docker.Cmd
 ThisBuild / githubWorkflowPublishTargetBranches := Seq()
 ThisBuild / organization                        := "com.pfl"
 ThisBuild / organizationName                    := "pfl"
-ThisBuild / scalaVersion                        := "2.13.8"
+ThisBuild / scalaVersion                        := "2.13.14"
 ThisBuild / version                             := "0.1.0-SNAPSHOT"
 
 IntegrationTest / parallelExecution in Global := false
@@ -107,7 +107,7 @@ lazy val authentication = (project in file("modules/auth"))
 lazy val projects = (project in file("modules/projects"))
   .disablePlugins(RevolverPlugin)
   .configs((IntegrationTest extend Test))
-  .settings(Defaults.itSettings,sharedSettings)
+  .settings(Defaults.itSettings, sharedSettings)
   .dependsOn(
     authentication % "compile->compile;test->test",
     common         % "test->test;it->it;test->it"
@@ -116,7 +116,7 @@ lazy val projects = (project in file("modules/projects"))
 lazy val tasks = (project in file("modules/tasks"))
   .disablePlugins(RevolverPlugin)
   .configs((IntegrationTest extend Test))
-  .settings(Defaults.itSettings,sharedSettings)
+  .settings(Defaults.itSettings, sharedSettings)
   .dependsOn(
     authentication % "compile->compile;test->test",
     common         % "test->test;it->it;compile->compile;test->it"
@@ -137,7 +137,7 @@ lazy val filters = (project in file("modules/filters"))
 
 lazy val stats = (project in file("modules/stats"))
   .disablePlugins(RevolverPlugin)
-  .settings(Defaults.itSettings,sharedSettings)
+  .settings(Defaults.itSettings, sharedSettings)
   .dependsOn(
     authentication % "compile->compile;test->test",
     common         % "test->test"
@@ -159,13 +159,13 @@ lazy val sharedSettings = Seq(
   ).map(_.exclude("org.slf4j", "*")),
   addCompilerPlugin(kindProjector),
   scalacOptions ++= Seq(
-      "-deprecation",
-      "-encoding",
-      "UTF-8",
-      "-language:higherKinds",
-      "-language:postfixOps",
-      "-feature",
-      "-Xlint:unused",
-      "-Ymacro-annotations"
-    )
+    "-deprecation",
+    "-encoding",
+    "UTF-8",
+    "-language:higherKinds",
+    "-language:postfixOps",
+    "-feature",
+    "-Xlint:unused",
+    "-Ymacro-annotations"
+  )
 )
