@@ -25,10 +25,10 @@ class TaskRepositorySuite extends BasicRepositorySuite {
     PropF.forAllF { (t: Task) =>
       for {
         repo      <- taskRepo
-        _ <- Logger[IO].info("Before All PFL")
+        _         <- Logger[IO].info("Before All PFL")
         allBefore <- repo.list(ProjectId(1)).compile.toList
         task = t.copy(projectId = ProjectId(1), author = userID)
-        _ <- Logger[IO].info("Task created")
+        _          <- Logger[IO].info("Task created")
         taskResult <- repo.create(task)
         allAfter   <- repo.list(ProjectId(1)).compile.toList
       } yield assertEquals(
