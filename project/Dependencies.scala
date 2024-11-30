@@ -8,7 +8,7 @@ object Dependencies {
     val catsEff          = "3.3.11"
     val circe            = "0.14.0"
     val circeDerivation  = "0.13.0-M5"
-    val doobie           = "1.0.0-RC2"
+    val doobie           = "1.0.0-RC5"
     val doobieQuill      = "0.0.5"
     val jwtCirce         = "9.0.5"
     val flyway           = "8.5.5"
