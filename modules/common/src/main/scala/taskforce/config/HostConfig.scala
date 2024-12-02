@@ -1,6 +1,5 @@
 package taskforce.config
 
-import eu.timepit.refined.auto._
 import eu.timepit.refined.pureconfig._
 import eu.timepit.refined.types.net.UserPortNumber
 import eu.timepit.refined.types.string.NonEmptyString

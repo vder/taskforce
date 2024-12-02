@@ -4,7 +4,7 @@ import com.typesafe.sbt.packager.docker.Cmd
 ThisBuild / githubWorkflowPublishTargetBranches := Seq()
 ThisBuild / organization                        := "com.pfl"
 ThisBuild / organizationName                    := "pfl"
-ThisBuild / scalaVersion                        := "2.13.8"
+ThisBuild / scalaVersion                        := "2.13.15"
 ThisBuild / version                             := "0.1.0-SNAPSHOT"
 
 IntegrationTest / parallelExecution in Global := false
@@ -33,7 +33,7 @@ lazy val root = (project in file("."))
     dockerBaseImage    := "openjdk:8-jre-alpine",
     dockerUpdateLatest := true,
     semanticdbEnabled  := true,                        // enable SemanticDB
-    semanticdbVersion  := scalafixSemanticdb.revision, // only required for Scala 2.x
+    //semanticdbVersion  := scalafixSemanticdb.revision, // only required for Scala 2.x
     addCompilerPlugin(kindProjector),
     addCompilerPlugin(betterMonadicFor),
     scalacOptions ++= Seq(

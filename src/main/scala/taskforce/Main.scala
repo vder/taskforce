@@ -13,10 +13,11 @@ import taskforce.infrastructure.Db
 import taskforce.infrastructure.Server
 import cats.effect.Resource
 import org.typelevel.log4cats.slf4j.Slf4jLogger
+import org.typelevel.log4cats.SelfAwareStructuredLogger
 
 object Main extends IOApp {
 
-  implicit def unsafeLogger[F[_]: Sync] = Slf4jLogger.getLogger[F]
+  implicit def unsafeLogger[F[_]: Sync]: SelfAwareStructuredLogger[F] = Slf4jLogger.getLogger[F]
 
   val resources: Resource[IO, (HikariTransactor[IO], HostConfig)] =
     for {
