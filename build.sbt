@@ -69,6 +69,7 @@ lazy val common = (project in file("modules/common"))
       circe,
       doobieQuill,
       flyway,
+      flywayPostgres,
       http4sCirce,
       http4sDsl,
       log4cats,
@@ -80,6 +81,7 @@ lazy val common = (project in file("modules/common"))
       mUnitScalacheck,
       pureConfig,
       pureConfigCE,
+      pureConfigGeneric,
       pureConfigRefined,
       scalaCheckEffect,
       scalaCheckEffectMunit,
@@ -145,7 +147,6 @@ lazy val stats = (project in file("modules/stats"))
 
 lazy val sharedSettings = Seq(
   libraryDependencies ++= Seq(
-    circeDerivation,
     circeExtras,
     circeFs2,
     circeParser,

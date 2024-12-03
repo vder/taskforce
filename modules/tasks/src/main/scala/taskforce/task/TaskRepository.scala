@@ -3,7 +3,6 @@ package taskforce.task
 import cats.effect.kernel.MonadCancelThrow
 import cats.syntax.all._
 import doobie.implicits._
-import org.polyvariant.doobiequill.DoobieContext
 import doobie.util.transactor.Transactor
 import org.postgresql.util.PSQLException
 import taskforce.authentication.UserId
@@ -16,6 +15,7 @@ import io.getquill.NamingStrategy
 import io.getquill.PluralizedTableNames
 import io.getquill.SnakeCase
 import taskforce.common.DeletionDate
+import io.getquill.doobie.DoobieContext
 
 trait TaskRepository[F[_]] {
   def create(task: Task): F[Either[DuplicateTaskNameError, Task]]
@@ -71,7 +71,7 @@ object TaskRepository {
           .filter(p => p.id == lift(id) && p.deleted.isEmpty)
           .update(_.deleted -> lift(DeletionDate(Instant.now()).some))
       )
-      _ <- run(taskQuery.insert(lift(task)))
+      _ <- run(taskQuery.insertValue(lift(task)))
     } yield ()
     update
       .transact(xa)
@@ -92,7 +92,7 @@ object TaskRepository {
       .map(_.headOption)
 
   override def create(task: Task): F[Either[DuplicateTaskNameError, Task]] =
-    run(taskQuery.insert(lift(task)))
+    run(taskQuery.insertValue(lift(task)))
       .transact(xa)
       .as(task.asRight[DuplicateTaskNameError])
       .recover(mapDatabaseErr(task))

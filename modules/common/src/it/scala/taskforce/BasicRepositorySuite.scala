@@ -35,7 +35,7 @@ trait BasicRepositorySuite extends CatsEffectSuite with ScalaCheckEffectSuite {
           value
       }
      
-    flyway = Flyway.configure().dataSource(db.url.value, db.user.value, db.pass.value).load()
+    flyway = Flyway.configure().dataSource(db.url.value, db.user.value, db.pass.value).cleanDisabled(false).load()
     flyway.clean()
     flyway.migrate()
 
@@ -43,13 +43,14 @@ trait BasicRepositorySuite extends CatsEffectSuite with ScalaCheckEffectSuite {
       db.driver,
       db.url,
       db.user,
-      db.pass
+      db.pass,
+      None
     )
 
   }
 
   override def beforeEach(context: BeforeEach): Unit = {
-    val flyway = Flyway.configure().dataSource(db.url.value, db.user.value, db.pass.value).load()
+
     flyway.clean()
     flyway.migrate()
     ()
