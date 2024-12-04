@@ -17,7 +17,7 @@ object Dependencies {
     val munit            = "0.7.29"
     val monixNewType     = "0.2.1"
     val pureConfig       = "0.17.1"
-    val refined          = "0.9.28"
+    val refined          = "0.9.29"
     val scalacheckEffect = "1.0.3"
     val simulacrum       = "1.0.1"
     val log4cats         = "2.2.0"
