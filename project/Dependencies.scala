@@ -22,8 +22,6 @@ object Dependencies {
     val simulacrum       = "1.0.1"
     val log4cats         = "2.2.0"
     val slf4j            = "1.7.36"
-    val log4cats         = "2.2.0"
-    val slf4j            = "1.7.36"
   }
   object Libraries {
 
@@ -31,9 +29,7 @@ object Dependencies {
     def doobieLib(artifact: String): ModuleID                   = "org.tpolecat"  %% artifact % V.doobie
     def http4sLib(artifact: String): ModuleID                   = "org.http4s"    %% artifact % V.http4s
     def mUnitLib(artifact: String): ModuleID                    = "org.scalameta" %% artifact % V.munit
-    def mUnitLib(artifact: String): ModuleID                    = "org.scalameta" %% artifact % V.munit
     def refinedLib(artifact: String): ModuleID                  = "eu.timepit"    %% artifact % V.refined
-    def typeLevelLibTest(artifact: String, v: String): ModuleID = "org.typelevel" %% artifact % v
     def typeLevelLibTest(artifact: String, v: String): ModuleID = "org.typelevel" %% artifact % v
 
     val cats           = "org.typelevel"        %% "cats-core"                  % V.cats
