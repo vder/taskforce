@@ -12,7 +12,7 @@ object Dependencies {
     val doobieQuill      = "4.8.5"
     val jwtCirce         = "9.0.5"
     val flyway           = "11.0.0"
-    val http4s           = "0.23.11"
+    val http4s           = "0.23.30"
     val kindProjector    = "0.13.3"
     val munit            = "1.0.0"
     val monixNewType     = "0.3.0"
@@ -51,9 +51,9 @@ object Dependencies {
     val flyway         = "org.flywaydb"          % "flyway-core"                % V.flyway
     val flywayPostgres = "org.flywaydb"          % "flyway-database-postgresql" % V.flyway  % "runtime"
     val http4sCirce    = http4sLib("http4s-circe")
-    val http4sClient   = http4sLib("http4s-blaze-client")
+    val http4sClient   = http4sLib("http4s-ember-client")
     val http4sDsl      = http4sLib("http4s-dsl")
-    val http4sServer   = http4sLib("http4s-blaze-server")
+    val http4sServer   = http4sLib("http4s-ember-server")
     val jwtCirce       = "com.github.jwt-scala" %% "jwt-circe"                  % V.jwtCirce
     val logback        = "ch.qos.logback"        % "logback-classic"            % V.Logback
     val mUnit          = mUnitLib("munit")

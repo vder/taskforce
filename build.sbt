@@ -22,6 +22,7 @@ lazy val root = (project in file("."))
     flywayUser     := "vder",
     flywayPassword := "password",
     Defaults.itSettings,
+    libraryDependencies += flywayPostgres,
     publish              := {},
     publish / skip       := true,
     Docker / packageName := "taskforce",

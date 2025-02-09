@@ -1,7 +1,6 @@
 package taskforce.infrastructure
 
 import cats.effect.Sync
-import cats.implicits._
 import doobie.util.transactor.Transactor
 import taskforce.authentication.UserRepository
 import taskforce.filter.FilterRepository
@@ -20,11 +19,11 @@ final case class Db[F[_]](
 
 object Db {
   def make[F[_]: Sync: Logger](xa: Transactor[F]) =
-    for {
-      filterDb  <- FilterRepository.make[F](xa).pure[F]
-      projectDb <- ProjectRepository.make[F](xa).pure[F]
-      statsDb   <- StatsRepository.make[F](xa).pure[F]
-      taskDb    <- TaskRepository.make[F](xa).pure[F]
-      userdDb   <- UserRepository.make[F](xa).pure[F]
-    } yield Db(filterDb, projectDb, statsDb, taskDb, userdDb)
+    Db(
+      FilterRepository.make[F](xa),
+      ProjectRepository.make[F](xa),
+      StatsRepository.make[F](xa),
+      TaskRepository.make[F](xa),
+      UserRepository.make[F](xa)
+    )
 }
