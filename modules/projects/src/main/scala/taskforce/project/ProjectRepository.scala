@@ -5,7 +5,6 @@ import cats.syntax.all._
 import doobie.implicits._
 import doobie.util.transactor.Transactor
 import io.getquill.{NamingStrategy, PluralizedTableNames, SnakeCase}
-import org.polyvariant.doobiequill._
 import org.postgresql.util.PSQLException
 import taskforce.authentication.UserId
 import taskforce.common.NewTypeQuillInstances
@@ -14,6 +13,7 @@ import java.time.temporal.ChronoUnit
 import taskforce.common.{CreationDate, DeletionDate}
 import taskforce.common.AppError
 import cats.effect.kernel.Clock
+import io.getquill.doobie.DoobieContext
 
 trait ProjectRepository[F[_]] {
   def create(newProject: ProjectName, userId: UserId): F[Either[AppError.DuplicateProjectName, Project]]

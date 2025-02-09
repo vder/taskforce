@@ -5,7 +5,7 @@ services:
   #  Create a service named db.
   tf-postgres-db:
     #   Use the Docker Image postgres. This will pull the newest release.
-    image: "postgres"
+    image: "postgres:16.6-bullseye"
     #   Give the container the name my_postgres. You can changes to something else.
     container_name: "tf_postgres_db"
     #   Setup the username, password, and database name. You can changes these values.

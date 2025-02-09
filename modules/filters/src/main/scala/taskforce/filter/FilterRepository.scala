@@ -77,7 +77,7 @@ object FilterRepository {
     ): Stream[F, FilterResultRow] = {
 
       val whereClause =
-        fragments.whereAnd(filter.conditions.map(_.toFragment): _*)
+        fragments.whereAndOpt(filter.conditions.map(_.toFragment))
       val orderClause = sortByOption.fold(Fragment.empty)(_.toFragment)
       val limitClause = page.toFragment
       val sqlQuery    = sql.getData ++ whereClause ++ orderClause ++ limitClause
@@ -170,7 +170,7 @@ object FilterRepository {
                |         ${date.date})""".stripMargin
       def delete(id: FilterId) = sql"delete from filters where filter_id = $id"
       def get(id: FilterId) =
-        sql"""select criteria_type,operator,date_value,status_value,list_value 
+        sql"""select criteria_type,operator,date_value,status_value,list_value
           |  from filters 
           | where filter_id = ${id}""".stripMargin
     }
