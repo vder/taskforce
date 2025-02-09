@@ -18,6 +18,7 @@ import taskforce.authentication.UserId
 import taskforce.common.{ErrorMessage, LiveHttpErrorHandler}
 import taskforce.common.errors._
 import taskforce.HttpTestSuite
+import org.typelevel.log4cats.SelfAwareStructuredLogger
 
 class FilterRoutesSuite extends HttpTestSuite with instances.Circe {
 
@@ -28,7 +29,7 @@ class FilterRoutesSuite extends HttpTestSuite with instances.Circe {
 
   val errHandler = LiveHttpErrorHandler[IO]
 
-  implicit def unsafeLogger = Slf4jLogger.getLogger[IO]
+  implicit def unsafeLogger: SelfAwareStructuredLogger[IO] = Slf4jLogger.getLogger[IO]
 
   def authMiddleware: AuthMiddleware[IO, UserId] =
     AuthMiddleware(Kleisli.pure(UserId(UUID.randomUUID())))

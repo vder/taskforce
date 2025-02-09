@@ -1,10 +1,9 @@
 import Dependencies.Libraries._
 import com.typesafe.sbt.packager.docker.Cmd
 
-ThisBuild / githubWorkflowPublishTargetBranches := Seq()
 ThisBuild / organization                        := "com.pfl"
 ThisBuild / organizationName                    := "pfl"
-ThisBuild / scalaVersion                        := "2.13.8"
+ThisBuild / scalaVersion                        := "2.13.15"
 ThisBuild / version                             := "0.1.0-SNAPSHOT"
 
 IntegrationTest / parallelExecution in Global := false
@@ -22,6 +21,7 @@ lazy val root = (project in file("."))
     flywayUser     := "vder",
     flywayPassword := "password",
     Defaults.itSettings,
+    libraryDependencies += flywayPostgres,
     publish              := {},
     publish / skip       := true,
     Docker / packageName := "taskforce",
@@ -33,7 +33,7 @@ lazy val root = (project in file("."))
     dockerBaseImage    := "openjdk:8-jre-alpine",
     dockerUpdateLatest := true,
     semanticdbEnabled  := true,                        // enable SemanticDB
-    semanticdbVersion  := scalafixSemanticdb.revision, // only required for Scala 2.x
+    //semanticdbVersion  := scalafixSemanticdb.revision, // only required for Scala 2.x
     addCompilerPlugin(kindProjector),
     addCompilerPlugin(betterMonadicFor),
     scalacOptions ++= Seq(
@@ -69,6 +69,7 @@ lazy val common = (project in file("modules/common"))
       circe,
       doobieQuill,
       flyway,
+      flywayPostgres,
       http4sCirce,
       http4sDsl,
       log4cats,
@@ -80,6 +81,7 @@ lazy val common = (project in file("modules/common"))
       mUnitScalacheck,
       pureConfig,
       pureConfigCE,
+      pureConfigGeneric,
       pureConfigRefined,
       scalaCheckEffect,
       scalaCheckEffectMunit,
@@ -145,7 +147,6 @@ lazy val stats = (project in file("modules/stats"))
 
 lazy val sharedSettings = Seq(
   libraryDependencies ++= Seq(
-    circeDerivation,
     circeExtras,
     circeFs2,
     circeParser,

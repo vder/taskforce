@@ -5,13 +5,13 @@ import cats.syntax.all._
 import doobie.implicits._
 import doobie.util.transactor.Transactor
 import io.getquill.{NamingStrategy, PluralizedTableNames, SnakeCase}
-import org.polyvariant.doobiequill._
 import org.postgresql.util.PSQLException
 import taskforce.authentication.UserId
 import taskforce.common._
 import java.time.Duration
 import java.time.temporal.ChronoUnit
 import java.time.Instant
+import io.getquill.doobie.DoobieContext
 
 trait ProjectRepository[F[_]] {
   def create(newProject: ProjectName, userId: UserId): F[Either[DuplicateProjectNameError, Project]]

@@ -3,7 +3,6 @@ package taskforce.filter
 import cats.effect.IO
 import cats.implicits._
 import eu.timepit.refined.api.Refined
-import eu.timepit.refined.auto._
 import eu.timepit.refined.collection._
 import eu.timepit.refined.numeric.Positive
 import org.scalacheck.effect.PropF
