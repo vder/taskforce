@@ -35,12 +35,23 @@ jobs:
         if: matrix.java == 'zulu@8'
         uses: actions/setup-java@v4
         with:
-          distribution: zulu
-          java-version: 8
-          cache: sbt
+          distribution: temurin
+          java-version: 11
+      
+      - name: Setup sbt launcher
+        uses: sbt/setup-sbt@v1    
 
-      - name: Setup sbt
-        uses: sbt/setup-sbt@v1
+      - name: Cache sbt
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.sbt
+            ~/.ivy2/cache
+            ~/.coursier/cache/v1
+            ~/.cache/coursier/v1
+            ~/AppData/Local/Coursier/Cache/v1
+            ~/Library/Caches/Coursier/v1
+          key: ${{ runner.os }}-sbt-cache-v2-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/build.properties') }}
 
       - name: Check that workflows are up to date
         run: sbt '++ ${{ matrix.scala }}' githubWorkflowCheck
