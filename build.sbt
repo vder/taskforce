@@ -1,7 +1,6 @@
 import Dependencies.Libraries._
 import com.typesafe.sbt.packager.docker.Cmd
 
-ThisBuild / githubWorkflowPublishTargetBranches := Seq()
 ThisBuild / organization                        := "com.pfl"
 ThisBuild / organizationName                    := "pfl"
 ThisBuild / scalaVersion                        := "2.13.15"

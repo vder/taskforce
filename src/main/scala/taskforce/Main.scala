@@ -33,7 +33,7 @@ object Main extends IOApp {
       hostConfig <- Resource.eval(
         ConfigSource.default.at("host").loadF[IO, HostConfig]()
       )
-      _ <-   flywayMigrate(dbConfig)
+      _ <- flywayMigrate(dbConfig)
     } yield (xa, hostConfig)
 
   override def run(args: List[String]): IO[ExitCode] = {
