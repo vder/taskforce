@@ -22,8 +22,8 @@ object Dependencies {
     val simulacrum       = "1.0.1"
     val log4cats         = "2.2.0"
     val slf4j            = "1.7.36"
-    val tapir            = "1.0.3"
-    val sttp3Client      = "3.7.2"
+    val tapir            = "1.11.14"
+    val sttp3Client      = "3.10.3"
   }
   object Libraries {
 
@@ -47,7 +47,7 @@ object Dependencies {
     val doobieRefined  = doobieLib("doobie-refined")
     val doobieQuill    = "io.getquill"          %% "quill-doobie"               % V.doobieQuill
     val flyway         = "org.flywaydb"          % "flyway-core"                % V.flyway
-    val flywayPostgres = "org.flywaydb"          % "flyway-database-postgresql" % V.flyway  % "runtime"
+    val flywayPostgres = "org.flywaydb"          % "flyway-database-postgresql" % V.flyway % "runtime"
     val http4sCirce    = http4sLib("http4s-circe")
     val http4sClient   = http4sLib("http4s-ember-client")
     val http4sDsl      = http4sLib("http4s-dsl")
@@ -67,9 +67,9 @@ object Dependencies {
     val refinedCats       = refinedLib("refined-cats")
     val scalaCheckEffect  = typeLevelLibTest("scalacheck-effect", V.scalacheckEffect)
     val scalaCheckEffectMunit = typeLevelLibTest("scalacheck-effect-munit", V.scalacheckEffect)
-    val log4cats              = "org.typelevel" %% "log4cats-slf4j" % V.log4cats
-    val slf4j                 = "org.slf4j"      % "slf4j-api"      % V.slf4j
-    val simulacrum            = "org.typelevel" %% "simulacrum"     % V.simulacrum
+    val log4cats              = "org.typelevel"                 %% "log4cats-slf4j"          % V.log4cats
+    val slf4j                 = "org.slf4j"                      % "slf4j-api"               % V.slf4j
+    val simulacrum            = "org.typelevel"                 %% "simulacrum"              % V.simulacrum
     val tapir                 = "com.softwaremill.sttp.tapir"   %% "tapir-core"              % V.tapir
     val tapirHttp4s           = "com.softwaremill.sttp.tapir"   %% "tapir-http4s-server"     % V.tapir
     val tapirCirce            = "com.softwaremill.sttp.tapir"   %% "tapir-json-circe"        % V.tapir
@@ -79,7 +79,6 @@ object Dependencies {
     val sttp3Circe            = "com.softwaremill.sttp.client3" %% "circe"                   % V.sttp3Client
     val tapirServer           = "com.softwaremill.sttp.tapir"   %% "tapir-sttp-stub-server"  % V.tapir
     val tapirSwagger          = "com.softwaremill.sttp.tapir"   %% "tapir-swagger-ui-bundle" % V.tapir
-
 
     // Compiler plugins
     val betterMonadicFor = "com.olegpy"   %% "better-monadic-for" % V.betterMonadicFor

@@ -1,11 +1,12 @@
 import Dependencies.Libraries._
 import com.typesafe.sbt.packager.docker.Cmd
 
-ThisBuild / organization                        := "com.pfl"
-ThisBuild / organizationName                    := "pfl"
-ThisBuild / scalaVersion                        := "2.13.15"
-ThisBuild / version                             := "0.1.0-SNAPSHOT"
+ThisBuild / organization     := "com.pfl"
+ThisBuild / organizationName := "pfl"
+ThisBuild / scalaVersion     := "2.13.16"
+ThisBuild / version          := "0.1.0-SNAPSHOT"
 
+//TODO: migrate IntegrationTest
 IntegrationTest / parallelExecution in Global := false
 
 lazy val root = (project in file("."))
@@ -16,24 +17,24 @@ lazy val root = (project in file("."))
   .enablePlugins(RevolverPlugin)
   .configs(IntegrationTest.extend(Test))
   .settings(
-    name           := "taskforce",
-    flywayUrl      := "jdbc:postgresql://localhost:54340/task",
-    flywayUser     := "vder",
-    flywayPassword := "password",
+    name                 := "taskforce",
+    flywayUrl            := "jdbc:postgresql://localhost:54340/task",
+    flywayUser           := "vder",
+    flywayPassword       := "password",
     Defaults.itSettings,
     libraryDependencies += flywayPostgres,
     publish              := {},
     publish / skip       := true,
     Docker / packageName := "taskforce",
-    dockerCommands := dockerCommands.value.flatMap {
+    dockerCommands       := dockerCommands.value.flatMap {
       case cmd @ Cmd("FROM", _) => List(cmd, Cmd("RUN", "apk update && apk add bash"))
       case other                => List(other)
     },
     dockerExposedPorts ++= Seq(9090),
-    dockerBaseImage    := "openjdk:8-jre-alpine",
-    dockerUpdateLatest := true,
-    semanticdbEnabled  := true,                        // enable SemanticDB
-    //semanticdbVersion  := scalafixSemanticdb.revision, // only required for Scala 2.x
+    dockerBaseImage      := "openjdk:8-jre-alpine",
+    dockerUpdateLatest   := true,
+    semanticdbEnabled    := true, // enable SemanticDB
+    // semanticdbVersion  := scalafixSemanticdb.revision, // only required for Scala 2.x
     addCompilerPlugin(kindProjector),
     addCompilerPlugin(betterMonadicFor),
     scalacOptions ++= Seq(
@@ -173,7 +174,7 @@ lazy val sharedSettings = Seq(
     tapirCirce,
     sttp3Client % Test,
     tapirServer % Test,
-    sttp3Circe % Test
+    sttp3Circe  % Test
   ).map(_.exclude("org.slf4j", "*")),
   addCompilerPlugin(kindProjector),
   scalacOptions ++= Seq(
