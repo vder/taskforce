@@ -1,60 +1,61 @@
 package taskforce.infrastructure
 
 import cats.effect.kernel.Async
-import cats.effect.ExitCode
+import cats.effect.Resource
 import cats.implicits._
-import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.implicits._
 import org.http4s.server.middleware.{AutoSlash, Logger => LoggerMiddleware}
-import scala.concurrent.ExecutionContext.global
+import org.typelevel.log4cats.Logger
+import com.comcast.ip4s._
+import fs2.io.net.Network
+import org.http4s.ember.server.EmberServerBuilder
 import taskforce.filter.{FilterRoutes, FilterService}
 import taskforce.project.{ProjectRoutes, ProjectService}
 import taskforce.stats.{StatsRoutes, StatsService}
 import taskforce.task.{TaskRoutes, TaskService}
 import taskforce.authentication.Authenticator
-import org.typelevel.log4cats.Logger
 
-final class Server[F[_]: Async: Logger] private (
-    port: Int,
+final class Server[F[_]: Async: Logger: Network] private (
+    port: Port,
     authenticator: Authenticator[F],
     db: Db[F]
 ) {
 
-  def run =
-    for {
-      basicRoutes    <- BasicRoutes.make(authenticator).pure[F]
-      projectService <- ProjectService.make(db.projectRepo).pure[F]
-      taskService    <- TaskService.make(db.taskRepo).pure[F]
-      statsService   <- StatsService.make(db.statsRepo).pure[F]
-      filterService  <- FilterService.make(db.filterRepo).pure[F]
-      projectRoutes  <- ProjectRoutes.make(authenticator, projectService).pure[F]
-      filterRoutes   <- FilterRoutes.make(authenticator, filterService).pure[F]
-      statsRoutes    <- StatsRoutes.make(authenticator, statsService).pure[F]
-      taskRoutes     <- TaskRoutes.make(authenticator, taskService).pure[F]
-      routes =
-        basicRoutes.routes <+> projectRoutes.routes <+>
-          taskRoutes.routes <+> filterRoutes.routes <+>
-          statsRoutes.routes
-      middlewares =
-        LoggerMiddleware
-          .httpRoutes[F](logHeaders = true, logBody = true) _ andThen AutoSlash.httpRoutes[F]
-      _ <-
-        BlazeServerBuilder[F]
-          .withExecutionContext(global)
-          .bindHttp(port, "0.0.0.0")
-          .withHttpApp(middlewares(routes).orNotFound)
-          .serve
-          .compile
-          .drain
-    } yield ExitCode.Success
+  private def resource: Resource[F, org.http4s.server.Server] = {
+    val basicRoutes    = BasicRoutes.make(authenticator)
+    val projectService = ProjectService.make(db.projectRepo)
+    val taskService    = TaskService.make(db.taskRepo)
+    val statsService   = StatsService.make(db.statsRepo)
+    val filterService  = FilterService.make(db.filterRepo)
+    val projectRoutes  = ProjectRoutes.make(authenticator, projectService)
+    val filterRoutes   = FilterRoutes.make(authenticator, filterService)
+    val statsRoutes    = StatsRoutes.make(authenticator, statsService)
+    val taskRoutes     = TaskRoutes.make(authenticator, taskService)
+    val routes =
+      basicRoutes.routes <+> projectRoutes.routes <+>
+        taskRoutes.routes <+> filterRoutes.routes <+>
+        statsRoutes.routes
+    val middlewares =
+      LoggerMiddleware
+        .httpRoutes[F](logHeaders = true, logBody = true) _ andThen AutoSlash.httpRoutes[F]
+
+    EmberServerBuilder
+      .default[F]
+      .withHost(ipv4"0.0.0.0")
+      .withPort(port)
+      .withHttpApp(middlewares(routes).orNotFound)
+      .build
+  }
 
 }
 
 object Server {
-  def make[F[_]: Async: Logger](
-      port: Int,
+
+  def resource[F[_]: Async: Logger: Network](
+      port: Port,
       authenticator: Authenticator[F],
       db: Db[F]
-  ): Server[F] =
-    new Server(port, authenticator, db)
+  ) =
+    new Server(port, authenticator, db).resource
+
 }

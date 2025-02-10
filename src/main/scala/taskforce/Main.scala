@@ -1,9 +1,12 @@
 package taskforce
 
 import cats.effect._
-import cats.implicits._
 import doobie.hikari._
 import doobie.util.ExecutionContexts
+import org.flywaydb.core.Flyway
+import org.flywaydb.core.api.output.MigrateResult
+
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 import pureconfig.ConfigSource
 import pureconfig.module.catseffect.syntax._
 import taskforce.config.DatabaseConfig
@@ -11,7 +14,6 @@ import taskforce.config.HostConfig
 import taskforce.infrastructure.Db
 import taskforce.infrastructure.Server
 import cats.effect.Resource
-import org.typelevel.log4cats.slf4j.Slf4jLogger
 import taskforce.authentication.Authenticator
 import taskforce.authentication.AuthService
 import org.typelevel.log4cats.Logger
@@ -36,23 +38,29 @@ object Main extends IOApp {
       hostConfig <- Resource.eval(
         ConfigSource.default.at("host").loadF[IO, HostConfig]()
       )
+      _ <- flywayMigrate(dbConfig)
     } yield (xa, hostConfig)
 
-  override def run(args: List[String]): IO[ExitCode] =
-    resources
-      .use { case (xa, hostConfig) =>
-        for {
-          db           <- Db.make[IO](xa).pure[IO]
-          authService  <- AuthService(db.userRepo, hostConfig.secret.value).pure[IO]
-          authEndpoint <- Authenticator.make[IO](authService).pure[IO]
-          server <- Server
-            .make[IO](
-              hostConfig.port.value,
-              authEndpoint,
-              db
-            )
-            .pure[IO]
-          exitCode <- server.run
-        } yield exitCode
-      }
+  override def run(args: List[String]): IO[ExitCode] = {
+    val serverResource = for {
+      (xa, hostConfig) <- resources
+      db           = Db.make[IO](xa)
+      authService  = AuthService(db.userRepo, hostConfig.secret.value)
+      authEndpoint = Authenticator.make[IO](authService)
+      server <- Server.resource(hostConfig.port, authEndpoint, db)
+    } yield server
+
+    serverResource.use(_ => IO.never)
+  }
+
+  private def flywayMigrate(db: DatabaseConfig): Resource[IO, MigrateResult] =
+    Resource.eval(IO {
+      Flyway
+        .configure()
+        .dataSource(db.url.value, db.user.value, db.pass.value)
+        .cleanDisabled(true)
+        .load()
+        .migrate()
+    })
+
 }

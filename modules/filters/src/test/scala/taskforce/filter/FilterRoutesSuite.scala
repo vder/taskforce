@@ -4,6 +4,7 @@ import arbitraries._
 import cats.effect.IO
 import cats.implicits._
 import fs2.Stream
+
 import java.util.UUID
 import org.http4s._
 import org.http4s.circe._
@@ -18,6 +19,7 @@ import taskforce.common.AppError
 import taskforce.filter.model.{Status => _, _}
 import taskforce.common.ResponseError
 import org.http4s.headers.Authorization
+import org.typelevel.log4cats.SelfAwareStructuredLogger
 import taskforce.authentication.TestAuthenticator
 
 class FilterRoutesSuite extends HttpTestSuite with instances.Circe {
@@ -27,8 +29,7 @@ class FilterRoutesSuite extends HttpTestSuite with instances.Circe {
   implicit def decodeRow: EntityDecoder[IO, FilterResultRow]       = jsonOf
   implicit def encodeRow: EntityEncoder[IO, FilterResultRow]       = jsonEncoderOf
 
-
-  implicit def unsafeLogger = Slf4jLogger.getLogger[IO]
+  implicit def unsafeLogger: SelfAwareStructuredLogger[IO] = Slf4jLogger.getLogger[IO]
 
   val authHeader = Authorization(Credentials.Token(AuthScheme.Bearer, "open sesame"))
 
