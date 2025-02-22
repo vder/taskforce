@@ -43,7 +43,8 @@ object Main extends IOApp {
 
   override def run(args: List[String]): IO[ExitCode] = {
     val serverResource = for {
-      (xa, hostConfig) <- resources
+      resourceTouple <- resources
+      (xa, hostConfig) = resourceTouple
       db           = Db.make[IO](xa)
       authService  = AuthService(db.userRepo, hostConfig.secret.value)
       authEndpoint = Authenticator.make[IO](authService)

@@ -37,7 +37,7 @@ final class Server[F[_]: Async: Logger: Network] private (
         statsRoutes.routes
     val middlewares =
       LoggerMiddleware
-        .httpRoutes[F](logHeaders = true, logBody = true) _ andThen AutoSlash.httpRoutes[F]
+        .httpRoutes[F](logHeaders = true, logBody = true) andThen AutoSlash.httpRoutes[F]
 
     EmberServerBuilder
       .default[F]

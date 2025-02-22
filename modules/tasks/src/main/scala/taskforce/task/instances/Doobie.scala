@@ -1,26 +1,23 @@
 package taskforce.task.instances
 
 import doobie.util.meta.Meta
-import taskforce.task.TaskDuration
-import java.time.Duration
-import taskforce.common.NewTypeQuillInstances
-import taskforce.common.NewTypeDoobieMeta
-import io.getquill.NamingStrategy
-import io.getquill.PluralizedTableNames
-import io.getquill.SnakeCase
-import io.getquill.doobie.DoobieContext
-import eu.timepit.refined.numeric
 import eu.timepit.refined.api.Refined
+import eu.timepit.refined.numeric
 import eu.timepit.refined.types.string
-import taskforce.task.Task
+import io.getquill.doobie.DoobieContext
+import io.getquill.{MappedEncoding, NamingStrategy, PluralizedTableNames, SnakeCase, querySchema, quote}
+import taskforce.common.{NewTypeDoobieMeta, NewTypeQuillInstances}
+import taskforce.task.{Task, TaskDuration}
+
+import java.time.Duration
 
 trait Doobie extends NewTypeDoobieMeta with NewTypeQuillInstances {
 
   val ctx =
     new DoobieContext.Postgres(NamingStrategy(PluralizedTableNames, SnakeCase))
-  import ctx._
+  import ctx.*
 
-  val taskQuery = quote {
+  inline def taskQuery = quote {
     querySchema[Task]("tasks", _.created -> "started")
   }
 

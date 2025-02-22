@@ -1,21 +1,20 @@
 package taskforce.stats.instances
 
 import cats.data.NonEmptyList
-import doobie._
-import doobie.implicits._
-import doobie.postgres.implicits._
-import taskforce.common.Sqlizer
+import doobie.*
+import doobie.implicits.*
+import doobie.postgres.implicits.*
+import taskforce.common.{NewTypeDoobieMeta, Sqlizer}
 import taskforce.stats.StatsQuery
-import taskforce.common.NewTypeDoobieMeta
 
 trait Doobie extends NewTypeDoobieMeta {
 
-  implicit val statsQuerySqlizer: Sqlizer[StatsQuery] = new Sqlizer[StatsQuery] {
-    def toFragment(sq: StatsQuery) =
-      NonEmptyList
-        .fromList(sq.users)
-        .map(x => fr" and " ++ Fragments.in(fr"t.author", x))
-        .getOrElse(Fragment.empty)
-  }
+  given Sqlizer[StatsQuery] with
+    extension (sq: StatsQuery)
+      def toFragment =
+        NonEmptyList
+          .fromList(sq.users)
+          .map(x => fr" and " ++ Fragments.in(fr"t.author", x))
+          .getOrElse(Fragment.empty)
 
 }

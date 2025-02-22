@@ -1,16 +1,4 @@
 {
-    "sqltools.connections": [
-        {
-            "previewLimit": 50,
-            "server": "localhost",
-            "port": 54340,
-            "driver": "PostgreSQL",
-            "name": "taskforceDB",
-            "database": "task",
-            "username": "vder",
-            "password": "password"
-        }
-    ],
     "files.watcherExclude": {
         "**/target": true
     }

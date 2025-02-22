@@ -1,11 +1,11 @@
 package taskforce.filter
 
-import cats.implicits._
+import cats.MonadThrow
+import cats.effect.std.UUIDGen
+import cats.implicits.*
 import fs2.Stream
 import taskforce.common.AppError
-import cats.MonadThrow
-import taskforce.filter.model._
-import cats.effect.std.UUIDGen
+import taskforce.filter.model.*
 
 final class FilterService[F[_]: MonadThrow: UUIDGen] private (filterRepo: FilterRepository[F]) {
 
@@ -21,7 +21,7 @@ final class FilterService[F[_]: MonadThrow: UUIDGen] private (filterRepo: Filter
   def getData(filterId: FilterId, pagination: Page, sortBy: Option[SortBy]): Stream[F, FilterResultRow] =
     for {
       filterOpt <- Stream.eval(filterRepo.find(filterId))
-      filter    <- filterOpt.toRight(AppError.NotFound(filterId.value.toString)).liftTo[Stream[F, *]]
+      filter    <- filterOpt.toRight(AppError.NotFound(filterId.value.toString)).liftTo[Stream[F, _]]
       rows      <- filterRepo.execute(filter, sortBy, pagination)
     } yield rows
 

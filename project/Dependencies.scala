@@ -1,6 +1,7 @@
-import sbt._
+import sbt.*
 
 object Dependencies {
+
   object V {
     val Logback          = "1.2.11"
     val betterMonadicFor = "0.3.1"
@@ -25,6 +26,7 @@ object Dependencies {
     val tapir            = "1.11.14"
     val sttp3Client      = "3.10.3"
   }
+
   object Libraries {
 
     def circeLib(artifact: String): ModuleID                    = "io.circe"      %% artifact % V.circe
@@ -37,7 +39,6 @@ object Dependencies {
     val cats           = "org.typelevel"        %% "cats-core"                  % V.cats
     val catsEffect     = "org.typelevel"        %% "cats-effect"                % V.catsEff
     val circe          = circeLib("circe-generic")
-    val circeExtras    = circeLib("circe-generic-extras")
     val circeFs2       = circeLib("circe-fs2")
     val circeParser    = circeLib("circe-parser")
     val circeRefined   = circeLib("circe-refined")
@@ -46,6 +47,7 @@ object Dependencies {
     val doobiePostgres = doobieLib("doobie-postgres")
     val doobieRefined  = doobieLib("doobie-refined")
     val doobieQuill    = "io.getquill"          %% "quill-doobie"               % V.doobieQuill
+    val quillCodeGen   = "io.getquill"          %% "quill-jdbc"                 % V.doobieQuill
     val flyway         = "org.flywaydb"          % "flyway-core"                % V.flyway
     val flywayPostgres = "org.flywaydb"          % "flyway-database-postgresql" % V.flyway % "runtime"
     val http4sCirce    = http4sLib("http4s-circe")
@@ -60,7 +62,6 @@ object Dependencies {
     val monixNewType      = "io.monix"                                    %% "newtypes-core"          % V.monixNewType
     val monixNewTypeCirce = "io.monix"                                    %% "newtypes-circe-v0-14"   % V.monixNewType
     val pureConfig        = "com.github.pureconfig"                       %% "pureconfig-core"        % V.pureConfig
-    val pureConfigGeneric = "com.github.pureconfig"                       %% "pureconfig-generic"     % V.pureConfig
     val pureConfigCE      = "com.github.pureconfig"                       %% "pureconfig-cats-effect" % V.pureConfig
     val pureConfigRefined = refinedLib("refined-pureconfig")
     val refined           = refinedLib("refined")
@@ -80,8 +81,6 @@ object Dependencies {
     val tapirServer           = "com.softwaremill.sttp.tapir"   %% "tapir-sttp-stub-server"  % V.tapir
     val tapirSwagger          = "com.softwaremill.sttp.tapir"   %% "tapir-swagger-ui-bundle" % V.tapir
 
-    // Compiler plugins
-    val betterMonadicFor = "com.olegpy"   %% "better-monadic-for" % V.betterMonadicFor
-    val kindProjector    = "org.typelevel" % "kind-projector"     % V.kindProjector cross CrossVersion.full
   }
+
 }

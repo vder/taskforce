@@ -1,10 +1,15 @@
 import Dependencies.Libraries._
 import com.typesafe.sbt.packager.docker.Cmd
+import org.typelevel.scalacoptions.ScalacOptions
 
 ThisBuild / organization     := "com.pfl"
 ThisBuild / organizationName := "pfl"
-ThisBuild / scalaVersion     := "2.13.16"
+ThisBuild / scalaVersion     := "3.6.3"
 ThisBuild / version          := "0.1.0-SNAPSHOT"
+ThisBuild/  tpolecatExcludeOptions ++=  Set(
+  ScalacOptions.advancedKindProjector,
+  ScalacOptions.privateKindProjector
+)
 
 //TODO: migrate IntegrationTest
 IntegrationTest / parallelExecution in Global := false
@@ -34,19 +39,6 @@ lazy val root = (project in file("."))
     dockerBaseImage      := "openjdk:8-jre-alpine",
     dockerUpdateLatest   := true,
     semanticdbEnabled    := true, // enable SemanticDB
-    // semanticdbVersion  := scalafixSemanticdb.revision, // only required for Scala 2.x
-    addCompilerPlugin(kindProjector),
-    addCompilerPlugin(betterMonadicFor),
-    scalacOptions ++= Seq(
-      "-deprecation",
-      "-encoding",
-      "UTF-8",
-      "-language:higherKinds",
-      "-language:postfixOps",
-      "-feature",
-      "-Xlint:unused",
-      "-Ymacro-annotations"
-    )
   )
   .dependsOn(
     common  % "test->test",
@@ -69,6 +61,7 @@ lazy val common = (project in file("modules/common"))
       cats,
       circe,
       doobieQuill,
+      quillCodeGen,
       flyway,
       flywayPostgres,
       http4sCirce,
@@ -82,11 +75,9 @@ lazy val common = (project in file("modules/common"))
       mUnitScalacheck,
       pureConfig,
       pureConfigCE,
-      pureConfigGeneric,
       pureConfigRefined,
       scalaCheckEffect,
       scalaCheckEffectMunit,
-      simulacrum,
       slf4j,
       tapir,
       tapirCirce,
@@ -95,8 +86,6 @@ lazy val common = (project in file("modules/common"))
       tapirSwagger,
       tapirHttp4s
     ).map(_.exclude("org.slf4j", "*")),
-    addCompilerPlugin(kindProjector),
-    scalacOptions ++= Seq("-Ymacro-annotations")
   )
 
 lazy val authentication = (project in file("modules/auth"))
@@ -113,8 +102,6 @@ lazy val authentication = (project in file("modules/auth"))
       tapirCats,
       tapirRefined
     ).map(_.exclude("org.slf4j", "*")),
-    addCompilerPlugin(kindProjector),
-    scalacOptions ++= Seq("-Ymacro-annotations")
   )
   .dependsOn(common)
 
@@ -133,7 +120,7 @@ lazy val tasks = (project in file("modules/tasks"))
   .settings(Defaults.itSettings, sharedSettings)
   .dependsOn(
     authentication % "compile->compile;test->test",
-    common         % "test->test;it->it;compile->compile;test->it"
+    common         % "test->test;it->itA;compile->compile;test->it"
   )
 
 lazy val filters = (project in file("modules/filters"))
@@ -141,8 +128,7 @@ lazy val filters = (project in file("modules/filters"))
   .configs((IntegrationTest extend Test))
   .settings(
     Defaults.itSettings,
-    addCompilerPlugin(kindProjector),
-    scalacOptions ++= Seq("-Ymacro-annotations")
+    scalacOptions ++= Seq("-Xkind-projector:underscores")
   )
   .dependsOn(
     tasks    % "compile->compile;test->test",
@@ -159,7 +145,6 @@ lazy val stats = (project in file("modules/stats"))
 
 lazy val sharedSettings = Seq(
   libraryDependencies ++= Seq(
-    circeExtras,
     circeFs2,
     circeParser,
     circeRefined,
@@ -176,15 +161,4 @@ lazy val sharedSettings = Seq(
     tapirServer % Test,
     sttp3Circe  % Test
   ).map(_.exclude("org.slf4j", "*")),
-  addCompilerPlugin(kindProjector),
-  scalacOptions ++= Seq(
-    "-deprecation",
-    "-encoding",
-    "UTF-8",
-    "-language:higherKinds",
-    "-language:postfixOps",
-    "-feature",
-    "-Xlint:unused",
-    "-Ymacro-annotations"
-  )
 )

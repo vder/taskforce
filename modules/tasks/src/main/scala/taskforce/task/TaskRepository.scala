@@ -4,6 +4,7 @@ import cats.effect.kernel.MonadCancelThrow
 import cats.syntax.all._
 import doobie.implicits._
 import doobie.util.transactor.Transactor
+import io.getquill._
 import org.postgresql.util.PSQLException
 import taskforce.authentication.UserId
 import fs2.Stream
