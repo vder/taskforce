@@ -1,37 +1,34 @@
 package taskforce.task.instances
 
 import doobie.util.meta.Meta
-import taskforce.task.TaskDuration
-import java.time.Duration
-import taskforce.common.NewTypeQuillInstances
-import taskforce.common.NewTypeDoobieMeta
-import io.getquill.NamingStrategy
-import io.getquill.PluralizedTableNames
-import io.getquill.SnakeCase
-import eu.timepit.refined.numeric
 import eu.timepit.refined.api.Refined
+import eu.timepit.refined.numeric
 import eu.timepit.refined.types.string
-import org.polyvariant.doobiequill.DoobieContext
-import taskforce.task.Task
+import io.getquill.doobie.DoobieContext
+import io.getquill.{MappedEncoding, NamingStrategy, PluralizedTableNames, SnakeCase, querySchema, quote}
+import taskforce.common.{NewTypeDoobieMeta, NewTypeQuillInstances}
+import taskforce.task.{Task, TaskDuration}
+
+import java.time.Duration
 
 trait Doobie extends NewTypeDoobieMeta with NewTypeQuillInstances {
 
   val ctx =
     new DoobieContext.Postgres(NamingStrategy(PluralizedTableNames, SnakeCase))
-  import ctx._
+  import ctx.*
 
-  val taskQuery = quote {
+  inline def taskQuery = quote {
     querySchema[Task]("tasks", _.created -> "started")
   }
 
-  implicit val decodePositiveInt =
+  implicit val decodePositiveInt: MappedEncoding[Int, Refined[Int, numeric.Positive]] =
     MappedEncoding[Int, Int Refined numeric.Positive](Refined.unsafeApply(_))
-  implicit val encodePositiveInt =
+  implicit val encodePositiveInt: MappedEncoding[Refined[Int, numeric.Positive], Int] =
     MappedEncoding[Int Refined numeric.Positive, Int](_.value)
 
-  implicit val decodeNonEmptyString =
+  implicit val decodeNonEmptyString: MappedEncoding[String, string.NonEmptyString] =
     MappedEncoding[String, string.NonEmptyString](Refined.unsafeApply(_))
-  implicit val encodeNonEmptyString =
+  implicit val encodeNonEmptyString: MappedEncoding[string.NonEmptyString, String] =
     MappedEncoding[string.NonEmptyString, String](_.value)
 
   implicit val taskDurationMeta: Meta[TaskDuration] =

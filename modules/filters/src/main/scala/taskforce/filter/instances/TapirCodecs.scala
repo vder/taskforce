@@ -1,7 +1,7 @@
 package taskforce.filter.instances
 
 import sttp.tapir.Schema
-import taskforce.filter.model.Filter
+//import taskforce.filter.model.Filter
 import taskforce.common.instances.{TapirCodecs => CommonTapirCodecs}
 import taskforce.filter.model._
 import sttp.tapir.Codec

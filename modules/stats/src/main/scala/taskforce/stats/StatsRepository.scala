@@ -2,9 +2,7 @@ package taskforce.stats
 
 import doobie.implicits._
 import doobie.postgres.implicits._
-import doobie.refined.implicits._
 import doobie.util.transactor.Transactor
-import taskforce.common.Sqlizer.ops._
 import cats.effect.kernel.MonadCancelThrow
 trait StatsRepository[F[_]] {
   def get(query: StatsQuery): F[StatsResponse]

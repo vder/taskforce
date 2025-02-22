@@ -10,10 +10,11 @@ import org.flywaydb.core.Flyway
 import taskforce.config.DatabaseConfig
 import cats.effect.kernel.Sync
 import org.typelevel.log4cats.slf4j.Slf4jLogger
+import org.typelevel.log4cats.SelfAwareStructuredLogger
 
 trait BasicRepositorySuite extends CatsEffectSuite with ScalaCheckEffectSuite {
 
-  implicit def unsafeLogger[F[_]: Sync] = Slf4jLogger.getLogger[F]
+  implicit def unsafeLogger[F[_]: Sync]: SelfAwareStructuredLogger[F] = Slf4jLogger.getLogger[F]
   var db: DatabaseConfig                      = null
   var flyway: Flyway                          = null
   var xa: transactor.Transactor.Aux[IO, Unit] = null
@@ -34,7 +35,7 @@ trait BasicRepositorySuite extends CatsEffectSuite with ScalaCheckEffectSuite {
           value
       }
      
-    flyway = Flyway.configure().dataSource(db.url.value, db.user.value, db.pass.value).load()
+    flyway = Flyway.configure().dataSource(db.url.value, db.user.value, db.pass.value).cleanDisabled(false).load()
     flyway.clean()
     flyway.migrate()
 
@@ -42,13 +43,14 @@ trait BasicRepositorySuite extends CatsEffectSuite with ScalaCheckEffectSuite {
       db.driver,
       db.url,
       db.user,
-      db.pass
+      db.pass,
+      None
     )
 
   }
 
   override def beforeEach(context: BeforeEach): Unit = {
-    val flyway = Flyway.configure().dataSource(db.url.value, db.user.value, db.pass.value).load()
+
     flyway.clean()
     flyway.migrate()
     ()

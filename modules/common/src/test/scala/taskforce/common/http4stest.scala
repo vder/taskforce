@@ -7,7 +7,6 @@ import munit.CatsEffectSuite
 import munit.ScalaCheckEffectSuite
 import org.http4s._
 import org.http4s.circe._
-import taskforce.common.ResponseError
 
 trait HttpTestSuite extends CatsEffectSuite with ScalaCheckEffectSuite {
 

@@ -16,7 +16,7 @@ import sttp.model.StatusCode
 
 final class BasicRoutes[F[_]: Async] private (authenticator: Authenticator[F]) {
 
-  private[this] val prefixPath = "/api/v1/"
+  private val prefixPath = "/api/v1/"
 
   private val testEndpoint: PublicEndpoint[Unit, Unit, String, Any] = endpoint.in("test").out(stringBody)
 

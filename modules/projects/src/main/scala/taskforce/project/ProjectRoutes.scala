@@ -2,19 +2,19 @@ package taskforce.project
 
 import cats.effect.kernel.Async
 import cats.implicits._
-import io.circe.refined._
 import org.http4s.HttpRoutes
 import org.http4s.server.Router
 import sttp.model.StatusCode
-import sttp.tapir.{path, statusCode}
+import sttp.tapir._
 import sttp.tapir.json.circe._
 import taskforce.authentication.Authenticator
+import taskforce.common.BaseEndpoint
 import taskforce.common.ResponseError
 import taskforce.common.ResponseError._
 import taskforce.project.ProjectName
 import taskforce.project.TotalTime
+import io.circe.refined._
 import taskforce.common.DefaultEndpointInterpreter
-import taskforce.common.BaseEndpoint
 
 final class ProjectRoutes[F[_]: Async] private (
     authenticator: Authenticator[F],
@@ -26,7 +26,7 @@ final class ProjectRoutes[F[_]: Async] private (
 
   private object endpoints {
 
-    val base = endpoint.in("projects")
+    val base: Endpoint[Unit, Unit, ResponseError, Unit, Any] = endpoint.in("projects")
 
     val list =
       authenticator

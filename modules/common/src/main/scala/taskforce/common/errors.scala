@@ -1,9 +1,9 @@
 package taskforce.common
 
-import scala.util.control.NoStackTrace
-import java.util.UUID
-import cats.implicits._
 import cats.MonadThrow
+import cats.implicits.*
+import java.util.UUID
+import scala.util.control.NoStackTrace
 
 sealed trait AppError extends NoStackTrace with Product with Serializable
 
@@ -16,11 +16,11 @@ object AppError {
   final case class InvalidStatsQueryParam(s: String)         extends AppError
   final case class InvalidTask(s: String)                    extends AppError
   final case class InvalidNewProject(s: String)              extends AppError
-  final case object InvalidNewFilter                         extends AppError
-  final case class DuplicateTaskNameError(task: String)      extends AppError
-  final case object WrongPeriodError                         extends AppError
+  final case class DuplicateTaskNameError(task: String) extends AppError
+  case object WrongPeriodError                          extends AppError
 
 }
+
 sealed trait ResponseError extends Product with Serializable {
   def message: String
 }
@@ -57,4 +57,5 @@ object ResponseError {
     def extractFromEffect: F[Either[ResponseError, A]] =
       fa.map(_.asRight[ResponseError]).recover(fromAppError.andThen(_.asLeft))
   }
+
 }

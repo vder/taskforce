@@ -1,16 +1,15 @@
 package taskforce.filter
 
+import taskforce.BasicRepositorySuite
 import cats.effect.IO
-import cats.implicits._
+import cats.implicits.*
 import eu.timepit.refined.api.Refined
-import eu.timepit.refined.auto._
-import eu.timepit.refined.collection._
+import eu.timepit.refined.collection.*
 import eu.timepit.refined.numeric.Positive
 import org.scalacheck.effect.PropF
-import arbitraries._
-import taskforce.BasicRepositorySuite
+import arbitraries.*
 import java.time.Instant
-import taskforce.filter.model._
+import taskforce.filter.model.*
 
 class FilterRepositorySuite extends BasicRepositorySuite {
 
@@ -25,14 +24,14 @@ class FilterRepositorySuite extends BasicRepositorySuite {
     PropF.forAllF { (f: FilterId, pageSize: PageSize) =>
       for {
         fRepo <- filterRepo
-        filter = Filter(f, List(Criteria.In(List(Refined.unsafeApply[String, NonEmpty]("project 1")))))
+        filter = Filter(f, List(Criteria.In(List(Refined.unsafeApply("project 1")))))
         rows <-
           fRepo
             .execute(
               filter,
               None,
               Page(
-                PageNo(Refined.unsafeApply[Int, Positive](1)),
+                PageNo(Refined.unsafeApply(1)),
                 pageSize
               )
             )

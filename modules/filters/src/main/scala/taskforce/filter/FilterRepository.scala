@@ -10,7 +10,6 @@ import doobie.util.transactor.Transactor
 import eu.timepit.refined.types.string._
 import fs2.Stream
 import java.util.UUID
-import taskforce.common.Sqlizer.ops._
 import taskforce.project.Project
 import taskforce.task.Task
 import cats.effect.kernel.MonadCancelThrow
@@ -23,15 +22,18 @@ trait FilterRepository[F[_]] {
   def create(filter: Filter): F[Unit]
   def delete(id: FilterId): F[Int]
   def find(id: FilterId): F[Option[Filter]]
+
   def execute(
       filter: Filter,
       sortByOption: Option[SortBy],
       page: Page
   ): Stream[F, FilterResultRow]
+
   def list: Stream[F, Filter]
 }
 
 object FilterRepository {
+
   def make[F[_]: MonadCancelThrow: Logger](xa: Transactor[F]): FilterRepository[F] = new FilterRepository[F]
     with instances.Doobie {
 
@@ -75,9 +77,8 @@ object FilterRepository {
         sortByOption: Option[SortBy],
         page: Page
     ): Stream[F, FilterResultRow] = {
-
       val whereClause =
-        fragments.whereAnd(filter.conditions.map(_.toFragment): _*)
+        fragments.whereAndOpt(filter.conditions.map(_.toFragment))
       val orderClause = sortByOption.fold(Fragment.empty)(_.toFragment)
       val limitClause = page.toFragment
       val sqlQuery    = sql.getData ++ whereClause ++ orderClause ++ limitClause
@@ -170,9 +171,10 @@ object FilterRepository {
                |         ${date.date})""".stripMargin
       def delete(id: FilterId) = sql"delete from filters where filter_id = $id"
       def get(id: FilterId) =
-        sql"""select criteria_type,operator,date_value,status_value,list_value 
+        sql"""select criteria_type,operator,date_value,status_value,list_value
           |  from filters 
           | where filter_id = ${id}""".stripMargin
     }
   }
+
 }

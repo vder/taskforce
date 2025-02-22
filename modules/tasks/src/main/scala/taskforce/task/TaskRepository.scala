@@ -4,6 +4,7 @@ import cats.effect.kernel.MonadCancelThrow
 import cats.syntax.all._
 import doobie.implicits._
 import doobie.util.transactor.Transactor
+import io.getquill._
 import org.postgresql.util.PSQLException
 import taskforce.authentication.UserId
 import fs2.Stream
@@ -21,6 +22,7 @@ trait TaskRepository[F[_]] {
 }
 
 object TaskRepository {
+
   def make[F[_]: MonadCancelThrow: Clock](xa: Transactor[F]): TaskRepository[F] =
     new TaskRepository[F] with instances.Doobie {
 
@@ -46,7 +48,7 @@ object TaskRepository {
               .filter(p => p.id == lift(id) && p.deleted.isEmpty)
               .update(_.deleted -> lift(deletionDate.some))
           )
-          _ <- run(taskQuery.insert(lift(task)))
+          _ <- run(taskQuery.insertValue(lift(task)))
         } yield ()
 
         for {
@@ -71,7 +73,7 @@ object TaskRepository {
           .map(_.headOption)
 
       override def create(task: Task): F[Either[AppError.DuplicateTaskNameError, Task]] =
-        run(taskQuery.insert(lift(task)))
+        run(taskQuery.insertValue(lift(task)))
           .transact(xa)
           .as(task.asRight[AppError.DuplicateTaskNameError])
           .recover(mapDatabaseErr(task))
@@ -93,4 +95,5 @@ object TaskRepository {
           .transact(xa)
 
     }
+
 }
